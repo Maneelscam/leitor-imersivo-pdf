@@ -1,0 +1,373 @@
+.library-book-card {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+
+  overflow: hidden;
+
+  background: var(--color-surface);
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+
+  box-shadow: var(--shadow-sm);
+
+  transition:
+    background-color
+    var(--duration-normal)
+    var(--easing-standard),
+    border-color
+    var(--duration-normal)
+    var(--easing-standard),
+    box-shadow
+    var(--duration-normal)
+    var(--easing-standard),
+    transform
+    var(--duration-normal)
+    var(--easing-standard);
+}
+
+.library-book-card:hover {
+  background: var(--color-surface-elevated);
+  border-color: var(--color-border-default);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-0.1875rem);
+}
+
+.library-book-card:focus-within {
+  border-color: var(--color-accent-border);
+}
+
+.library-book-card__cover-button {
+  position: relative;
+
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+
+  overflow: hidden;
+
+  text-align: left;
+
+  background: var(--color-background-soft);
+  border-radius:
+    var(--radius-xl)
+    var(--radius-xl)
+    var(--radius-none)
+    var(--radius-none);
+}
+
+.library-book-card__cover-frame {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  aspect-ratio: 3 / 4;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      145deg,
+      var(--color-background-soft),
+      var(--color-background-elevated)
+    );
+}
+
+.library-book-card__cover {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+  object-position: center;
+
+  transition:
+    transform
+    var(--duration-slow)
+    var(--easing-standard);
+}
+
+.library-book-card:hover
+  .library-book-card__cover {
+  transform: scale(1.025);
+}
+
+.library-book-card__cover-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+  padding: var(--space-6);
+  gap: var(--space-3);
+
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.library-book-card__cover-placeholder-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 3.5rem;
+  height: 3.5rem;
+
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-accent-border);
+  border-radius: var(--radius-xl);
+}
+
+.library-book-card__cover-placeholder-icon > svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.library-book-card__cover-placeholder-label {
+  max-width: 11rem;
+
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+}
+
+.library-book-card__progress-overlay {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  left: var(--space-3);
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  padding:
+    var(--space-2)
+    var(--space-3);
+
+  color: var(--color-text-primary);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+
+  background: rgb(8 11 17 / 82%);
+  border:
+    var(--border-width-thin)
+    solid
+    rgb(255 255 255 / 8%);
+  border-radius: var(--radius-full);
+
+  backdrop-filter: blur(0.75rem);
+}
+
+.library-book-card__progress-track {
+  flex: 1 1 auto;
+
+  height: 0.25rem;
+
+  overflow: hidden;
+
+  background: rgb(255 255 255 / 14%);
+  border-radius: var(--radius-full);
+}
+
+.library-book-card__progress-value {
+  display: block;
+
+  width: var(--library-book-progress, 0%);
+  height: 100%;
+
+  background: var(--color-accent);
+  border-radius: inherit;
+
+  transition:
+    width
+    var(--duration-slow)
+    var(--easing-standard);
+}
+
+.library-book-card__progress-label {
+  flex: 0 0 auto;
+  min-width: 2rem;
+
+  text-align: right;
+}
+
+.library-book-card__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--space-4);
+  gap: var(--space-4);
+}
+
+.library-book-card__information {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--space-2);
+}
+
+.library-book-card__title-button {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+
+  color: var(--color-text-primary);
+  text-align: left;
+
+  background: transparent;
+  border-radius: var(--radius-sm);
+}
+
+.library-book-card__title {
+  display: -webkit-box;
+  overflow: hidden;
+
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.library-book-card__title-button:hover
+  .library-book-card__title {
+  color: var(--color-accent);
+}
+
+.library-book-card__author {
+  overflow: hidden;
+
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.library-book-card__metadata {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+  gap:
+    var(--space-2)
+    var(--space-3);
+
+  color: var(--color-text-muted);
+  font-size: var(--font-size-2xs);
+}
+
+.library-book-card__metadata-item {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.library-book-card__metadata-item:not(:last-child)::after {
+  width: 0.1875rem;
+  height: 0.1875rem;
+  margin-left: var(--space-2);
+
+  content: "";
+
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
+}
+
+.library-book-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  min-width: 0;
+  margin-top: auto;
+  padding-top: var(--space-3);
+  gap: var(--space-3);
+
+  border-top:
+    var(--border-width-thin)
+    solid
+    var(--color-border-subtle);
+}
+
+.library-book-card__last-access {
+  min-width: 0;
+  overflow: hidden;
+
+  color: var(--color-text-muted);
+  font-size: var(--font-size-2xs);
+  line-height: var(--line-height-normal);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.library-book-card__actions {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: var(--space-1);
+}
+
+.library-book-card__delete-button {
+  opacity: 0;
+
+  transition:
+    opacity
+    var(--duration-fast)
+    var(--easing-standard);
+}
+
+.library-book-card:hover
+  .library-book-card__delete-button,
+.library-book-card:focus-within
+  .library-book-card__delete-button {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .library-book-card__delete-button {
+    opacity: 1;
+  }
+
+  .library-book-card:hover {
+    transform: none;
+  }
+
+  .library-book-card:hover
+    .library-book-card__cover {
+    transform: none;
+  }
+}
+
+@media (max-width: 36rem) {
+  .library-book-card__body {
+    padding: var(--space-3);
+  }
+
+  .library-book-card__progress-overlay {
+    right: var(--space-2);
+    bottom: var(--space-2);
+    left: var(--space-2);
+  }
+}

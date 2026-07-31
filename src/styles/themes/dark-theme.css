@@ -1,0 +1,64 @@
+:root {
+  color-scheme: dark;
+
+  --color-background: #080b11;
+  --color-background-elevated: #0d1119;
+  --color-background-soft: #121722;
+  --color-background-hover: #171d29;
+  --color-background-active: #1d2532;
+
+  --color-surface: #10151f;
+  --color-surface-elevated: #161c27;
+  --color-surface-muted: #1b2230;
+  --color-surface-overlay: rgb(8 11 17 / 82%);
+
+  --color-border-subtle: #202836;
+  --color-border-default: #2a3444;
+  --color-border-strong: #3a4658;
+
+  --color-text-primary: #f5f7fa;
+  --color-text-secondary: #b8c0cc;
+  --color-text-muted: #7e8999;
+  --color-text-disabled: #566171;
+  --color-text-inverse: #07110c;
+
+  --color-accent: #43e08a;
+  --color-accent-hover: #56eb99;
+  --color-accent-active: #31c978;
+  --color-accent-soft: rgb(67 224 138 / 14%);
+  --color-accent-border: rgb(67 224 138 / 34%);
+
+  --color-info: #5ea8ff;
+  --color-info-soft: rgb(94 168 255 / 14%);
+
+  --color-success: #43e08a;
+  --color-success-soft: rgb(67 224 138 / 14%);
+
+  --color-warning: #f2b84b;
+  --color-warning-soft: rgb(242 184 75 / 14%);
+
+  --color-danger: #ff6b72;
+  --color-danger-hover: #ff7c82;
+  --color-danger-soft: rgb(255 107 114 / 14%);
+
+  --color-focus-ring: rgb(67 224 138 / 42%);
+
+  --color-reader-background: #05070a;
+  --color-reader-page-background: #ffffff;
+  --color-reader-page-shadow: rgb(0 0 0 / 45%);
+
+  --shadow-sm:
+    0 1px 2px rgb(0 0 0 / 24%);
+
+  --shadow-md:
+    0 8px 24px rgb(0 0 0 / 28%);
+
+  --shadow-lg:
+    0 18px 50px rgb(0 0 0 / 38%);
+
+  --shadow-reader-page:
+    0 16px 48px var(--color-reader-page-shadow);
+
+  --shadow-focus:
+    0 0 0 3px var(--color-focus-ring);
+}

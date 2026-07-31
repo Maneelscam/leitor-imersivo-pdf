@@ -1,0 +1,112 @@
+.reader-rotation-controls {
+  display: inline-flex;
+  align-items: center;
+
+  height: var(--control-height-md);
+
+  overflow: hidden;
+
+  background: var(--color-background-soft);
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.reader-rotation-controls__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: var(--control-height-md);
+  height: 100%;
+  padding: 0;
+
+  color: var(--color-text-secondary);
+
+  background: transparent;
+  border: 0;
+
+  cursor: pointer;
+
+  transition:
+    color
+    var(--duration-fast)
+    var(--easing-standard),
+    background-color
+    var(--duration-fast)
+    var(--easing-standard);
+}
+
+.reader-rotation-controls__button:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background: var(--color-background-hover);
+}
+
+.reader-rotation-controls__button:active:not(:disabled) {
+  background: var(--color-background-active);
+}
+
+.reader-rotation-controls__button:disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.reader-rotation-controls__button:focus-visible {
+  position: relative;
+  z-index: 1;
+
+  outline:
+    var(--border-width-medium)
+    solid
+    var(--color-focus-ring);
+  outline-offset: -0.125rem;
+}
+
+.reader-rotation-controls__button > svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.reader-rotation-controls__value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 3.5rem;
+  height: 100%;
+  padding:
+    0
+    var(--space-2);
+
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+
+  border-right:
+    var(--border-width-thin)
+    solid
+    var(--color-border-subtle);
+  border-left:
+    var(--border-width-thin)
+    solid
+    var(--color-border-subtle);
+
+  white-space: nowrap;
+}
+
+@media (max-width: 36rem) {
+  .reader-rotation-controls {
+    flex: 1 1 auto;
+  }
+
+  .reader-rotation-controls__button {
+    flex: 0 0 var(--control-height-md);
+  }
+
+  .reader-rotation-controls__value {
+    flex: 1 1 auto;
+  }
+}

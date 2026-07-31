@@ -1,0 +1,127 @@
+.app-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+  min-width: 0;
+  gap: var(--space-4);
+}
+
+.app-topbar__heading {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.125rem;
+}
+
+.app-topbar__eyebrow {
+  overflow: hidden;
+
+  color: var(--color-accent);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-wide);
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.app-topbar__title {
+  overflow: hidden;
+
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-topbar__description {
+  overflow: hidden;
+
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-tight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-topbar__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+  gap: var(--space-2);
+}
+
+.app-topbar__status {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  height: var(--control-height-sm);
+  padding: 0 var(--space-3);
+  gap: var(--space-2);
+
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+
+  background: var(--color-background-soft);
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-border-subtle);
+  border-radius: var(--radius-full);
+}
+
+.app-topbar__status-indicator {
+  flex: 0 0 auto;
+
+  width: 0.4375rem;
+  height: 0.4375rem;
+
+  background: var(--color-success);
+  border-radius: var(--radius-full);
+  box-shadow:
+    0 0 0 0.1875rem
+    var(--color-success-soft);
+}
+
+.app-topbar__status-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 48rem) {
+  .app-topbar {
+    gap: var(--space-3);
+  }
+
+  .app-topbar__description {
+    display: none;
+  }
+
+  .app-topbar__actions {
+    gap: var(--space-1);
+  }
+
+  .app-topbar__status {
+    display: none;
+  }
+}
+
+@media (max-width: 30rem) {
+  .app-topbar__eyebrow {
+    display: none;
+  }
+
+  .app-topbar__title {
+    font-size: var(--font-size-md);
+  }
+}

@@ -1,0 +1,134 @@
+html {
+  background: var(--color-background);
+}
+
+body {
+  color: var(--color-text-primary);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  background:
+    radial-gradient(
+      circle at top left,
+      rgb(67 224 138 / 4%),
+      transparent 28rem
+    ),
+    var(--color-background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body,
+#root {
+  min-height: 100vh;
+}
+
+#root {
+  isolation: isolate;
+}
+
+button,
+input,
+select,
+textarea {
+  border-radius: var(--radius-md);
+}
+
+button {
+  background: transparent;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  color: var(--color-text-primary);
+  background: var(--color-background-soft);
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-border-default);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  color: var(--color-text-disabled);
+  background: var(--color-background-elevated);
+  opacity: 1;
+}
+
+hr {
+  height: var(--border-width-thin);
+  margin: 0;
+  background: var(--color-border-subtle);
+  border: 0;
+}
+
+strong,
+b {
+  font-weight: var(--font-weight-semibold);
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-family-mono);
+}
+
+kbd {
+  min-width: 1.75rem;
+  padding: var(--space-1) var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  text-align: center;
+  background: var(--color-background-active);
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow:
+    inset 0 -1px 0 rgb(255 255 255 / 8%);
+}
+
+::placeholder {
+  text-overflow: ellipsis;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color:
+    var(--color-border-strong)
+    transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border: 0.1875rem solid transparent;
+  border-radius: var(--radius-full);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+  border: 0.1875rem solid transparent;
+  background-clip: padding-box;
+}
