@@ -4,11 +4,18 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  base: '/leitor-imersivo-pdf/',
+
   plugins: [react()],
 
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@': fileURLToPath(
+        new URL(
+          './src',
+          import.meta.url,
+        ),
+      ),
     },
   },
 
