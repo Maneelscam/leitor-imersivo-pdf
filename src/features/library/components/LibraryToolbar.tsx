@@ -14,30 +14,44 @@ import '@/styles/components/library-toolbar.css'
 export interface LibraryToolbarProps
   extends HTMLAttributes<HTMLDivElement> {
   readonly totalBooks: number
-  readonly sortMode: LibrarySortModeValue
+
+  readonly sortMode:
+    LibrarySortModeValue
+
   readonly disabled?: boolean
+
+  readonly backupExporting?: boolean
 
   readonly onSortModeChange: (
     sortMode: LibrarySortModeValue,
   ) => void | Promise<void>
+
+  readonly onExportBackup?: () =>
+    void | Promise<void>
 }
 
 function createLibraryToolbarClassName(
   customClassName: string | undefined,
 ): string {
-  const classNames = ['library-toolbar']
+  const classNames = [
+    'library-toolbar',
+  ]
 
   if (
     customClassName !== undefined &&
     customClassName.trim().length > 0
   ) {
-    classNames.push(customClassName)
+    classNames.push(
+      customClassName,
+    )
   }
 
   return classNames.join(' ')
 }
 
-function formatBookCount(totalBooks: number): string {
+function formatBookCount(
+  totalBooks: number,
+): string {
   if (totalBooks === 0) {
     return 'Nenhum documento importado'
   }
@@ -53,37 +67,63 @@ export function LibraryToolbar({
   totalBooks,
   sortMode,
   disabled = false,
+  backupExporting = false,
   onSortModeChange,
+  onExportBackup,
   className,
   ...containerProps
 }: LibraryToolbarProps) {
   const sortSelectId = useId()
 
   const toolbarClassName =
-    createLibraryToolbarClassName(className)
+    createLibraryToolbarClassName(
+      className,
+    )
 
-  const normalizedTotalBooks = Math.max(
-    0,
-    Math.trunc(totalBooks),
-  )
+  const normalizedTotalBooks =
+    Math.max(
+      0,
+      Math.trunc(totalBooks),
+    )
+
+  const backupButtonDisabled =
+    disabled ||
+    backupExporting ||
+    onExportBackup === undefined
 
   const handleSortModeChange = (
-    event: ChangeEvent<HTMLSelectElement>,
+    event:
+      ChangeEvent<HTMLSelectElement>,
   ) => {
     const selectedSortMode =
       event.currentTarget.value
 
     if (
-      !Object.values(LibrarySortMode).includes(
-        selectedSortMode as LibrarySortModeValue,
+      !Object.values(
+        LibrarySortMode,
+      ).includes(
+        selectedSortMode as
+          LibrarySortModeValue,
       )
     ) {
       return
     }
 
     void onSortModeChange(
-      selectedSortMode as LibrarySortModeValue,
+      selectedSortMode as
+        LibrarySortModeValue,
     )
+  }
+
+  const handleExportBackup = () => {
+    if (
+      backupButtonDisabled ||
+      onExportBackup === undefined
+    ) {
+      return
+    }
+
+    void onExportBackup()
   }
 
   return (
@@ -100,11 +140,31 @@ export function LibraryToolbar({
           className="library-toolbar__description"
           aria-live="polite"
         >
-          {formatBookCount(normalizedTotalBooks)}
+          {formatBookCount(
+            normalizedTotalBooks,
+          )}
         </p>
       </div>
 
       <div className="library-toolbar__controls">
+        <button
+          type="button"
+          className="library-toolbar__backup-button"
+          disabled={
+            backupButtonDisabled
+          }
+          aria-busy={
+            backupExporting
+          }
+          onClick={
+            handleExportBackup
+          }
+        >
+          {backupExporting
+            ? 'Exportando...'
+            : 'Exportar backup'}
+        </button>
+
         <div className="library-toolbar__field">
           <label
             className="library-toolbar__label"
@@ -119,28 +179,38 @@ export function LibraryToolbar({
             value={sortMode}
             disabled={disabled}
             aria-label="Ordenar biblioteca"
-            onChange={handleSortModeChange}
+            onChange={
+              handleSortModeChange
+            }
           >
             <option
-              value={LibrarySortMode.RECENTLY_OPENED}
+              value={
+                LibrarySortMode.RECENTLY_OPENED
+              }
             >
               Abertos recentemente
             </option>
 
             <option
-              value={LibrarySortMode.RECENTLY_IMPORTED}
+              value={
+                LibrarySortMode.RECENTLY_IMPORTED
+              }
             >
               Importados recentemente
             </option>
 
             <option
-              value={LibrarySortMode.TITLE_ASCENDING}
+              value={
+                LibrarySortMode.TITLE_ASCENDING
+              }
             >
               Título de A a Z
             </option>
 
             <option
-              value={LibrarySortMode.TITLE_DESCENDING}
+              value={
+                LibrarySortMode.TITLE_DESCENDING
+              }
             >
               Título de Z a A
             </option>

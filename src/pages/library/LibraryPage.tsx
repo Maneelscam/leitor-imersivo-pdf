@@ -48,6 +48,12 @@ import type {
   BookId,
 } from '@/models/value-objects/BookId'
 import {
+  selectClearLibraryBackupError,
+  selectExportLibraryBackup,
+  selectLibraryBackupErrorMessage,
+  selectLibraryBackupExportStatus,
+} from '@/stores/selectors/libraryBackupSelectors'
+import {
   selectBookDeleteStatus,
   selectClearImportWarnings,
   selectClearLibraryError,
@@ -177,6 +183,14 @@ export function LibraryPage() {
     selectLastImportWarnings,
   )
 
+  const libraryBackupExportStatus = useAppStore(
+    selectLibraryBackupExportStatus,
+  )
+
+  const libraryBackupErrorMessage = useAppStore(
+    selectLibraryBackupErrorMessage,
+  )
+
   const loadLibrary = useAppStore(
     selectLoadLibrary,
   )
@@ -193,12 +207,20 @@ export function LibraryPage() {
     selectDeleteBook,
   )
 
+  const exportLibraryBackup = useAppStore(
+    selectExportLibraryBackup,
+  )
+
   const clearLibraryError = useAppStore(
     selectClearLibraryError,
   )
 
   const clearImportWarnings = useAppStore(
     selectClearImportWarnings,
+  )
+
+  const clearLibraryBackupError = useAppStore(
+    selectClearLibraryBackupError,
   )
 
   const [
@@ -229,6 +251,9 @@ export function LibraryPage() {
 
   const isDeleting =
     bookDeleteStatus === AsyncStatus.LOADING
+
+  const isBackupExporting =
+    libraryBackupExportStatus === AsyncStatus.LOADING
 
   const handleOpenBook = async (
     bookId: BookId,
@@ -336,6 +361,24 @@ export function LibraryPage() {
       aria-label="Biblioteca de documentos"
     >
       <div className="library-page__feedback">
+        {libraryBackupErrorMessage !== null && (
+          <FeedbackMessage
+            variant={FeedbackMessageVariant.ERROR}
+            title="Não foi possível exportar o backup"
+            description={libraryBackupErrorMessage}
+            icon={<ErrorIcon />}
+            action={
+              <Button
+                variant={ButtonVariant.GHOST}
+                size={ButtonSize.SMALL}
+                onClick={clearLibraryBackupError}
+              >
+                Fechar
+              </Button>
+            }
+          />
+        )}
+
         {libraryErrorMessage !== null &&
           !hasInitialLoadError && (
             <FeedbackMessage
@@ -442,10 +485,17 @@ export function LibraryPage() {
                 sortMode={librarySortMode}
                 disabled={
                   libraryLoadStatus ===
-                  AsyncStatus.LOADING
+                    AsyncStatus.LOADING ||
+                  isDeleting
+                }
+                backupExporting={
+                  isBackupExporting
                 }
                 onSortModeChange={
                   setLibrarySortMode
+                }
+                onExportBackup={
+                  exportLibraryBackup
                 }
               />
 

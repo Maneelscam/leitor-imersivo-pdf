@@ -80,6 +80,18 @@ export interface LibrarySlice {
   clearImportWarnings(): void
 }
 
+export interface LibraryBackupSlice {
+  readonly libraryBackupExportStatus:
+    AsyncStatus
+
+  readonly libraryBackupErrorMessage:
+    string | null
+
+  exportLibraryBackup(): Promise<void>
+
+  clearLibraryBackupError(): void
+}
+
 export interface ReaderSlice {
   readonly openedBook:
     OpenBookResult | null
@@ -226,5 +238,6 @@ export interface ReaderSettingsSlice {
 
 export type AppStore =
   LibrarySlice &
+  LibraryBackupSlice &
   ReaderSlice &
   ReaderSettingsSlice

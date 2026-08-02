@@ -1,3 +1,4 @@
+import { ExportLibraryBackupController } from '@/controllers/backup/ExportLibraryBackupController'
 import { CreateBookmarkController } from '@/controllers/bookmarks/CreateBookmarkController'
 import { DeleteBookmarkController } from '@/controllers/bookmarks/DeleteBookmarkController'
 import { LoadBookmarksController } from '@/controllers/bookmarks/LoadBookmarksController'
@@ -16,10 +17,12 @@ import { IndexedDbBookCoverRepository } from '@/repositories/indexed-db/IndexedD
 import { IndexedDbBookFileRepository } from '@/repositories/indexed-db/IndexedDbBookFileRepository'
 import { IndexedDbBookmarkRepository } from '@/repositories/indexed-db/IndexedDbBookmarkRepository'
 import { IndexedDbBookRepository } from '@/repositories/indexed-db/IndexedDbBookRepository'
+import { IndexedDbLibraryBackupRepository } from '@/repositories/indexed-db/IndexedDbLibraryBackupRepository'
 import { IndexedDbLibraryQueryRepository } from '@/repositories/indexed-db/IndexedDbLibraryQueryRepository'
 import { IndexedDbLibraryTransactionRepository } from '@/repositories/indexed-db/IndexedDbLibraryTransactionRepository'
 import { IndexedDbReaderSettingsRepository } from '@/repositories/indexed-db/IndexedDbReaderSettingsRepository'
 import { IndexedDbReadingProgressRepository } from '@/repositories/indexed-db/IndexedDbReadingProgressRepository'
+import { LibraryBackupArchiveService } from '@/services/backup/LibraryBackupArchiveService'
 import { PdfCoverGenerationService } from '@/services/cover/PdfCoverGenerationService'
 import { FileHashService } from '@/services/file/FileHashService'
 import { PdfFileValidationService } from '@/services/file/PdfFileValidationService'
@@ -54,6 +57,9 @@ const libraryQueryRepository =
 const libraryTransactionRepository =
   new IndexedDbLibraryTransactionRepository()
 
+const libraryBackupRepository =
+  new IndexedDbLibraryBackupRepository()
+
 const pdfWorkerService =
   new PdfWorkerService()
 
@@ -83,6 +89,9 @@ const pdfCoverGenerationService =
 const defaultReaderSettingsService =
   new DefaultReaderSettingsService()
 
+const libraryBackupArchiveService =
+  new LibraryBackupArchiveService()
+
 const importPdfController =
   new ImportPdfController({
     fileValidationService:
@@ -108,6 +117,12 @@ const deleteBookController =
     bookRepository,
     libraryTransactionRepository,
   })
+
+const exportLibraryBackupController =
+  new ExportLibraryBackupController(
+    libraryBackupRepository,
+    libraryBackupArchiveService,
+  )
 
 const openBookController =
   new OpenBookController({
@@ -174,6 +189,8 @@ export const applicationContainer = {
     importPdf: importPdfController,
     loadLibrary: loadLibraryController,
     deleteBook: deleteBookController,
+    exportLibraryBackup:
+      exportLibraryBackupController,
 
     openBook: openBookController,
     loadPdfPage: loadPdfPageController,
@@ -212,6 +229,8 @@ export const applicationContainer = {
       libraryQueryRepository,
     libraryTransaction:
       libraryTransactionRepository,
+    libraryBackup:
+      libraryBackupRepository,
   },
 
   services: {
@@ -228,6 +247,8 @@ export const applicationContainer = {
       pdfCoverGenerationService,
     defaultReaderSettings:
       defaultReaderSettingsService,
+    libraryBackupArchive:
+      libraryBackupArchiveService,
   },
 } as const
 
