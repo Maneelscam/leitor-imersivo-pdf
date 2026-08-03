@@ -1,4 +1,5 @@
 import { ExportLibraryBackupController } from '@/controllers/backup/ExportLibraryBackupController'
+import { RestoreLibraryBackupController } from '@/controllers/backup/RestoreLibraryBackupController'
 import { CreateBookmarkController } from '@/controllers/bookmarks/CreateBookmarkController'
 import { DeleteBookmarkController } from '@/controllers/bookmarks/DeleteBookmarkController'
 import { LoadBookmarksController } from '@/controllers/bookmarks/LoadBookmarksController'
@@ -23,6 +24,8 @@ import { IndexedDbLibraryTransactionRepository } from '@/repositories/indexed-db
 import { IndexedDbReaderSettingsRepository } from '@/repositories/indexed-db/IndexedDbReaderSettingsRepository'
 import { IndexedDbReadingProgressRepository } from '@/repositories/indexed-db/IndexedDbReadingProgressRepository'
 import { LibraryBackupArchiveService } from '@/services/backup/LibraryBackupArchiveService'
+import { LibraryBackupManifestValidationService } from '@/services/backup/LibraryBackupManifestValidationService'
+import { LibraryBackupRestoreService } from '@/services/backup/LibraryBackupRestoreService'
 import { PdfCoverGenerationService } from '@/services/cover/PdfCoverGenerationService'
 import { FileHashService } from '@/services/file/FileHashService'
 import { PdfFileValidationService } from '@/services/file/PdfFileValidationService'
@@ -92,6 +95,14 @@ const defaultReaderSettingsService =
 const libraryBackupArchiveService =
   new LibraryBackupArchiveService()
 
+const libraryBackupManifestValidationService =
+  new LibraryBackupManifestValidationService()
+
+const libraryBackupRestoreService =
+  new LibraryBackupRestoreService(
+    libraryBackupManifestValidationService,
+  )
+
 const importPdfController =
   new ImportPdfController({
     fileValidationService:
@@ -122,6 +133,12 @@ const exportLibraryBackupController =
   new ExportLibraryBackupController(
     libraryBackupRepository,
     libraryBackupArchiveService,
+  )
+
+const restoreLibraryBackupController =
+  new RestoreLibraryBackupController(
+    libraryBackupRepository,
+    libraryBackupRestoreService,
   )
 
 const openBookController =
@@ -189,8 +206,11 @@ export const applicationContainer = {
     importPdf: importPdfController,
     loadLibrary: loadLibraryController,
     deleteBook: deleteBookController,
+
     exportLibraryBackup:
       exportLibraryBackupController,
+    restoreLibraryBackup:
+      restoreLibraryBackupController,
 
     openBook: openBookController,
     loadPdfPage: loadPdfPageController,
@@ -247,8 +267,13 @@ export const applicationContainer = {
       pdfCoverGenerationService,
     defaultReaderSettings:
       defaultReaderSettingsService,
+
     libraryBackupArchive:
       libraryBackupArchiveService,
+    libraryBackupManifestValidation:
+      libraryBackupManifestValidationService,
+    libraryBackupRestore:
+      libraryBackupRestoreService,
   },
 } as const
 

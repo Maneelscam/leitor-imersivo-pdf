@@ -1,5 +1,6 @@
 import {
   useId,
+  useRef,
   type ChangeEvent,
   type HTMLAttributes,
 } from 'react'
@@ -22,12 +23,18 @@ export interface LibraryToolbarProps
 
   readonly backupExporting?: boolean
 
+  readonly backupRestoring?: boolean
+
   readonly onSortModeChange: (
     sortMode: LibrarySortModeValue,
   ) => void | Promise<void>
 
   readonly onExportBackup?: () =>
     void | Promise<void>
+
+  readonly onBackupFileSelected?: (
+    archiveFile: File,
+  ) => void | Promise<void>
 }
 
 function createLibraryToolbarClassName(
@@ -68,12 +75,20 @@ export function LibraryToolbar({
   sortMode,
   disabled = false,
   backupExporting = false,
+  backupRestoring = false,
   onSortModeChange,
   onExportBackup,
+  onBackupFileSelected,
   className,
   ...containerProps
 }: LibraryToolbarProps) {
   const sortSelectId = useId()
+  const backupFileInputId = useId()
+
+  const backupFileInputRef =
+    useRef<HTMLInputElement | null>(
+      null,
+    )
 
   const toolbarClassName =
     createLibraryToolbarClassName(
@@ -86,10 +101,19 @@ export function LibraryToolbar({
       Math.trunc(totalBooks),
     )
 
-  const backupButtonDisabled =
-    disabled ||
+  const backupOperationRunning =
     backupExporting ||
+    backupRestoring
+
+  const exportButtonDisabled =
+    disabled ||
+    backupOperationRunning ||
     onExportBackup === undefined
+
+  const restoreButtonDisabled =
+    disabled ||
+    backupOperationRunning ||
+    onBackupFileSelected === undefined
 
   const handleSortModeChange = (
     event:
@@ -117,13 +141,47 @@ export function LibraryToolbar({
 
   const handleExportBackup = () => {
     if (
-      backupButtonDisabled ||
+      exportButtonDisabled ||
       onExportBackup === undefined
     ) {
       return
     }
 
     void onExportBackup()
+  }
+
+  const handleOpenBackupFilePicker = () => {
+    if (
+      restoreButtonDisabled
+    ) {
+      return
+    }
+
+    backupFileInputRef.current?.click()
+  }
+
+  const handleBackupFileChange = (
+    event:
+      ChangeEvent<HTMLInputElement>,
+  ) => {
+    const archiveFile =
+      event.currentTarget.files?.item(
+        0,
+      )
+
+    event.currentTarget.value = ''
+
+    if (
+      archiveFile === null ||
+      archiveFile === undefined ||
+      onBackupFileSelected === undefined
+    ) {
+      return
+    }
+
+    void onBackupFileSelected(
+      archiveFile,
+    )
   }
 
   return (
@@ -147,11 +205,45 @@ export function LibraryToolbar({
       </div>
 
       <div className="library-toolbar__controls">
+        <input
+          ref={backupFileInputRef}
+          id={backupFileInputId}
+          className="library-toolbar__backup-input"
+          type="file"
+          accept=".zip,application/zip"
+          tabIndex={-1}
+          aria-hidden="true"
+          onChange={
+            handleBackupFileChange
+          }
+        />
+
         <button
           type="button"
           className="library-toolbar__backup-button"
           disabled={
-            backupButtonDisabled
+            restoreButtonDisabled
+          }
+          aria-controls={
+            backupFileInputId
+          }
+          aria-busy={
+            backupRestoring
+          }
+          onClick={
+            handleOpenBackupFilePicker
+          }
+        >
+          {backupRestoring
+            ? 'Restaurando...'
+            : 'Restaurar backup'}
+        </button>
+
+        <button
+          type="button"
+          className="library-toolbar__backup-button"
+          disabled={
+            exportButtonDisabled
           }
           aria-busy={
             backupExporting
@@ -177,7 +269,10 @@ export function LibraryToolbar({
             id={sortSelectId}
             className="library-toolbar__select"
             value={sortMode}
-            disabled={disabled}
+            disabled={
+              disabled ||
+              backupOperationRunning
+            }
             aria-label="Ordenar biblioteca"
             onChange={
               handleSortModeChange

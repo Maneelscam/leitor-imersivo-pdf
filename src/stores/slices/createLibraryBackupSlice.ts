@@ -16,6 +16,17 @@ type LibraryBackupSliceCreator = StateCreator<
   LibraryBackupSlice
 >
 
+function isBackupOperationRunning(
+  state: AppStore,
+): boolean {
+  return (
+    state.libraryBackupExportStatus ===
+      AsyncStatus.LOADING ||
+    state.libraryBackupRestoreStatus ===
+      AsyncStatus.LOADING
+  )
+}
+
 export const createLibraryBackupSlice:
   LibraryBackupSliceCreator = (
     set,
@@ -24,12 +35,16 @@ export const createLibraryBackupSlice:
     libraryBackupExportStatus:
       AsyncStatus.IDLE,
 
+    libraryBackupRestoreStatus:
+      AsyncStatus.IDLE,
+
     libraryBackupErrorMessage: null,
 
     exportLibraryBackup: async () => {
       if (
-        get().libraryBackupExportStatus ===
-        AsyncStatus.LOADING
+        isBackupOperationRunning(
+          get(),
+        )
       ) {
         return
       }
@@ -37,6 +52,7 @@ export const createLibraryBackupSlice:
       set({
         libraryBackupExportStatus:
           AsyncStatus.LOADING,
+
         libraryBackupErrorMessage: null,
       })
 
@@ -69,9 +85,70 @@ export const createLibraryBackupSlice:
       }
     },
 
+    restoreLibraryBackup: async (
+      archiveFile,
+    ) => {
+      if (
+        isBackupOperationRunning(
+          get(),
+        )
+      ) {
+        return
+      }
+
+      set({
+        libraryBackupRestoreStatus:
+          AsyncStatus.LOADING,
+
+        libraryBackupErrorMessage: null,
+      })
+
+      try {
+        if (
+          get().openedBook !== null
+        ) {
+          await get().closeBook()
+        }
+
+        await applicationContainer.controllers
+          .restoreLibraryBackup
+          .execute({
+            archiveFile,
+          })
+
+        await Promise.all([
+          get().loadLibrary(),
+          get().loadReaderSettings(),
+        ])
+
+        set({
+          libraryBackupRestoreStatus:
+            AsyncStatus.SUCCESS,
+        })
+      } catch (error) {
+        set({
+          libraryBackupRestoreStatus:
+            AsyncStatus.ERROR,
+
+          libraryBackupErrorMessage:
+            getErrorMessage(
+              error,
+              'Não foi possível restaurar o backup da biblioteca.',
+            ),
+        })
+      }
+    },
+
     clearLibraryBackupError: () => {
       set({
         libraryBackupErrorMessage: null,
+      })
+    },
+
+    resetLibraryBackupRestoreStatus: () => {
+      set({
+        libraryBackupRestoreStatus:
+          AsyncStatus.IDLE,
       })
     },
   })

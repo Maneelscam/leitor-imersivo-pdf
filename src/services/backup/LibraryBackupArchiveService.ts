@@ -20,6 +20,9 @@ import {
   createIsoDateTime,
   type IsoDateTime,
 } from '@/models/value-objects/IsoDateTime'
+import {
+  copyUint8ArrayToArrayBuffer,
+} from '@/utils/binary/copyUint8ArrayToArrayBuffer'
 
 const ARCHIVE_MIME_TYPE =
   'application/zip' as const
@@ -192,22 +195,6 @@ async function blobToUint8Array(
   return new Uint8Array(
     arrayBuffer,
   )
-}
-
-function copyUint8ArrayToArrayBuffer(
-  source: Uint8Array,
-): ArrayBuffer {
-  const target =
-    new ArrayBuffer(
-      source.byteLength,
-    )
-
-  const targetView =
-    new Uint8Array(target)
-
-  targetView.set(source)
-
-  return target
 }
 
 function createZipArchive(

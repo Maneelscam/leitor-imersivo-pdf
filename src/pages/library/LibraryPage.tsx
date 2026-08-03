@@ -52,6 +52,9 @@ import {
   selectExportLibraryBackup,
   selectLibraryBackupErrorMessage,
   selectLibraryBackupExportStatus,
+  selectLibraryBackupRestoreStatus,
+  selectResetLibraryBackupRestoreStatus,
+  selectRestoreLibraryBackup,
 } from '@/stores/selectors/libraryBackupSelectors'
 import {
   selectBookDeleteStatus,
@@ -129,6 +132,23 @@ function WarningIcon() {
   )
 }
 
+function SuccessIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8 12 2.5 2.5L16.5 8.5" />
+    </svg>
+  )
+}
+
 function ReloadIcon() {
   return (
     <svg
@@ -187,6 +207,10 @@ export function LibraryPage() {
     selectLibraryBackupExportStatus,
   )
 
+  const libraryBackupRestoreStatus = useAppStore(
+    selectLibraryBackupRestoreStatus,
+  )
+
   const libraryBackupErrorMessage = useAppStore(
     selectLibraryBackupErrorMessage,
   )
@@ -211,6 +235,10 @@ export function LibraryPage() {
     selectExportLibraryBackup,
   )
 
+  const restoreLibraryBackup = useAppStore(
+    selectRestoreLibraryBackup,
+  )
+
   const clearLibraryError = useAppStore(
     selectClearLibraryError,
   )
@@ -221,6 +249,10 @@ export function LibraryPage() {
 
   const clearLibraryBackupError = useAppStore(
     selectClearLibraryBackupError,
+  )
+
+  const resetLibraryBackupRestoreStatus = useAppStore(
+    selectResetLibraryBackupRestoreStatus,
   )
 
   const [
@@ -238,6 +270,11 @@ export function LibraryPage() {
     setBookPendingDeletion,
   ] = useState<LibraryBookItem | null>(null)
 
+  const [
+    backupFilePendingRestore,
+    setBackupFilePendingRestore,
+  ] = useState<File | null>(null)
+
   const isInitialLoading =
     libraryItems.length === 0 &&
     (
@@ -253,14 +290,28 @@ export function LibraryPage() {
     bookDeleteStatus === AsyncStatus.LOADING
 
   const isBackupExporting =
-    libraryBackupExportStatus === AsyncStatus.LOADING
+    libraryBackupExportStatus ===
+    AsyncStatus.LOADING
+
+  const isBackupRestoring =
+    libraryBackupRestoreStatus ===
+    AsyncStatus.LOADING
+
+  const hasBackupRestoreSucceeded =
+    libraryBackupRestoreStatus ===
+    AsyncStatus.SUCCESS
+
+  const hasBackupRestoreError =
+    libraryBackupRestoreStatus ===
+    AsyncStatus.ERROR
 
   const handleOpenBook = async (
     bookId: BookId,
   ) => {
     if (
       openingBookId !== null ||
-      isDeleting
+      isDeleting ||
+      isBackupRestoring
     ) {
       return
     }
@@ -270,14 +321,18 @@ export function LibraryPage() {
     try {
       await openBook(bookId)
 
-      const currentState = useAppStore.getState()
+      const currentState =
+        useAppStore.getState()
 
       if (
-        currentState.openedBook?.book.id === bookId &&
+        currentState.openedBook?.book.id ===
+          bookId &&
         currentState.readerOpenStatus ===
           AsyncStatus.SUCCESS
       ) {
-        navigateToAppRoute(AppRoute.READER)
+        navigateToAppRoute(
+          AppRoute.READER,
+        )
       }
     } finally {
       setOpeningBookId(null)
@@ -287,16 +342,22 @@ export function LibraryPage() {
   const requestBookDeletion = (
     bookId: BookId,
   ) => {
-    const selectedItem = libraryItems.find(
-      (item) => item.book.id === bookId,
-    )
+    const selectedItem =
+      libraryItems.find(
+        (item) =>
+          item.book.id === bookId,
+      )
 
-    if (selectedItem === undefined) {
+    if (
+      selectedItem === undefined
+    ) {
       return
     }
 
     clearLibraryError()
-    setBookPendingDeletion(selectedItem)
+    setBookPendingDeletion(
+      selectedItem,
+    )
   }
 
   const cancelBookDeletion = () => {
@@ -309,34 +370,108 @@ export function LibraryPage() {
     clearLibraryError()
   }
 
-  const confirmBookDeletion = async () => {
+  const confirmBookDeletion =
+    async () => {
+      if (
+        bookPendingDeletion ===
+          null ||
+        isDeleting
+      ) {
+        return
+      }
+
+      const bookId =
+        bookPendingDeletion.book.id
+
+      setDeletingBookId(bookId)
+      clearLibraryError()
+
+      try {
+        await deleteBook(bookId)
+
+        const currentState =
+          useAppStore.getState()
+
+        if (
+          currentState
+            .bookDeleteStatus ===
+          AsyncStatus.SUCCESS
+        ) {
+          setBookPendingDeletion(
+            null,
+          )
+        }
+      } finally {
+        setDeletingBookId(null)
+      }
+    }
+
+  const requestBackupRestore = (
+    archiveFile: File,
+  ) => {
     if (
-      bookPendingDeletion === null ||
-      isDeleting
+      isBackupExporting ||
+      isBackupRestoring
     ) {
       return
     }
 
-    const bookId = bookPendingDeletion.book.id
+    clearLibraryBackupError()
+    resetLibraryBackupRestoreStatus()
 
-    setDeletingBookId(bookId)
-    clearLibraryError()
+    setBackupFilePendingRestore(
+      archiveFile,
+    )
+  }
 
-    try {
-      await deleteBook(bookId)
+  const cancelBackupRestore = () => {
+    if (isBackupRestoring) {
+      return
+    }
 
-      const currentState = useAppStore.getState()
+    setBackupFilePendingRestore(
+      null,
+    )
+
+    clearLibraryBackupError()
+    resetLibraryBackupRestoreStatus()
+  }
+
+  const confirmBackupRestore =
+    async () => {
+      if (
+        backupFilePendingRestore ===
+          null ||
+        isBackupRestoring
+      ) {
+        return
+      }
+
+      clearLibraryBackupError()
+      resetLibraryBackupRestoreStatus()
+
+      await restoreLibraryBackup(
+        backupFilePendingRestore,
+      )
+
+      const currentState =
+        useAppStore.getState()
 
       if (
-        currentState.bookDeleteStatus ===
+        currentState
+          .libraryBackupRestoreStatus ===
         AsyncStatus.SUCCESS
       ) {
-        setBookPendingDeletion(null)
+        setBackupFilePendingRestore(
+          null,
+        )
       }
-    } finally {
-      setDeletingBookId(null)
     }
-  }
+
+  const dismissBackupRestoreSuccess =
+    () => {
+      resetLibraryBackupRestoreStatus()
+    }
 
   const retryLibraryLoading = () => {
     void loadLibrary()
@@ -355,23 +490,66 @@ export function LibraryPage() {
       : {}),
   }
 
+  const showBackupErrorOutsideDialog =
+    libraryBackupErrorMessage !== null &&
+    (
+      !hasBackupRestoreError ||
+      backupFilePendingRestore === null
+    )
+
   return (
     <section
       className="library-page"
       aria-label="Biblioteca de documentos"
     >
       <div className="library-page__feedback">
-        {libraryBackupErrorMessage !== null && (
+        {hasBackupRestoreSucceeded && (
           <FeedbackMessage
-            variant={FeedbackMessageVariant.ERROR}
-            title="Não foi possível exportar o backup"
-            description={libraryBackupErrorMessage}
+            variant={
+              FeedbackMessageVariant.SUCCESS
+            }
+            title="Backup restaurado com sucesso"
+            description="A biblioteca, os PDFs, as capas, o progresso, os favoritos e as configurações foram restaurados."
+            icon={<SuccessIcon />}
+            action={
+              <Button
+                variant={
+                  ButtonVariant.GHOST
+                }
+                size={ButtonSize.SMALL}
+                onClick={
+                  dismissBackupRestoreSuccess
+                }
+              >
+                Fechar
+              </Button>
+            }
+          />
+        )}
+
+        {showBackupErrorOutsideDialog && (
+          <FeedbackMessage
+            variant={
+              FeedbackMessageVariant.ERROR
+            }
+            title={
+              hasBackupRestoreError
+                ? 'Não foi possível restaurar o backup'
+                : 'Não foi possível exportar o backup'
+            }
+            description={
+              libraryBackupErrorMessage
+            }
             icon={<ErrorIcon />}
             action={
               <Button
-                variant={ButtonVariant.GHOST}
+                variant={
+                  ButtonVariant.GHOST
+                }
                 size={ButtonSize.SMALL}
-                onClick={clearLibraryBackupError}
+                onClick={
+                  clearLibraryBackupError
+                }
               >
                 Fechar
               </Button>
@@ -382,15 +560,23 @@ export function LibraryPage() {
         {libraryErrorMessage !== null &&
           !hasInitialLoadError && (
             <FeedbackMessage
-              variant={FeedbackMessageVariant.ERROR}
+              variant={
+                FeedbackMessageVariant.ERROR
+              }
               title="Não foi possível concluir a operação"
-              description={libraryErrorMessage}
+              description={
+                libraryErrorMessage
+              }
               icon={<ErrorIcon />}
               action={
                 <Button
-                  variant={ButtonVariant.GHOST}
+                  variant={
+                    ButtonVariant.GHOST
+                  }
                   size={ButtonSize.SMALL}
-                  onClick={clearLibraryError}
+                  onClick={
+                    clearLibraryError
+                  }
                 >
                   Fechar
                 </Button>
@@ -400,31 +586,39 @@ export function LibraryPage() {
 
         {importWarnings.length > 0 && (
           <FeedbackMessage
-            variant={FeedbackMessageVariant.WARNING}
+            variant={
+              FeedbackMessageVariant.WARNING
+            }
             title="PDF importado com avisos"
             description="O documento foi salvo na biblioteca, mas alguns detalhes precisam de atenção."
             icon={<WarningIcon />}
             action={
               <Button
-                variant={ButtonVariant.GHOST}
+                variant={
+                  ButtonVariant.GHOST
+                }
                 size={ButtonSize.SMALL}
-                onClick={clearImportWarnings}
+                onClick={
+                  clearImportWarnings
+                }
               >
                 Entendi
               </Button>
             }
           >
             <ul className="library-page__warning-list">
-              {importWarnings.map((warningCode) => (
-                <li
-                  key={warningCode}
-                  className="library-page__warning-item"
-                >
-                  {getImportWarningMessage(
-                    warningCode,
-                  )}
-                </li>
-              ))}
+              {importWarnings.map(
+                (warningCode) => (
+                  <li
+                    key={warningCode}
+                    className="library-page__warning-item"
+                  >
+                    {getImportWarningMessage(
+                      warningCode,
+                    )}
+                  </li>
+                ),
+              )}
             </ul>
           </FeedbackMessage>
         )}
@@ -434,7 +628,9 @@ export function LibraryPage() {
         {isInitialLoading && (
           <div className="library-page__loading">
             <LoadingIndicator
-              size={LoadingIndicatorSize.LARGE}
+              size={
+                LoadingIndicatorSize.LARGE
+              }
               label="Carregando sua biblioteca..."
               vertical
             />
@@ -452,9 +648,15 @@ export function LibraryPage() {
               icon={<ErrorIcon />}
               actions={
                 <Button
-                  variant={ButtonVariant.PRIMARY}
-                  leadingIcon={<ReloadIcon />}
-                  onClick={retryLibraryLoading}
+                  variant={
+                    ButtonVariant.PRIMARY
+                  }
+                  leadingIcon={
+                    <ReloadIcon />
+                  }
+                  onClick={
+                    retryLibraryLoading
+                  }
                 >
                   Tentar novamente
                 </Button>
@@ -464,25 +666,15 @@ export function LibraryPage() {
         )}
 
         {!isInitialLoading &&
-          !hasInitialLoadError &&
-          libraryItems.length === 0 && (
-            <div className="library-page__empty">
-              <EmptyState
-                title="Sua biblioteca está vazia"
-                description="Importe seu primeiro PDF para começar uma experiência de leitura local, rápida e imersiva."
-                icon={<LibraryIcon />}
-                actions={<PdfImportButton />}
-              />
-            </div>
-          )}
-
-        {!isInitialLoading &&
-          !hasInitialLoadError &&
-          libraryItems.length > 0 && (
+          !hasInitialLoadError && (
             <>
               <LibraryToolbar
-                totalBooks={libraryItems.length}
-                sortMode={librarySortMode}
+                totalBooks={
+                  libraryItems.length
+                }
+                sortMode={
+                  librarySortMode
+                }
                 disabled={
                   libraryLoadStatus ===
                     AsyncStatus.LOADING ||
@@ -491,61 +683,105 @@ export function LibraryPage() {
                 backupExporting={
                   isBackupExporting
                 }
+                backupRestoring={
+                  isBackupRestoring
+                }
                 onSortModeChange={
                   setLibrarySortMode
                 }
                 onExportBackup={
                   exportLibraryBackup
                 }
-              />
-
-              <LibraryGrid
-                {...gridOptionalProps}
-                items={libraryItems}
-                onOpenBook={handleOpenBook}
-                onDeleteBook={
-                  requestBookDeletion
+                onBackupFileSelected={
+                  requestBackupRestore
                 }
               />
+
+              {libraryItems.length ===
+                0 && (
+                <div className="library-page__empty">
+                  <EmptyState
+                    title="Sua biblioteca está vazia"
+                    description="Importe seu primeiro PDF ou restaure um backup para começar uma experiência de leitura local, rápida e imersiva."
+                    icon={
+                      <LibraryIcon />
+                    }
+                    actions={
+                      <PdfImportButton />
+                    }
+                  />
+                </div>
+              )}
+
+              {libraryItems.length >
+                0 && (
+                <LibraryGrid
+                  {...gridOptionalProps}
+                  items={
+                    libraryItems
+                  }
+                  onOpenBook={
+                    handleOpenBook
+                  }
+                  onDeleteBook={
+                    requestBookDeletion
+                  }
+                />
+              )}
             </>
           )}
       </div>
 
       <ConfirmDialog
-        open={bookPendingDeletion !== null}
+        open={
+          bookPendingDeletion !== null
+        }
         title="Excluir este PDF?"
         description="Esta ação removerá o documento e todos os dados de leitura armazenados localmente."
         confirmLabel="Excluir PDF"
         cancelLabel="Cancelar"
         destructive
         isConfirming={isDeleting}
-        onConfirm={confirmBookDeletion}
-        onCancel={cancelBookDeletion}
+        onConfirm={
+          confirmBookDeletion
+        }
+        onCancel={
+          cancelBookDeletion
+        }
       >
-        {bookPendingDeletion !== null && (
+        {bookPendingDeletion !==
+          null && (
           <div className="library-page__delete-details">
             <div className="library-page__delete-book">
               <span className="library-page__delete-book-title">
-                {bookPendingDeletion.book.title}
+                {
+                  bookPendingDeletion
+                    .book.title
+                }
               </span>
 
               <span className="library-page__delete-book-file">
                 {
-                  bookPendingDeletion.book
+                  bookPendingDeletion
+                    .book
                     .originalFileName
                 }
               </span>
             </div>
 
             <p className="library-page__delete-explanation">
-              O PDF original, a capa, o progresso e os
-              favoritos deste livro serão removidos. O
-              arquivo original existente fora do
-              aplicativo não será alterado.
+              O PDF original, a capa, o
+              progresso e os favoritos
+              deste livro serão removidos.
+              O arquivo original existente
+              fora do aplicativo não será
+              alterado.
             </p>
 
-            {bookDeleteStatus === AsyncStatus.ERROR &&
-              libraryErrorMessage !== null && (
+            {bookDeleteStatus ===
+              AsyncStatus.ERROR &&
+              libraryErrorMessage !==
+                null && (
                 <FeedbackMessage
                   variant={
                     FeedbackMessageVariant.ERROR
@@ -554,7 +790,76 @@ export function LibraryPage() {
                   description={
                     libraryErrorMessage
                   }
-                  icon={<ErrorIcon />}
+                  icon={
+                    <ErrorIcon />
+                  }
+                  compact
+                />
+              )}
+          </div>
+        )}
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={
+          backupFilePendingRestore !==
+          null
+        }
+        title="Restaurar este backup?"
+        description="A biblioteca atual será substituída pelos dados contidos no arquivo selecionado."
+        confirmLabel="Restaurar backup"
+        cancelLabel="Cancelar"
+        destructive
+        isConfirming={
+          isBackupRestoring
+        }
+        onConfirm={
+          confirmBackupRestore
+        }
+        onCancel={
+          cancelBackupRestore
+        }
+      >
+        {backupFilePendingRestore !==
+          null && (
+          <div className="library-page__delete-details">
+            <div className="library-page__delete-book">
+              <span className="library-page__delete-book-title">
+                Arquivo selecionado
+              </span>
+
+              <span className="library-page__delete-book-file">
+                {
+                  backupFilePendingRestore.name
+                }
+              </span>
+            </div>
+
+            <p className="library-page__delete-explanation">
+              Todos os livros, PDFs,
+              capas, progressos, favoritos
+              e configurações atualmente
+              armazenados no aplicativo
+              serão substituídos. O
+              processo somente será
+              concluído se todo o backup
+              for validado corretamente.
+            </p>
+
+            {hasBackupRestoreError &&
+              libraryBackupErrorMessage !==
+                null && (
+                <FeedbackMessage
+                  variant={
+                    FeedbackMessageVariant.ERROR
+                  }
+                  title="A restauração não foi concluída"
+                  description={
+                    libraryBackupErrorMessage
+                  }
+                  icon={
+                    <ErrorIcon />
+                  }
                   compact
                 />
               )}

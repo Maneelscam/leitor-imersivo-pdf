@@ -84,12 +84,21 @@ export interface LibraryBackupSlice {
   readonly libraryBackupExportStatus:
     AsyncStatus
 
+  readonly libraryBackupRestoreStatus:
+    AsyncStatus
+
   readonly libraryBackupErrorMessage:
     string | null
 
   exportLibraryBackup(): Promise<void>
 
+  restoreLibraryBackup(
+    archiveFile: File,
+  ): Promise<void>
+
   clearLibraryBackupError(): void
+
+  resetLibraryBackupRestoreStatus(): void
 }
 
 export interface ReaderSlice {
