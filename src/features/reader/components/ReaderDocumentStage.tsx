@@ -21,6 +21,12 @@ import {
   PdfPageCanvas,
 } from '@/features/reader/components/PdfPageCanvas'
 import {
+  PdfTextSearchHighlightLayer,
+} from '@/features/reader/components/PdfTextSearchHighlightLayer'
+import type {
+  PdfTextSearchOccurrence,
+} from '@/models/dtos/PdfTextSearchResult'
+import {
   PageDisplayMode,
   type PageDisplayMode as PageDisplayModeValue,
 } from '@/models/enums/PageDisplayMode'
@@ -36,6 +42,12 @@ export interface ReaderDocumentStageProps
 
   readonly continuousPages?:
     readonly PDFPageProxy[]
+
+  readonly searchOccurrences?:
+    readonly PdfTextSearchOccurrence[]
+
+  readonly activeSearchOccurrence?:
+    PdfTextSearchOccurrence | null
 
   readonly pageDisplayMode?:
     PageDisplayModeValue
@@ -79,6 +91,12 @@ interface ReaderPageCanvasProps {
   readonly page: PDFPageProxy
   readonly scale: number
   readonly rotation: number
+
+  readonly searchOccurrences:
+    readonly PdfTextSearchOccurrence[]
+
+  readonly activeSearchOccurrenceIndex:
+    number | null
 
   readonly renderError:
     string | null
@@ -190,6 +208,8 @@ function ReaderPageCanvas({
   page,
   scale,
   rotation,
+  searchOccurrences,
+  activeSearchOccurrenceIndex,
   renderError,
   onRenderSuccess,
   onRenderError,
@@ -220,6 +240,20 @@ function ReaderPageCanvas({
         }}
       />
 
+      {searchOccurrences.length > 0 && (
+        <PdfTextSearchHighlightLayer
+          page={page}
+          scale={scale}
+          rotation={rotation}
+          occurrences={
+            searchOccurrences
+          }
+          activeOccurrenceIndex={
+            activeSearchOccurrenceIndex
+          }
+        />
+      )}
+
       {renderError !== null && (
         <div className="reader-page__feedback">
           <FeedbackMessage
@@ -246,6 +280,10 @@ export const ReaderDocumentStage =
         page,
         secondaryPage = null,
         continuousPages = [],
+
+        searchOccurrences = [],
+
+        activeSearchOccurrence = null,
 
         pageDisplayMode =
           PageDisplayMode.SINGLE,
@@ -331,6 +369,41 @@ export const ReaderDocumentStage =
 
       const hasContinuousPages =
         continuousPages.length > 0
+
+      const getPageSearchOccurrences =
+        useCallback(
+          (
+            pageNumber: number,
+          ): readonly PdfTextSearchOccurrence[] => {
+            return searchOccurrences.filter(
+              (occurrence) =>
+                occurrence.pageNumber ===
+                pageNumber,
+            )
+          },
+          [searchOccurrences],
+        )
+
+      const getActiveSearchOccurrenceIndex =
+        useCallback(
+          (
+            pageNumber: number,
+          ): number | null => {
+            if (
+              activeSearchOccurrence ===
+                null ||
+              activeSearchOccurrence
+                .pageNumber !==
+                pageNumber
+            ) {
+              return null
+            }
+
+            return activeSearchOccurrence
+              .occurrenceIndexOnPage
+          },
+          [activeSearchOccurrence],
+        )
 
       const getPageRenderError =
         useCallback(
@@ -458,6 +531,16 @@ export const ReaderDocumentStage =
                       page={page}
                       scale={scale}
                       rotation={rotation}
+                      searchOccurrences={
+                        getPageSearchOccurrences(
+                          page.pageNumber,
+                        )
+                      }
+                      activeSearchOccurrenceIndex={
+                        getActiveSearchOccurrenceIndex(
+                          page.pageNumber,
+                        )
+                      }
                       renderError={
                         getPageRenderError(
                           page.pageNumber,
@@ -512,6 +595,18 @@ export const ReaderDocumentStage =
                       page={secondaryPage}
                       scale={scale}
                       rotation={rotation}
+                      searchOccurrences={
+                        getPageSearchOccurrences(
+                          secondaryPage
+                            .pageNumber,
+                        )
+                      }
+                      activeSearchOccurrenceIndex={
+                        getActiveSearchOccurrenceIndex(
+                          secondaryPage
+                            .pageNumber,
+                        )
+                      }
                       renderError={
                         getPageRenderError(
                           secondaryPage
@@ -578,6 +673,18 @@ export const ReaderDocumentStage =
                       page={continuousPage}
                       scale={scale}
                       rotation={rotation}
+                      searchOccurrences={
+                        getPageSearchOccurrences(
+                          continuousPage
+                            .pageNumber,
+                        )
+                      }
+                      activeSearchOccurrenceIndex={
+                        getActiveSearchOccurrenceIndex(
+                          continuousPage
+                            .pageNumber,
+                        )
+                      }
                       renderError={
                         getPageRenderError(
                           continuousPage

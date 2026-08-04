@@ -18,6 +18,8 @@ export interface ReaderSidePanelProps
   readonly currentPage: number
   readonly totalPages: number
 
+  readonly searchContent?: ReactNode
+
   readonly bookmarksContent?: ReactNode
 
   readonly onClose: () => void
@@ -55,7 +57,9 @@ function createPanelClassName(
     customClassName !== undefined &&
     customClassName.trim().length > 0
   ) {
-    classNames.push(customClassName)
+    classNames.push(
+      customClassName,
+    )
   }
 
   return classNames.join(' ')
@@ -90,6 +94,7 @@ function normalizeCurrentPage(
 export function ReaderSidePanel({
   currentPage,
   totalPages,
+  searchContent,
   bookmarksContent,
   onClose,
   className,
@@ -98,7 +103,9 @@ export function ReaderSidePanel({
   const progressTitleId = useId()
 
   const normalizedTotalPages =
-    normalizeTotalPages(totalPages)
+    normalizeTotalPages(
+      totalPages,
+    )
 
   const normalizedCurrentPage =
     normalizeCurrentPage(
@@ -116,17 +123,20 @@ export function ReaderSidePanel({
         )
       : 0
 
-  const progressBarStyle: ProgressBarStyle = {
-    '--reader-progress':
-      `${progressPercentage}%`,
-  }
+  const progressBarStyle:
+    ProgressBarStyle = {
+      '--reader-progress':
+        `${progressPercentage}%`,
+    }
 
   return (
     <aside
       {...panelProps}
-      className={createPanelClassName(
-        className,
-      )}
+      className={
+        createPanelClassName(
+          className,
+        )
+      }
       aria-label="Painel lateral do leitor"
     >
       <header className="reader-page__panel-header">
@@ -135,8 +145,12 @@ export function ReaderSidePanel({
         </h2>
 
         <Button
-          variant={ButtonVariant.GHOST}
-          size={ButtonSize.SMALL}
+          variant={
+            ButtonVariant.GHOST
+          }
+          size={
+            ButtonSize.SMALL
+          }
           aria-label="Fechar painel lateral"
           onClick={onClose}
         >
@@ -147,7 +161,9 @@ export function ReaderSidePanel({
       <div className="reader-page__panel-content">
         <section
           className="reader-side-panel__section"
-          aria-labelledby={progressTitleId}
+          aria-labelledby={
+            progressTitleId
+          }
         >
           <h3
             id={progressTitleId}
@@ -177,14 +193,24 @@ export function ReaderSidePanel({
             aria-label="Progresso da leitura"
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-valuenow={progressPercentage}
+            aria-valuenow={
+              progressPercentage
+            }
           >
             <span
               className="reader-side-panel__progress-bar"
-              style={progressBarStyle}
+              style={
+                progressBarStyle
+              }
             />
           </div>
         </section>
+
+        {searchContent !== undefined && (
+          <div className="reader-side-panel__section">
+            {searchContent}
+          </div>
+        )}
 
         {bookmarksContent !== undefined && (
           <div className="reader-side-panel__section">

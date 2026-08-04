@@ -1,0 +1,87 @@
+.pdf-text-search-highlight-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+
+  overflow: hidden;
+
+  pointer-events: none;
+  user-select: none;
+}
+
+.pdf-text-search-highlight-layer__highlight {
+  position: absolute;
+
+  min-width: 0.125rem;
+  min-height: 0.125rem;
+
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+
+  pointer-events: none;
+}
+
+.pdf-text-search-highlight-layer__highlight::before {
+  content: '';
+
+  position: absolute;
+
+  top: -0.125rem;
+  right: -0.125rem;
+  bottom: -0.125rem;
+  left: -0.125rem;
+
+  background: rgb(54 222 139 / 16%);
+
+  border:
+    var(--border-width-thin)
+    solid
+    rgb(22 180 102 / 72%);
+
+  border-radius: 0.2rem;
+
+  box-shadow:
+    0
+    0
+    0
+    0.0625rem
+    rgb(54 222 139 / 10%);
+
+  pointer-events: none;
+
+  transition:
+    background-color
+    var(--duration-fast)
+    var(--easing-standard),
+    border-color
+    var(--duration-fast)
+    var(--easing-standard),
+    box-shadow
+    var(--duration-fast)
+    var(--easing-standard);
+}
+
+.pdf-text-search-highlight-layer__highlight--active::before {
+  background: rgb(54 222 139 / 24%);
+
+  border-color: rgb(10 145 75 / 95%);
+
+  box-shadow:
+    0
+    0
+    0
+    0.09375rem
+    rgb(54 222 139 / 22%),
+    0
+    0
+    0.375rem
+    rgb(54 222 139 / 24%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pdf-text-search-highlight-layer__highlight::before {
+    transition: none;
+  }
+}

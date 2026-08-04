@@ -15,6 +15,9 @@ import type {
   PdfImportWarningCode,
 } from '@/models/dtos/PdfImportResult'
 import type {
+  PdfTextSearchResult,
+} from '@/models/dtos/PdfTextSearchResult'
+import type {
   Bookmark,
 } from '@/models/entities/Bookmark'
 import type {
@@ -221,6 +224,34 @@ export interface ReaderSlice {
   clearBookmarkError(): void
 }
 
+export interface PdfTextSearchSlice {
+  readonly pdfTextSearchQuery:
+    string
+
+  readonly pdfTextSearchResult:
+    PdfTextSearchResult | null
+
+  readonly pdfTextSearchStatus:
+    AsyncStatus
+
+  readonly pdfTextSearchCompletedPages:
+    number
+
+  readonly pdfTextSearchTotalPages:
+    number
+
+  readonly pdfTextSearchErrorMessage:
+    string | null
+
+  searchPdfText(
+    query: string,
+  ): Promise<void>
+
+  clearPdfTextSearch(): void
+
+  clearPdfTextSearchError(): void
+}
+
 export interface ReaderSettingsSlice {
   readonly readerSettings:
     ReaderSettings | null
@@ -249,4 +280,5 @@ export type AppStore =
   LibrarySlice &
   LibraryBackupSlice &
   ReaderSlice &
+  PdfTextSearchSlice &
   ReaderSettingsSlice

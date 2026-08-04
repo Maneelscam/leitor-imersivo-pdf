@@ -184,6 +184,29 @@
     minmax(17rem, 20rem);
 }
 
+.reader-page__workspace--stacked-panel {
+  grid-template-columns:
+    minmax(0, 1fr);
+
+  grid-template-rows:
+    minmax(0, 1fr)
+    minmax(12rem, 18rem);
+}
+
+.reader-page__workspace--stacked-panel
+  .reader-page__panel {
+  contain: none;
+
+  max-height: none;
+
+  border-top:
+    var(--border-width-thin)
+    solid
+    var(--color-border-subtle);
+
+  border-left: 0;
+}
+
 .reader-page__stage {
   position: relative;
 
@@ -442,7 +465,11 @@
   min-height: 0;
   padding: var(--space-4);
 
+  overflow-x: hidden;
   overflow-y: auto;
+
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .reader-page__feedback {
@@ -479,11 +506,27 @@
   border-radius: var(--radius-xl);
 }
 
+
+@media (min-width: 48.001rem) {
+  .reader-page__panel {
+    contain: size;
+  }
+}
+
 @media (max-width: 64rem) {
   .reader-page__workspace--with-panel {
     grid-template-columns:
       minmax(0, 1fr)
       minmax(15rem, 18rem);
+  }
+
+  .reader-page__workspace--stacked-panel {
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    grid-template-rows:
+      minmax(0, 1fr)
+      minmax(12rem, 18rem);
   }
 
   .reader-page__book-info {
@@ -527,12 +570,17 @@
   }
 
   .reader-page__workspace,
-  .reader-page__workspace--with-panel {
+  .reader-page__workspace--with-panel,
+  .reader-page__workspace--stacked-panel {
     display: flex;
     flex-direction: column;
   }
 
-  .reader-page__panel {
+  .reader-page__panel,
+  .reader-page__workspace--stacked-panel
+    .reader-page__panel {
+    contain: none;
+
     max-height: 18rem;
 
     border-top:

@@ -39,6 +39,9 @@ import {
   ReaderSidePanel,
 } from '@/features/reader/components/ReaderSidePanel'
 import {
+  ReaderTextSearch,
+} from '@/features/reader/components/ReaderTextSearch'
+import {
   ReaderToolbar,
 } from '@/features/reader/components/ReaderToolbar'
 import {
@@ -47,6 +50,9 @@ import {
 import {
   useReaderKeyboardShortcuts,
 } from '@/features/reader/hooks/useReaderKeyboardShortcuts'
+import type {
+  PdfTextSearchOccurrence,
+} from '@/models/dtos/PdfTextSearchResult'
 import type {
   Bookmark,
 } from '@/models/entities/Bookmark'
@@ -62,6 +68,17 @@ import {
 import {
   ZoomMode,
 } from '@/models/enums/ZoomMode'
+import {
+  selectClearPdfTextSearch,
+  selectClearPdfTextSearchError,
+  selectPdfTextSearchCompletedPages,
+  selectPdfTextSearchErrorMessage,
+  selectPdfTextSearchQuery,
+  selectPdfTextSearchResult,
+  selectPdfTextSearchStatus,
+  selectPdfTextSearchTotalPages,
+  selectSearchPdfText,
+} from '@/stores/selectors/pdfTextSearchSelectors'
 import {
   selectReaderSettings,
 } from '@/stores/selectors/readerSettingsSelectors'
@@ -125,6 +142,10 @@ const CONTROLS_HIDE_DELAY_MS = 3000
 const CONTINUOUS_LOAD_ROOT_MARGIN =
   '600px 0px'
 const CONTINUOUS_POSITION_THRESHOLD = 0.01
+
+const SIDE_PANEL_TARGET_WIDTH = 320
+const STAGE_HORIZONTAL_PADDING_RESERVE = 64
+const RESPONSIVE_LAYOUT_SAFETY_MARGIN = 24
 
 interface ContinuousScrollTarget {
   readonly pageNumber: number
@@ -544,6 +565,36 @@ export function ReaderPage() {
     selectBookmarks,
   )
 
+  const pdfTextSearchQuery =
+    useAppStore(
+      selectPdfTextSearchQuery,
+    )
+
+  const pdfTextSearchResult =
+    useAppStore(
+      selectPdfTextSearchResult,
+    )
+
+  const pdfTextSearchStatus =
+    useAppStore(
+      selectPdfTextSearchStatus,
+    )
+
+  const pdfTextSearchCompletedPages =
+    useAppStore(
+      selectPdfTextSearchCompletedPages,
+    )
+
+  const pdfTextSearchTotalPages =
+    useAppStore(
+      selectPdfTextSearchTotalPages,
+    )
+
+  const pdfTextSearchErrorMessage =
+    useAppStore(
+      selectPdfTextSearchErrorMessage,
+    )
+
   const currentPage = useAppStore(
     selectCurrentPage,
   )
@@ -671,6 +722,23 @@ export function ReaderPage() {
     selectClearBookmarkError,
   )
 
+  const searchPdfText = useAppStore(
+    selectSearchPdfText,
+  )
+
+  const clearPdfTextSearch =
+    useAppStore(
+      selectClearPdfTextSearch,
+    )
+
+  const clearPdfTextSearchError =
+    useAppStore(
+      selectClearPdfTextSearchError,
+    )
+
+  const workspaceRef =
+    useRef<HTMLDivElement>(null)
+
   const stageRef =
     useRef<HTMLDivElement>(null)
 
@@ -689,9 +757,26 @@ export function ReaderPage() {
     )
 
   const [
+    workspaceWidth,
+    setWorkspaceWidth,
+  ] = useState(0)
+
+  const [
     panelOpen,
     setPanelOpen,
   ] = useState(true)
+
+  const [
+    searchFocusRequestId,
+    setSearchFocusRequestId,
+  ] = useState(0)
+
+  const [
+    activePdfTextSearchOccurrence,
+    setActivePdfTextSearchOccurrence,
+  ] = useState<
+    PdfTextSearchOccurrence | null
+  >(null)
 
   const [
     pageScale,
@@ -734,6 +819,16 @@ export function ReaderPage() {
   const isBookmarkMutating =
     bookmarkMutationStatus ===
     AsyncStatus.LOADING
+
+  const isPdfTextSearching =
+    pdfTextSearchStatus ===
+    AsyncStatus.LOADING
+
+  const pdfTextSearchOccurrences =
+    pdfTextSearchResult?.pageResults.flatMap(
+      (pageResult) =>
+        pageResult.occurrences,
+    ) ?? []
 
   const loadedPageNumber =
     loadedPdfPage?.pageNumber ?? null
@@ -808,6 +903,48 @@ export function ReaderPage() {
     currentPage < totalPages
       ? 2
       : 1
+
+  const primaryRenderedPageWidth =
+    loadedPdfPage === null
+      ? 0
+      : loadedPdfPage.getViewport({
+          scale: pageScale,
+          rotation: pageRotation,
+        }).width
+
+  const secondaryRenderedPageWidth =
+    visiblePageCount < 2
+      ? 0
+      : (
+          loadedSecondaryPdfPage ??
+          loadedPdfPage
+        )?.getViewport({
+          scale: pageScale,
+          rotation: pageRotation,
+        }).width ?? 0
+
+  const renderedDoublePageWidth =
+    primaryRenderedPageWidth +
+    secondaryRenderedPageWidth +
+    (
+      visiblePageCount > 1
+        ? DOUBLE_PAGE_GAP
+        : 0
+    )
+
+  const requiredSidePanelWorkspaceWidth =
+    renderedDoublePageWidth +
+    SIDE_PANEL_TARGET_WIDTH +
+    STAGE_HORIZONTAL_PADDING_RESERVE +
+    RESPONSIVE_LAYOUT_SAFETY_MARGIN
+
+  const shouldStackPanel =
+    panelOpen &&
+    isDoublePageMode &&
+    workspaceWidth > 0 &&
+    renderedDoublePageWidth > 0 &&
+    workspaceWidth <
+      requiredSidePanelWorkspaceWidth
 
   const continuousReferencePage =
     loadedContinuousPdfPages.find(
@@ -1108,6 +1245,60 @@ export function ReaderPage() {
     ])
 
   useEffect(() => {
+    const workspaceElement =
+      workspaceRef.current
+
+    if (workspaceElement === null) {
+      return
+    }
+
+    const updateWorkspaceWidth = () => {
+      const nextWorkspaceWidth =
+        workspaceElement
+          .getBoundingClientRect()
+          .width
+
+      setWorkspaceWidth(
+        (currentWorkspaceWidth) =>
+          Math.abs(
+            currentWorkspaceWidth -
+            nextWorkspaceWidth,
+          ) < 0.5
+            ? currentWorkspaceWidth
+            : nextWorkspaceWidth,
+      )
+    }
+
+    updateWorkspaceWidth()
+
+    const resizeObserver =
+      new ResizeObserver(
+        updateWorkspaceWidth,
+      )
+
+    resizeObserver.observe(
+      workspaceElement,
+    )
+
+    window.addEventListener(
+      'resize',
+      updateWorkspaceWidth,
+      {
+        passive: true,
+      },
+    )
+
+    return () => {
+      resizeObserver.disconnect()
+
+      window.removeEventListener(
+        'resize',
+        updateWorkspaceWidth,
+      )
+    }
+  }, [])
+
+  useEffect(() => {
     if (!autoHideReaderControls) {
       clearControlsHideTimeout()
 
@@ -1286,6 +1477,15 @@ export function ReaderPage() {
     openedBook,
     bookmarksLoadStatus,
     loadBookmarks,
+  ])
+
+  useEffect(() => {
+    return () => {
+      clearPdfTextSearch()
+    }
+  }, [
+    openedBook?.book.id,
+    clearPdfTextSearch,
   ])
 
   useEffect(() => {
@@ -1939,6 +2139,16 @@ export function ReaderPage() {
       setPanelOpen(false)
     }, [])
 
+  const handleFocusSearch =
+    useCallback(() => {
+      revealReaderControls()
+      setPanelOpen(true)
+      setSearchFocusRequestId(
+        (currentRequestId) =>
+          currentRequestId + 1,
+      )
+    }, [revealReaderControls])
+
   const handleKeyboardZoomIn =
     useCallback(() => {
       if (documentControlsDisabled) {
@@ -2104,6 +2314,91 @@ export function ReaderPage() {
       ],
     )
 
+  const handleSearchPdfText =
+    useCallback(
+      async (
+        query: string,
+      ) => {
+        setActivePdfTextSearchOccurrence(
+          null,
+        )
+
+        await searchPdfText(
+          query,
+        )
+      },
+      [
+        searchPdfText,
+      ],
+    )
+
+  const handleClearPdfTextSearch =
+    useCallback(() => {
+      setActivePdfTextSearchOccurrence(
+        null,
+      )
+
+      clearPdfTextSearch()
+    }, [
+      clearPdfTextSearch,
+    ])
+
+  const handleOpenPdfTextSearchOccurrence =
+    useCallback(
+      async (
+        occurrence:
+          PdfTextSearchOccurrence,
+      ) => {
+        if (navigationDisabled) {
+          return
+        }
+
+        revealReaderControls()
+
+        setActivePdfTextSearchOccurrence(
+          occurrence,
+        )
+
+        if (isContinuousMode) {
+          await navigateToContinuousPosition(
+            occurrence.pageNumber,
+            occurrence.pageOffsetRatio,
+          )
+
+          return
+        }
+
+        await loadPdfPage(
+          occurrence.pageNumber,
+        )
+
+        const latestReaderState =
+          useAppStore.getState()
+
+        if (
+          latestReaderState
+            .loadedPdfPage
+            ?.pageNumber !==
+          occurrence.pageNumber
+        ) {
+          return
+        }
+
+        setReadingPosition(
+          occurrence.pageNumber,
+          occurrence.pageOffsetRatio,
+        )
+      },
+      [
+        navigationDisabled,
+        isContinuousMode,
+        navigateToContinuousPosition,
+        loadPdfPage,
+        setReadingPosition,
+        revealReaderControls,
+      ],
+    )
+
   const handleDeleteBookmark =
     useCallback(
       async (
@@ -2154,6 +2449,9 @@ export function ReaderPage() {
 
     onTogglePanel:
       handleTogglePanel,
+
+    onFocusSearch:
+      handleFocusSearch,
   })
 
   if (
@@ -2195,6 +2493,10 @@ export function ReaderPage() {
 
     panelOpen
       ? 'reader-page__workspace--with-panel'
+      : '',
+
+    shouldStackPanel
+      ? 'reader-page__workspace--stacked-panel'
       : '',
   ]
     .filter(
@@ -2297,7 +2599,10 @@ export function ReaderPage() {
         }
       />
 
-      <div className={workspaceClassName}>
+      <div
+        ref={workspaceRef}
+        className={workspaceClassName}
+      >
         <ReaderDocumentStage
           ref={stageRef}
           page={loadedPdfPage}
@@ -2306,6 +2611,12 @@ export function ReaderPage() {
           }
           continuousPages={
             loadedContinuousPdfPages
+          }
+          searchOccurrences={
+            pdfTextSearchOccurrences
+          }
+          activeSearchOccurrence={
+            activePdfTextSearchOccurrence
           }
           pageDisplayMode={
             configuredPageDisplayMode
@@ -2345,6 +2656,46 @@ export function ReaderPage() {
           <ReaderSidePanel
             currentPage={currentPage}
             totalPages={totalPages}
+            searchContent={
+              <ReaderTextSearch
+                searchQuery={
+                  pdfTextSearchQuery
+                }
+                result={
+                  pdfTextSearchResult
+                }
+                activeOccurrence={
+                  activePdfTextSearchOccurrence
+                }
+                isSearching={
+                  isPdfTextSearching
+                }
+                completedPages={
+                  pdfTextSearchCompletedPages
+                }
+                totalPages={
+                  pdfTextSearchTotalPages
+                }
+                errorMessage={
+                  pdfTextSearchErrorMessage
+                }
+                focusRequestId={
+                  searchFocusRequestId
+                }
+                onSearch={
+                  handleSearchPdfText
+                }
+                onOpenOccurrence={
+                  handleOpenPdfTextSearchOccurrence
+                }
+                onClear={
+                  handleClearPdfTextSearch
+                }
+                onDismissError={
+                  clearPdfTextSearchError
+                }
+              />
+            }
             bookmarksContent={
               <ReaderBookmarks
                 bookmarks={bookmarks}

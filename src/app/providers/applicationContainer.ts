@@ -11,6 +11,7 @@ import { LoadPdfPageController } from '@/controllers/reader/LoadPdfPageControlle
 import { LoadSecondaryPdfPageController } from '@/controllers/reader/LoadSecondaryPdfPageController'
 import { OpenBookController } from '@/controllers/reader/OpenBookController'
 import { SaveReadingProgressController } from '@/controllers/reader/SaveReadingProgressController'
+import { SearchPdfTextController } from '@/controllers/reader/SearchPdfTextController'
 import { LoadReaderSettingsController } from '@/controllers/settings/LoadReaderSettingsController'
 import { ResetReaderSettingsController } from '@/controllers/settings/ResetReaderSettingsController'
 import { SaveReaderSettingsController } from '@/controllers/settings/SaveReaderSettingsController'
@@ -33,6 +34,7 @@ import { PdfMetadataService } from '@/services/metadata/PdfMetadataService'
 import { PdfTitleResolutionService } from '@/services/metadata/PdfTitleResolutionService'
 import { PdfDocumentService } from '@/services/pdf/PdfDocumentService'
 import { PdfPageService } from '@/services/pdf/PdfPageService'
+import { PdfTextSearchService } from '@/services/pdf/PdfTextSearchService'
 import { PdfWorkerService } from '@/services/pdf/PdfWorkerService'
 import { DefaultReaderSettingsService } from '@/services/settings/DefaultReaderSettingsService'
 
@@ -73,6 +75,9 @@ const pdfDocumentService =
 
 const pdfPageService =
   new PdfPageService()
+
+const pdfTextSearchService =
+  new PdfTextSearchService()
 
 const pdfFileValidationService =
   new PdfFileValidationService()
@@ -163,6 +168,11 @@ const loadPdfPageBatchController =
     pdfPageService,
   )
 
+const searchPdfTextController =
+  new SearchPdfTextController(
+    pdfTextSearchService,
+  )
+
 const saveReadingProgressController =
   new SaveReadingProgressController({
     bookRepository,
@@ -218,6 +228,8 @@ export const applicationContainer = {
       loadSecondaryPdfPageController,
     loadPdfPageBatch:
       loadPdfPageBatchController,
+    searchPdfText:
+      searchPdfTextController,
     saveReadingProgress:
       saveReadingProgressController,
 
@@ -257,6 +269,8 @@ export const applicationContainer = {
     pdfWorker: pdfWorkerService,
     pdfDocument: pdfDocumentService,
     pdfPage: pdfPageService,
+    pdfTextSearch:
+      pdfTextSearchService,
     pdfFileValidation:
       pdfFileValidationService,
     fileHash: fileHashService,

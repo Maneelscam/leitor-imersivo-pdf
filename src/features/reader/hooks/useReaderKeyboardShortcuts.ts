@@ -17,6 +17,7 @@ export interface ReaderKeyboardShortcutsOptions {
   readonly onRotateRight: () => void
 
   readonly onTogglePanel: () => void
+  readonly onFocusSearch: () => void
 }
 
 function isEditableElement(
@@ -51,6 +52,7 @@ export function useReaderKeyboardShortcuts({
   onRotateLeft,
   onRotateRight,
   onTogglePanel,
+  onFocusSearch,
 }: ReaderKeyboardShortcutsOptions): void {
   useEffect(() => {
     if (disabled) {
@@ -60,9 +62,25 @@ export function useReaderKeyboardShortcuts({
     const handleKeyDown = (
       event: KeyboardEvent,
     ) => {
-      if (
+      const hasPrimaryModifier =
         event.ctrlKey ||
-        event.metaKey ||
+        event.metaKey
+
+      const normalizedKey =
+        event.key.toLowerCase()
+
+      if (
+        hasPrimaryModifier &&
+        !event.altKey &&
+        normalizedKey === 'f'
+      ) {
+        event.preventDefault()
+        onFocusSearch()
+        return
+      }
+
+      if (
+        hasPrimaryModifier ||
         event.altKey ||
         isEditableElement(event.target)
       ) {
@@ -144,5 +162,6 @@ export function useReaderKeyboardShortcuts({
     onRotateLeft,
     onRotateRight,
     onTogglePanel,
+    onFocusSearch,
   ])
 }
