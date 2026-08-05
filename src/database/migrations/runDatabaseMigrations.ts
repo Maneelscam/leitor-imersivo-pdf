@@ -1,4 +1,12 @@
-import { createDatabaseSchemaV1 } from '@/database/migrations/createDatabaseSchemaV1'
+import {
+  createDatabaseSchemaV1,
+} from '@/database/migrations/createDatabaseSchemaV1'
+import {
+  createDatabaseSchemaV2,
+} from '@/database/migrations/createDatabaseSchemaV2'
+import {
+  createDatabaseSchemaV3,
+} from '@/database/migrations/createDatabaseSchemaV3'
 
 export function runDatabaseMigrations(
   database: IDBDatabase,
@@ -17,7 +25,30 @@ export function runDatabaseMigrations(
     )
   }
 
-  if (oldVersion < 1 && newVersion >= 1) {
-    createDatabaseSchemaV1(database)
+  if (
+    oldVersion < 1 &&
+    newVersion >= 1
+  ) {
+    createDatabaseSchemaV1(
+      database,
+    )
+  }
+
+  if (
+    oldVersion < 2 &&
+    newVersion >= 2
+  ) {
+    createDatabaseSchemaV2(
+      database,
+    )
+  }
+
+  if (
+    oldVersion < 3 &&
+    newVersion >= 3
+  ) {
+    createDatabaseSchemaV3(
+      database,
+    )
   }
 }

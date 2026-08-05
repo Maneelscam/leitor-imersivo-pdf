@@ -11,6 +11,13 @@ export const DATABASE_INDEX_NAMES = {
     BY_BOOK_AND_PAGE: 'byBookAndPage',
     BY_CREATED_AT: 'byCreatedAt',
   },
+
+  ANNOTATIONS: {
+    BY_BOOK_ID: 'byBookId',
+    BY_BOOK_AND_PAGE: 'byBookAndPage',
+    BY_CREATED_AT: 'byCreatedAt',
+    BY_UPDATED_AT: 'byUpdatedAt',
+  },
 } as const
 
 export type BooksDatabaseIndexName =
@@ -18,3 +25,6 @@ export type BooksDatabaseIndexName =
 
 export type BookmarksDatabaseIndexName =
   (typeof DATABASE_INDEX_NAMES.BOOKMARKS)[keyof typeof DATABASE_INDEX_NAMES.BOOKMARKS]
+
+export type AnnotationsDatabaseIndexName =
+  (typeof DATABASE_INDEX_NAMES.ANNOTATIONS)[keyof typeof DATABASE_INDEX_NAMES.ANNOTATIONS]

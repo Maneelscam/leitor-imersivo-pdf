@@ -4,6 +4,7 @@ export const DATABASE_STORE_NAMES = {
   BOOK_COVERS: 'bookCovers',
   READING_PROGRESS: 'readingProgress',
   BOOKMARKS: 'bookmarks',
+  ANNOTATIONS: 'annotations',
   READER_SETTINGS: 'readerSettings',
 } as const
 

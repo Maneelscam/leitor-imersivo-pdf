@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react'
 
+
 import {
   READER_SETTINGS_CONFIG,
 } from '@/app/config/readerSettings.config'
@@ -26,6 +27,9 @@ import {
   FeedbackMessage,
   FeedbackMessageVariant,
 } from '@/components/feedback/FeedbackMessage'
+import {
+  ReaderAnnotations,
+} from '@/features/reader/components/ReaderAnnotations'
 import {
   ReaderBookmarks,
 } from '@/features/reader/components/ReaderBookmarks'
@@ -54,6 +58,9 @@ import type {
   PdfTextSearchOccurrence,
 } from '@/models/dtos/PdfTextSearchResult'
 import type {
+  Annotation,
+} from '@/models/entities/Annotation'
+import type {
   Bookmark,
 } from '@/models/entities/Bookmark'
 import {
@@ -68,6 +75,16 @@ import {
 import {
   ZoomMode,
 } from '@/models/enums/ZoomMode'
+import {
+  selectAnnotationErrorMessage,
+  selectAnnotationMutationStatus,
+  selectAnnotations,
+  selectAnnotationsLoadStatus,
+  selectClearAnnotationError,
+  selectCreateNoteAnnotation,
+  selectDeleteAnnotation,
+  selectLoadAnnotations,
+} from '@/stores/selectors/annotationSelectors'
 import {
   selectClearPdfTextSearch,
   selectClearPdfTextSearchError,
@@ -561,6 +578,10 @@ export function ReaderPage() {
     selectBookmarks,
   )
 
+  const annotations = useAppStore(
+    selectAnnotations,
+  )
+
   const pdfTextSearchQuery =
     useAppStore(
       selectPdfTextSearchQuery,
@@ -632,6 +653,16 @@ export function ReaderPage() {
       selectBookmarkMutationStatus,
     )
 
+  const annotationsLoadStatus =
+    useAppStore(
+      selectAnnotationsLoadStatus,
+    )
+
+  const annotationMutationStatus =
+    useAppStore(
+      selectAnnotationMutationStatus,
+    )
+
   const readerErrorMessage = useAppStore(
     selectReaderErrorMessage,
   )
@@ -653,6 +684,11 @@ export function ReaderPage() {
   const bookmarkErrorMessage =
     useAppStore(
       selectBookmarkErrorMessage,
+    )
+
+  const annotationErrorMessage =
+    useAppStore(
+      selectAnnotationErrorMessage,
     )
 
   const loadPdfPage = useAppStore(
@@ -701,6 +737,25 @@ export function ReaderPage() {
   const deleteBookmark = useAppStore(
     selectDeleteBookmark,
   )
+
+  const loadAnnotations = useAppStore(
+    selectLoadAnnotations,
+  )
+
+  const createNoteAnnotation =
+    useAppStore(
+      selectCreateNoteAnnotation,
+    )
+
+  const deleteAnnotation =
+    useAppStore(
+      selectDeleteAnnotation,
+    )
+
+  const clearAnnotationError =
+    useAppStore(
+      selectClearAnnotationError,
+    )
 
   const setReadingPosition = useAppStore(
     selectSetReadingPosition,
@@ -806,6 +861,14 @@ export function ReaderPage() {
 
   const isBookmarkMutating =
     bookmarkMutationStatus ===
+    AsyncStatus.LOADING
+
+  const areAnnotationsLoading =
+    annotationsLoadStatus ===
+    AsyncStatus.LOADING
+
+  const isAnnotationMutating =
+    annotationMutationStatus ===
     AsyncStatus.LOADING
 
   const isPdfTextSearching =
@@ -1369,6 +1432,17 @@ export function ReaderPage() {
     openedBook,
     bookmarksLoadStatus,
     loadBookmarks,
+  ])
+
+  useEffect(() => {
+    if (openedBook === null) {
+      return
+    }
+
+    void loadAnnotations()
+  }, [
+    openedBook,
+    loadAnnotations,
   ])
 
   useEffect(() => {
@@ -2206,6 +2280,96 @@ export function ReaderPage() {
       ],
     )
 
+  const handleAddNote =
+    useCallback(
+      async (
+        content: string,
+      ) => {
+        revealReaderControls()
+
+        await createNoteAnnotation({
+          pageNumber: currentPage,
+          pageOffsetRatio,
+          content,
+        })
+      },
+      [
+        currentPage,
+        pageOffsetRatio,
+        createNoteAnnotation,
+        revealReaderControls,
+      ],
+    )
+
+  const handleOpenAnnotation =
+    useCallback(
+      async (
+        annotation: Annotation,
+      ) => {
+        if (navigationDisabled) {
+          return
+        }
+
+        revealReaderControls()
+
+        if (isContinuousMode) {
+          await navigateToContinuousPosition(
+            annotation.pageNumber,
+            annotation.pageOffsetRatio,
+          )
+
+          return
+        }
+
+        await loadPdfPage(
+          annotation.pageNumber,
+        )
+
+        const latestReaderState =
+          useAppStore.getState()
+
+        if (
+          latestReaderState
+            .loadedPdfPage
+            ?.pageNumber !==
+          annotation.pageNumber
+        ) {
+          return
+        }
+
+        setReadingPosition(
+          annotation.pageNumber,
+          annotation.pageOffsetRatio,
+        )
+      },
+      [
+        navigationDisabled,
+        isContinuousMode,
+        navigateToContinuousPosition,
+        loadPdfPage,
+        setReadingPosition,
+        revealReaderControls,
+      ],
+    )
+
+  const handleDeleteAnnotation =
+    useCallback(
+      async (
+        annotationId:
+          Annotation['id'],
+      ) => {
+        revealReaderControls()
+
+        await deleteAnnotation(
+          annotationId,
+        )
+      },
+      [
+        deleteAnnotation,
+        revealReaderControls,
+      ],
+    )
+
   const handleSearchPdfText =
     useCallback(
       async (
@@ -2503,6 +2667,9 @@ export function ReaderPage() {
           activeSearchOccurrence={
             activePdfTextSearchOccurrence
           }
+          annotations={
+            annotations
+          }
           pageDisplayMode={
             configuredPageDisplayMode
           }
@@ -2578,6 +2745,37 @@ export function ReaderPage() {
                 }
                 onDismissError={
                   clearPdfTextSearchError
+                }
+              />
+            }
+            annotationsContent={
+              <ReaderAnnotations
+                annotations={
+                  annotations
+                }
+                currentPage={
+                  currentPage
+                }
+                isLoading={
+                  areAnnotationsLoading
+                }
+                isMutating={
+                  isAnnotationMutating
+                }
+                errorMessage={
+                  annotationErrorMessage
+                }
+                onAddNote={
+                  handleAddNote
+                }
+                onOpenAnnotation={
+                  handleOpenAnnotation
+                }
+                onDeleteAnnotation={
+                  handleDeleteAnnotation
+                }
+                onDismissError={
+                  clearAnnotationError
                 }
               />
             }

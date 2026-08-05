@@ -1,0 +1,124 @@
+.pdf-selectable-text-layer {
+  --total-scale-factor: 1;
+  --scale-round-x: 1px;
+  --scale-round-y: 1px;
+  --min-font-size: 1;
+  --text-scale-factor:
+    calc(
+      var(--total-scale-factor) *
+      var(--min-font-size)
+    );
+  --min-font-size-inv:
+    calc(
+      1 /
+      var(--min-font-size)
+    );
+
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+
+  overflow: clip;
+
+  color-scheme: only light;
+  line-height: 1;
+  text-align: initial;
+  text-size-adjust: none;
+
+  caret-color: transparent;
+  forced-color-adjust: none;
+
+  transform-origin: 0 0;
+
+  cursor: text;
+  user-select: text;
+}
+
+.pdf-selectable-text-layer
+  :is(span, br) {
+  position: absolute;
+
+  color: transparent;
+
+  white-space: pre;
+
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+.pdf-selectable-text-layer
+  > :not(.markedContent),
+.pdf-selectable-text-layer
+  .markedContent
+  span:not(.markedContent) {
+  z-index: 1;
+
+  --font-height: 0;
+  --scale-x: 1;
+  --rotate: 0deg;
+
+  font-size:
+    calc(
+      var(--text-scale-factor) *
+      var(--font-height)
+    );
+
+  transform:
+    rotate(
+      var(--rotate)
+    )
+    scaleX(
+      var(--scale-x)
+    )
+    scale(
+      var(--min-font-size-inv)
+    );
+}
+
+.pdf-selectable-text-layer
+  .markedContent {
+  display: contents;
+}
+
+.pdf-selectable-text-layer
+  span[role='img'] {
+  cursor: default;
+  user-select: none;
+}
+
+.pdf-selectable-text-layer
+  ::selection {
+  color: transparent;
+
+  background:
+    rgb(54 222 139 / 30%);
+}
+
+.pdf-selectable-text-layer
+  br::selection {
+  background: transparent;
+}
+
+.pdf-selectable-text-layer
+  .endOfContent {
+  position: absolute;
+  inset: 100% 0 0;
+  z-index: 0;
+
+  display: block;
+
+  cursor: default;
+  user-select: none;
+}
+
+.pdf-selectable-text-layer.selecting
+  .endOfContent {
+  top: 0;
+}
+
+@media (forced-colors: active) {
+  .pdf-selectable-text-layer
+    ::selection {
+    background: Highlight;
+  }
+}

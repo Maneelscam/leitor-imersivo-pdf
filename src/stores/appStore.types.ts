@@ -3,6 +3,12 @@ import type {
 } from 'pdfjs-dist'
 
 import type {
+  CreateHighlightAnnotationCommand,
+} from '@/controllers/annotations/CreateHighlightAnnotationController'
+import type {
+  CreateNoteAnnotationCommand,
+} from '@/controllers/annotations/CreateNoteAnnotationController'
+import type {
   SaveReaderSettingsCommand,
 } from '@/controllers/settings/SaveReaderSettingsController'
 import type {
@@ -18,6 +24,9 @@ import type {
   PdfTextSearchResult,
 } from '@/models/dtos/PdfTextSearchResult'
 import type {
+  Annotation,
+} from '@/models/entities/Annotation'
+import type {
   Bookmark,
 } from '@/models/entities/Bookmark'
 import type {
@@ -29,6 +38,9 @@ import type {
 import type {
   LibrarySortMode,
 } from '@/models/enums/LibrarySortMode'
+import type {
+  AnnotationId,
+} from '@/models/value-objects/AnnotationId'
 import type {
   BookmarkId,
 } from '@/models/value-objects/BookmarkId'
@@ -224,6 +236,42 @@ export interface ReaderSlice {
   clearBookmarkError(): void
 }
 
+export interface AnnotationSlice {
+  readonly annotations:
+    readonly Annotation[]
+
+  readonly annotationsLoadStatus:
+    AsyncStatus
+
+  readonly annotationMutationStatus:
+    AsyncStatus
+
+  readonly annotationErrorMessage:
+    string | null
+
+  loadAnnotations(): Promise<void>
+
+  createHighlightAnnotation(
+    command: Omit<
+      CreateHighlightAnnotationCommand,
+      'bookId'
+    >,
+  ): Promise<void>
+
+  createNoteAnnotation(
+    command: Omit<
+      CreateNoteAnnotationCommand,
+      'bookId'
+    >,
+  ): Promise<void>
+
+  deleteAnnotation(
+    annotationId: AnnotationId,
+  ): Promise<void>
+
+  clearAnnotationError(): void
+}
+
 export interface PdfTextSearchSlice {
   readonly pdfTextSearchQuery:
     string
@@ -280,5 +328,6 @@ export type AppStore =
   LibrarySlice &
   LibraryBackupSlice &
   ReaderSlice &
+  AnnotationSlice &
   PdfTextSearchSlice &
   ReaderSettingsSlice

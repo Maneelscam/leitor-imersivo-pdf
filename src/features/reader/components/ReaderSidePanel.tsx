@@ -22,6 +22,8 @@ export interface ReaderSidePanelProps
 
   readonly bookmarksContent?: ReactNode
 
+  readonly annotationsContent?: ReactNode
+
   readonly onClose: () => void
 }
 
@@ -96,6 +98,7 @@ export function ReaderSidePanel({
   totalPages,
   searchContent,
   bookmarksContent,
+  annotationsContent,
   onClose,
   className,
   ...panelProps
@@ -209,6 +212,12 @@ export function ReaderSidePanel({
         {searchContent !== undefined && (
           <div className="reader-side-panel__section">
             {searchContent}
+          </div>
+        )}
+
+        {annotationsContent !== undefined && (
+          <div className="reader-side-panel__section">
+            {annotationsContent}
           </div>
         )}
 

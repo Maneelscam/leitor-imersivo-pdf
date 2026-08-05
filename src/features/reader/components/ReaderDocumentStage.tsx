@@ -18,6 +18,9 @@ import {
   LoadingIndicatorSize,
 } from '@/components/feedback/LoadingIndicator'
 import {
+  PdfAnnotationHighlightLayer,
+} from '@/features/reader/components/PdfAnnotationHighlightLayer'
+import {
   PdfPageCanvas,
 } from '@/features/reader/components/PdfPageCanvas'
 import {
@@ -26,6 +29,13 @@ import {
 import type {
   PdfTextSearchOccurrence,
 } from '@/models/dtos/PdfTextSearchResult'
+import type {
+  Annotation,
+  HighlightAnnotation,
+} from '@/models/entities/Annotation'
+import {
+  AnnotationType,
+} from '@/models/enums/AnnotationType'
 import {
   PageDisplayMode,
   type PageDisplayMode as PageDisplayModeValue,
@@ -48,6 +58,9 @@ export interface ReaderDocumentStageProps
 
   readonly activeSearchOccurrence?:
     PdfTextSearchOccurrence | null
+
+  readonly annotations?:
+    readonly Annotation[]
 
   readonly pageDisplayMode?:
     PageDisplayModeValue
@@ -97,6 +110,9 @@ interface ReaderPageCanvasProps {
 
   readonly activeSearchOccurrenceIndex:
     number | null
+
+  readonly highlightAnnotations:
+    readonly HighlightAnnotation[]
 
   readonly renderError:
     string | null
@@ -194,7 +210,7 @@ function getRenderErrorMessage(
     return error.message
   }
 
-  return 'Não foi possível renderizar esta página do PDF.'
+  return 'NÃ£o foi possÃvel renderizar esta pÃ¡gina do PDF.'
 }
 
 function normalizeErrorMessage(
@@ -210,16 +226,41 @@ function ReaderPageCanvas({
   rotation,
   searchOccurrences,
   activeSearchOccurrenceIndex,
+  highlightAnnotations,
   renderError,
   onRenderSuccess,
   onRenderError,
 }: ReaderPageCanvasProps) {
   const pageNumber = page.pageNumber
 
+  const handlePageRenderSuccess =
+    useCallback(() => {
+      onRenderSuccess(pageNumber)
+    }, [
+      onRenderSuccess,
+      pageNumber,
+    ])
+
+  const handlePageRenderError =
+    useCallback(
+      (
+        error: unknown,
+      ) => {
+        onRenderError(
+          pageNumber,
+          error,
+        )
+      },
+      [
+        onRenderError,
+        pageNumber,
+      ],
+    )
+
   return (
     <div
       className="reader-page__page"
-      aria-label={`Página ${pageNumber}`}
+      aria-label={`PÃ¡gina ${pageNumber}`}
       data-page-number={pageNumber}
     >
       <PdfPageCanvas
@@ -227,18 +268,26 @@ function ReaderPageCanvas({
         scale={scale}
         rotation={rotation}
         aria-label={
-          `Página ${pageNumber} do documento`
+          `PÃ¡gina ${pageNumber} do documento`
         }
-        onRenderSuccess={() => {
-          onRenderSuccess(pageNumber)
-        }}
-        onRenderError={(error) => {
-          onRenderError(
-            pageNumber,
-            error,
-          )
-        }}
+        onRenderSuccess={
+          handlePageRenderSuccess
+        }
+        onRenderError={
+          handlePageRenderError
+        }
       />
+
+      {highlightAnnotations.length > 0 && (
+        <PdfAnnotationHighlightLayer
+          page={page}
+          scale={scale}
+          rotation={rotation}
+          annotations={
+            highlightAnnotations
+          }
+        />
+      )}
 
       {searchOccurrences.length > 0 && (
         <PdfTextSearchHighlightLayer
@@ -260,7 +309,7 @@ function ReaderPageCanvas({
             variant={
               FeedbackMessageVariant.ERROR
             }
-            title="Erro ao renderizar a página"
+            title="Erro ao renderizar a pÃ¡gina"
             description={renderError}
             icon={<ErrorIcon />}
           />
@@ -284,6 +333,8 @@ export const ReaderDocumentStage =
         searchOccurrences = [],
 
         activeSearchOccurrence = null,
+
+        annotations = [],
 
         pageDisplayMode =
           PageDisplayMode.SINGLE,
@@ -382,6 +433,24 @@ export const ReaderDocumentStage =
             )
           },
           [searchOccurrences],
+        )
+
+      const getPageHighlightAnnotations =
+        useCallback(
+          (
+            pageNumber: number,
+          ): readonly HighlightAnnotation[] => {
+            return annotations.filter(
+              (
+                annotation,
+              ): annotation is HighlightAnnotation =>
+                annotation.type ===
+                  AnnotationType.HIGHLIGHT &&
+                annotation.pageNumber ===
+                  pageNumber,
+            )
+          },
+          [annotations],
         )
 
       const getActiveSearchOccurrenceIndex =
@@ -503,7 +572,7 @@ export const ReaderDocumentStage =
                         size={
                           LoadingIndicatorSize.LARGE
                         }
-                        label="Carregando página..."
+                        label="Carregando pÃ¡gina..."
                         vertical
                       />
                     </div>
@@ -516,7 +585,7 @@ export const ReaderDocumentStage =
                         variant={
                           FeedbackMessageVariant.ERROR
                         }
-                        title="Não foi possível carregar a página"
+                        title="NÃ£o foi possÃvel carregar a pÃ¡gina"
                         description={
                           normalizedPageLoadError
                         }
@@ -538,6 +607,11 @@ export const ReaderDocumentStage =
                       }
                       activeSearchOccurrenceIndex={
                         getActiveSearchOccurrenceIndex(
+                          page.pageNumber,
+                        )
+                      }
+                      highlightAnnotations={
+                        getPageHighlightAnnotations(
                           page.pageNumber,
                         )
                       }
@@ -564,7 +638,7 @@ export const ReaderDocumentStage =
                         size={
                           LoadingIndicatorSize.LARGE
                         }
-                        label="Carregando próxima página..."
+                        label="Carregando prÃ³xima pÃ¡gina..."
                         vertical
                       />
                     </div>
@@ -578,7 +652,7 @@ export const ReaderDocumentStage =
                         variant={
                           FeedbackMessageVariant.ERROR
                         }
-                        title="Não foi possível carregar a próxima página"
+                        title="NÃ£o foi possÃvel carregar a prÃ³xima pÃ¡gina"
                         description={
                           normalizedSecondaryPageLoadError
                         }
@@ -603,6 +677,12 @@ export const ReaderDocumentStage =
                       }
                       activeSearchOccurrenceIndex={
                         getActiveSearchOccurrenceIndex(
+                          secondaryPage
+                            .pageNumber,
+                        )
+                      }
+                      highlightAnnotations={
+                        getPageHighlightAnnotations(
                           secondaryPage
                             .pageNumber,
                         )
@@ -641,7 +721,7 @@ export const ReaderDocumentStage =
                         size={
                           LoadingIndicatorSize.LARGE
                         }
-                        label="Carregando páginas..."
+                        label="Carregando pÃ¡ginas..."
                         vertical
                       />
                     </div>
@@ -655,7 +735,7 @@ export const ReaderDocumentStage =
                         variant={
                           FeedbackMessageVariant.ERROR
                         }
-                        title="Não foi possível carregar as páginas"
+                        title="NÃ£o foi possÃvel carregar as pÃ¡ginas"
                         description={
                           normalizedContinuousPagesLoadError
                         }
@@ -685,6 +765,12 @@ export const ReaderDocumentStage =
                             .pageNumber,
                         )
                       }
+                      highlightAnnotations={
+                        getPageHighlightAnnotations(
+                          continuousPage
+                            .pageNumber,
+                        )
+                      }
                       renderError={
                         getPageRenderError(
                           continuousPage
@@ -708,7 +794,7 @@ export const ReaderDocumentStage =
                         variant={
                           FeedbackMessageVariant.ERROR
                         }
-                        title="Não foi possível carregar mais páginas"
+                        title="NÃ£o foi possÃvel carregar mais pÃ¡ginas"
                         description={
                           normalizedContinuousPagesLoadError
                         }
@@ -724,7 +810,7 @@ export const ReaderDocumentStage =
                         size={
                           LoadingIndicatorSize.MEDIUM
                         }
-                        label="Carregando mais páginas..."
+                        label="Carregando mais pÃ¡ginas..."
                       />
                     </div>
                   )}
