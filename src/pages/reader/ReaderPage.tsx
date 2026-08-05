@@ -143,10 +143,6 @@ const CONTINUOUS_LOAD_ROOT_MARGIN =
   '600px 0px'
 const CONTINUOUS_POSITION_THRESHOLD = 0.01
 
-const SIDE_PANEL_TARGET_WIDTH = 320
-const STAGE_HORIZONTAL_PADDING_RESERVE = 64
-const RESPONSIVE_LAYOUT_SAFETY_MARGIN = 24
-
 interface ContinuousScrollTarget {
   readonly pageNumber: number
   readonly pageOffsetRatio: number
@@ -736,9 +732,6 @@ export function ReaderPage() {
       selectClearPdfTextSearchError,
     )
 
-  const workspaceRef =
-    useRef<HTMLDivElement>(null)
-
   const stageRef =
     useRef<HTMLDivElement>(null)
 
@@ -755,11 +748,6 @@ export function ReaderPage() {
     useRef<ContinuousScrollTarget | null>(
       null,
     )
-
-  const [
-    workspaceWidth,
-    setWorkspaceWidth,
-  ] = useState(0)
 
   const [
     panelOpen,
@@ -903,48 +891,6 @@ export function ReaderPage() {
     currentPage < totalPages
       ? 2
       : 1
-
-  const primaryRenderedPageWidth =
-    loadedPdfPage === null
-      ? 0
-      : loadedPdfPage.getViewport({
-          scale: pageScale,
-          rotation: pageRotation,
-        }).width
-
-  const secondaryRenderedPageWidth =
-    visiblePageCount < 2
-      ? 0
-      : (
-          loadedSecondaryPdfPage ??
-          loadedPdfPage
-        )?.getViewport({
-          scale: pageScale,
-          rotation: pageRotation,
-        }).width ?? 0
-
-  const renderedDoublePageWidth =
-    primaryRenderedPageWidth +
-    secondaryRenderedPageWidth +
-    (
-      visiblePageCount > 1
-        ? DOUBLE_PAGE_GAP
-        : 0
-    )
-
-  const requiredSidePanelWorkspaceWidth =
-    renderedDoublePageWidth +
-    SIDE_PANEL_TARGET_WIDTH +
-    STAGE_HORIZONTAL_PADDING_RESERVE +
-    RESPONSIVE_LAYOUT_SAFETY_MARGIN
-
-  const shouldStackPanel =
-    panelOpen &&
-    isDoublePageMode &&
-    workspaceWidth > 0 &&
-    renderedDoublePageWidth > 0 &&
-    workspaceWidth <
-      requiredSidePanelWorkspaceWidth
 
   const continuousReferencePage =
     loadedContinuousPdfPages.find(
@@ -1243,60 +1189,6 @@ export function ReaderPage() {
       continuousHasNextPages,
       loadNextContinuousPdfPages,
     ])
-
-  useEffect(() => {
-    const workspaceElement =
-      workspaceRef.current
-
-    if (workspaceElement === null) {
-      return
-    }
-
-    const updateWorkspaceWidth = () => {
-      const nextWorkspaceWidth =
-        workspaceElement
-          .getBoundingClientRect()
-          .width
-
-      setWorkspaceWidth(
-        (currentWorkspaceWidth) =>
-          Math.abs(
-            currentWorkspaceWidth -
-            nextWorkspaceWidth,
-          ) < 0.5
-            ? currentWorkspaceWidth
-            : nextWorkspaceWidth,
-      )
-    }
-
-    updateWorkspaceWidth()
-
-    const resizeObserver =
-      new ResizeObserver(
-        updateWorkspaceWidth,
-      )
-
-    resizeObserver.observe(
-      workspaceElement,
-    )
-
-    window.addEventListener(
-      'resize',
-      updateWorkspaceWidth,
-      {
-        passive: true,
-      },
-    )
-
-    return () => {
-      resizeObserver.disconnect()
-
-      window.removeEventListener(
-        'resize',
-        updateWorkspaceWidth,
-      )
-    }
-  }, [])
 
   useEffect(() => {
     if (!autoHideReaderControls) {
@@ -2494,10 +2386,6 @@ export function ReaderPage() {
     panelOpen
       ? 'reader-page__workspace--with-panel'
       : '',
-
-    shouldStackPanel
-      ? 'reader-page__workspace--stacked-panel'
-      : '',
   ]
     .filter(
       (className) =>
@@ -2599,10 +2487,7 @@ export function ReaderPage() {
         }
       />
 
-      <div
-        ref={workspaceRef}
-        className={workspaceClassName}
-      >
+      <div className={workspaceClassName}>
         <ReaderDocumentStage
           ref={stageRef}
           page={loadedPdfPage}

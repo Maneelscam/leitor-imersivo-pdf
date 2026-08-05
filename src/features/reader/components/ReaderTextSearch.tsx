@@ -129,7 +129,7 @@ function PreviousIcon() {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="m15 18-6-6 6-6" />
+      <path d="m18 15-6-6-6 6" />
     </svg>
   )
 }
@@ -145,7 +145,7 @@ function NextIcon() {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="m9 18 6-6-6-6" />
+      <path d="m6 9 6 6 6-6" />
     </svg>
   )
 }
@@ -706,8 +706,13 @@ export function ReaderTextSearch({
                   : `${result.pagesWithOccurrences} páginas`}
               </p>
 
-              <div className="reader-text-search__navigation">
+              <div
+                className="reader-text-search__navigation"
+                role="group"
+                aria-label="Navegação entre ocorrências"
+              >
                 <Button
+                  className="reader-text-search__navigation-button"
                   type="button"
                   variant={
                     ButtonVariant.GHOST
@@ -733,12 +738,21 @@ export function ReaderTextSearch({
                     ' ocorrências',
                   ].join('')}
                 >
-                  {activeOccurrencePosition}{' '}
-                  de{' '}
-                  {result.totalOccurrences}
+                  <strong>
+                    {activeOccurrencePosition}
+                  </strong>
+
+                  <span aria-hidden="true">
+                    /
+                  </span>
+
+                  <span>
+                    {result.totalOccurrences}
+                  </span>
                 </span>
 
                 <Button
+                  className="reader-text-search__navigation-button"
                   type="button"
                   variant={
                     ButtonVariant.GHOST

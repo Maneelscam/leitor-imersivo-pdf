@@ -19,6 +19,17 @@ const PREVIEW_CONTEXT_LENGTH = 56
 const COMBINING_MARKS_PATTERN =
   /\p{M}/gu
 
+const TEXT_MEASUREMENT_FONT_SIZE = 100
+
+let textMeasurementContext:
+  CanvasRenderingContext2D | null | undefined
+
+interface SearchableTextStyle {
+  readonly fontFamily: string
+  readonly ascent: number
+  readonly descent: number
+}
+
 interface SearchableTextItem {
   readonly text: string
 
@@ -27,6 +38,10 @@ interface SearchableTextItem {
 
   readonly width: number
   readonly height: number
+
+  readonly fontFamily: string
+  readonly ascent: number
+  readonly descent: number
 
   readonly hasEndOfLine: boolean
 }
@@ -42,6 +57,11 @@ interface PageTextSegment {
 
   readonly width: number
   readonly height: number
+
+  readonly text: string
+  readonly fontFamily: string
+  readonly ascent: number
+  readonly descent: number
 }
 
 interface NormalizedText {
@@ -89,6 +109,7 @@ function isSearchableTextItem(
   readonly transform: readonly number[]
   readonly width: number
   readonly height: number
+  readonly fontName: string
   readonly hasEOL: boolean
 } {
   if (!isRecord(value)) {
@@ -103,6 +124,7 @@ function isSearchableTextItem(
     !Number.isFinite(value.width) ||
     typeof value.height !== 'number' ||
     !Number.isFinite(value.height) ||
+    typeof value.fontName !== 'string' ||
     typeof value.hasEOL !== 'boolean'
   ) {
     return false
@@ -119,8 +141,56 @@ function isSearchableTextItem(
   )
 }
 
+function resolveSearchableTextStyle(
+  styles: unknown,
+  fontName: string,
+): SearchableTextStyle {
+  const fallbackStyle:
+    SearchableTextStyle = {
+      fontFamily: 'serif',
+      ascent: 0.8,
+      descent: -0.2,
+    }
+
+  if (!isRecord(styles)) {
+    return fallbackStyle
+  }
+
+  const style =
+    styles[fontName]
+
+  if (!isRecord(style)) {
+    return fallbackStyle
+  }
+
+  const fontFamily =
+    typeof style.fontFamily === 'string' &&
+    style.fontFamily.trim().length > 0
+      ? style.fontFamily.trim()
+      : fallbackStyle.fontFamily
+
+  const ascent =
+    typeof style.ascent === 'number' &&
+    Number.isFinite(style.ascent)
+      ? style.ascent
+      : fallbackStyle.ascent
+
+  const descent =
+    typeof style.descent === 'number' &&
+    Number.isFinite(style.descent)
+      ? style.descent
+      : fallbackStyle.descent
+
+  return {
+    fontFamily,
+    ascent,
+    descent,
+  }
+}
+
 function createSearchableTextItem(
   value: unknown,
+  styles: unknown,
 ): SearchableTextItem | null {
   if (
     !isSearchableTextItem(value) ||
@@ -128,6 +198,12 @@ function createSearchableTextItem(
   ) {
     return null
   }
+
+  const textStyle =
+    resolveSearchableTextStyle(
+      styles,
+      value.fontName,
+    )
 
   return {
     text: value.str,
@@ -144,6 +220,15 @@ function createSearchableTextItem(
       0,
       value.height,
     ),
+
+    fontFamily:
+      textStyle.fontFamily,
+
+    ascent:
+      textStyle.ascent,
+
+    descent:
+      textStyle.descent,
 
     hasEndOfLine:
       value.hasEOL,
@@ -492,6 +577,142 @@ function findPageOffsetRatio(
   )
 }
 
+function getTextMeasurementContext():
+  CanvasRenderingContext2D | null {
+  if (
+    textMeasurementContext !==
+    undefined
+  ) {
+    return textMeasurementContext
+  }
+
+  if (
+    typeof document ===
+    'undefined'
+  ) {
+    textMeasurementContext = null
+    return null
+  }
+
+  const canvas =
+    document.createElement(
+      'canvas',
+    )
+
+  textMeasurementContext =
+    canvas.getContext('2d')
+
+  return textMeasurementContext
+}
+
+function createMeasurementFont(
+  fontFamily: string,
+): string {
+  const escapedFontFamily =
+    fontFamily
+      .replace(
+        /\\/gu,
+        '\\\\',
+      )
+      .replace(
+        /"/gu,
+        '\\"',
+      )
+
+  return [
+    TEXT_MEASUREMENT_FONT_SIZE,
+    'px "',
+    escapedFontFamily,
+    '", serif',
+  ].join('')
+}
+
+function normalizeRelativeTextPosition(
+  value: number,
+): number {
+  if (!Number.isFinite(value)) {
+    return 0
+  }
+
+  return Math.min(
+    1,
+    Math.max(
+      0,
+      value,
+    ),
+  )
+}
+
+function measureRelativeTextPosition(
+  segment: PageTextSegment,
+  characterOffset: number,
+): number {
+  const textLength =
+    segment.text.length
+
+  if (
+    textLength <= 0 ||
+    characterOffset <= 0
+  ) {
+    return 0
+  }
+
+  if (
+    characterOffset >=
+    textLength
+  ) {
+    return 1
+  }
+
+  const fallbackPosition =
+    normalizeRelativeTextPosition(
+      characterOffset /
+        textLength,
+    )
+
+  const context =
+    getTextMeasurementContext()
+
+  if (context === null) {
+    return fallbackPosition
+  }
+
+  context.font =
+    createMeasurementFont(
+      segment.fontFamily,
+    )
+
+  const completeTextWidth =
+    context.measureText(
+      segment.text,
+    ).width
+
+  const prefixTextWidth =
+    context.measureText(
+      segment.text.slice(
+        0,
+        characterOffset,
+      ),
+    ).width
+
+  if (
+    !Number.isFinite(
+      completeTextWidth,
+    ) ||
+    !Number.isFinite(
+      prefixTextWidth,
+    ) ||
+    completeTextWidth <= 0
+  ) {
+    return fallbackPosition
+  }
+
+  return normalizeRelativeTextPosition(
+    prefixTextWidth /
+      completeTextWidth,
+  )
+}
+
 function createHighlightArea(
   segment: PageTextSegment,
   overlapStartIndex: number,
@@ -510,28 +731,19 @@ function createHighlightArea(
   }
 
   const relativeStart =
-    Math.min(
-      1,
-      Math.max(
-        0,
-        (
-          overlapStartIndex -
-          segment.startIndex
-        ) /
-          segmentLength,
-      ),
+    measureRelativeTextPosition(
+      segment,
+      overlapStartIndex -
+        segment.startIndex,
     )
 
   const relativeEnd =
-    Math.min(
-      1,
-      Math.max(
-        relativeStart,
-        (
-          overlapEndIndex -
-          segment.startIndex
-        ) /
-          segmentLength,
+    Math.max(
+      relativeStart,
+      measureRelativeTextPosition(
+        segment,
+        overlapEndIndex -
+          segment.startIndex,
       ),
     )
 
@@ -559,11 +771,14 @@ function createHighlightArea(
       relativeEnd
 
   const firstY =
-    segment.y
+    segment.y +
+    effectiveHeight *
+      segment.descent
 
   const secondY =
     segment.y +
-    effectiveHeight
+    effectiveHeight *
+      segment.ascent
 
   return {
     left:
@@ -801,6 +1016,7 @@ async function extractPageText(
     const currentItem =
       createSearchableTextItem(
         contentItem,
+        textContent.styles,
       )
 
     if (
@@ -844,6 +1060,18 @@ async function extractPageText(
 
       height:
         currentItem.height,
+
+      text:
+        currentItem.text,
+
+      fontFamily:
+        currentItem.fontFamily,
+
+      ascent:
+        currentItem.ascent,
+
+      descent:
+        currentItem.descent,
     })
 
     previousItem =
