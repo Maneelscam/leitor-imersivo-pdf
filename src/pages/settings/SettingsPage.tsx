@@ -133,6 +133,19 @@ function formatZoomMode(
   }
 }
 
+function resolveInitialPageDisplayMode(
+  settings: ReaderSettings,
+): PageDisplayModeValue {
+  if (
+    settings.readingFlowMode ===
+    ReadingFlowMode.CONTINUOUS
+  ) {
+    return PageDisplayMode.SINGLE
+  }
+
+  return settings.pageDisplayMode
+}
+
 function ReaderSettingsForm({
   settings,
   isSaving,
@@ -143,7 +156,9 @@ function ReaderSettingsForm({
     pageDisplayMode,
     setPageDisplayMode,
   ] = useState<PageDisplayModeValue>(
-    settings.pageDisplayMode,
+    resolveInitialPageDisplayMode(
+      settings,
+    ),
   )
 
   const [
@@ -202,12 +217,28 @@ function ReaderSettingsForm({
       event.currentTarget.value
 
     if (
-      Object.values(PageDisplayMode).includes(
+      !Object.values(
+        PageDisplayMode,
+      ).includes(
         selectedMode as PageDisplayModeValue,
       )
     ) {
-      setPageDisplayMode(
-        selectedMode as PageDisplayModeValue,
+      return
+    }
+
+    const nextPageDisplayMode =
+      selectedMode as PageDisplayModeValue
+
+    setPageDisplayMode(
+      nextPageDisplayMode,
+    )
+
+    if (
+      nextPageDisplayMode ===
+      PageDisplayMode.DOUBLE
+    ) {
+      setReadingFlowMode(
+        ReadingFlowMode.PAGINATED,
       )
     }
   }
@@ -219,12 +250,28 @@ function ReaderSettingsForm({
       event.currentTarget.value
 
     if (
-      Object.values(ReadingFlowMode).includes(
+      !Object.values(
+        ReadingFlowMode,
+      ).includes(
         selectedMode as ReadingFlowModeValue,
       )
     ) {
-      setReadingFlowMode(
-        selectedMode as ReadingFlowModeValue,
+      return
+    }
+
+    const nextReadingFlowMode =
+      selectedMode as ReadingFlowModeValue
+
+    setReadingFlowMode(
+      nextReadingFlowMode,
+    )
+
+    if (
+      nextReadingFlowMode ===
+      ReadingFlowMode.CONTINUOUS
+    ) {
+      setPageDisplayMode(
+        PageDisplayMode.SINGLE,
       )
     }
   }
@@ -266,8 +313,16 @@ function ReaderSettingsForm({
       return
     }
 
+    const normalizedPageDisplayMode =
+      readingFlowMode ===
+      ReadingFlowMode.CONTINUOUS
+        ? PageDisplayMode.SINGLE
+        : pageDisplayMode
+
     await onSave({
-      pageDisplayMode,
+      pageDisplayMode:
+        normalizedPageDisplayMode,
+
       readingFlowMode,
       zoomMode,
       customZoomScale,
@@ -310,8 +365,8 @@ function ReaderSettingsForm({
                 </label>
 
                 <p className="settings-page__field-description">
-                  Escolha entre visualizar uma página
-                  ou duas páginas lado a lado.
+                  Escolha uma página ou duas lado a lado.
+                  O modo de duas páginas usa navegação paginada.
                 </p>
               </div>
 
@@ -354,8 +409,8 @@ function ReaderSettingsForm({
                 </label>
 
                 <p className="settings-page__field-description">
-                  Use páginas separadas ou uma rolagem
-                  contínua pelo documento.
+                  Use páginas separadas ou rolagem contínua.
+                  A rolagem contínua exibe uma página por linha.
                 </p>
               </div>
 
