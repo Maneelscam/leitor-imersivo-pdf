@@ -180,6 +180,9 @@ function createManifest(
       bookmarks:
         snapshot.bookmarks,
 
+      annotations:
+        snapshot.annotations,
+
       readerSettings:
         snapshot.readerSettings,
     },

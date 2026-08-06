@@ -509,7 +509,7 @@ export function LibraryPage() {
               FeedbackMessageVariant.SUCCESS
             }
             title="Backup restaurado com sucesso"
-            description="A biblioteca, os PDFs, as capas, o progresso, os favoritos e as configurações foram restaurados."
+            description="A biblioteca, os PDFs, as capas, o progresso, os favoritos, as anotações e as configurações foram restaurados."
             icon={<SuccessIcon />}
             action={
               <Button

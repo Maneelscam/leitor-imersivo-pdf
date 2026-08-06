@@ -416,6 +416,9 @@ function createRestoredSnapshot(
     bookmarks:
       manifest.data.bookmarks,
 
+    annotations:
+      manifest.data.annotations,
+
     readerSettings:
       manifest.data.readerSettings,
   }

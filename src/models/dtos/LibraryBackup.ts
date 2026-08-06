@@ -1,17 +1,46 @@
-import type { Book } from '@/models/entities/Book'
-import type { BookCover } from '@/models/entities/BookCover'
-import type { BookFile } from '@/models/entities/BookFile'
-import type { Bookmark } from '@/models/entities/Bookmark'
-import type { ReaderSettings } from '@/models/entities/ReaderSettings'
-import type { ReadingProgress } from '@/models/entities/ReadingProgress'
-import type { BookId } from '@/models/value-objects/BookId'
-import type { IsoDateTime } from '@/models/value-objects/IsoDateTime'
+import type {
+  Annotation,
+} from '@/models/entities/Annotation'
+import type {
+  Book,
+} from '@/models/entities/Book'
+import type {
+  BookCover,
+} from '@/models/entities/BookCover'
+import type {
+  BookFile,
+} from '@/models/entities/BookFile'
+import type {
+  Bookmark,
+} from '@/models/entities/Bookmark'
+import type {
+  ReaderSettings,
+} from '@/models/entities/ReaderSettings'
+import type {
+  ReadingProgress,
+} from '@/models/entities/ReadingProgress'
+import type {
+  BookId,
+} from '@/models/value-objects/BookId'
+import type {
+  IsoDateTime,
+} from '@/models/value-objects/IsoDateTime'
 
 export const LIBRARY_BACKUP_FORMAT =
   'leitor-imersivo-pdf-backup' as const
 
-export const LIBRARY_BACKUP_FORMAT_VERSION =
+export const LIBRARY_BACKUP_FORMAT_VERSION_V1 =
   1 as const
+
+export const LIBRARY_BACKUP_FORMAT_VERSION_V2 =
+  2 as const
+
+export const LIBRARY_BACKUP_FORMAT_VERSION =
+  LIBRARY_BACKUP_FORMAT_VERSION_V2
+
+export type LibraryBackupFormatVersion =
+  | typeof LIBRARY_BACKUP_FORMAT_VERSION_V1
+  | typeof LIBRARY_BACKUP_FORMAT_VERSION_V2
 
 export const LIBRARY_BACKUP_MANIFEST_FILE_NAME =
   'backup.json' as const
@@ -20,9 +49,16 @@ export interface LibraryBackupSnapshot {
   readonly books: readonly Book[]
   readonly bookFiles: readonly BookFile[]
   readonly bookCovers: readonly BookCover[]
+
   readonly readingProgress:
     readonly ReadingProgress[]
-  readonly bookmarks: readonly Bookmark[]
+
+  readonly bookmarks:
+    readonly Bookmark[]
+
+  readonly annotations:
+    readonly Annotation[]
+
   readonly readerSettings:
     ReaderSettings | null
 }
@@ -75,6 +111,9 @@ export interface LibraryBackupManifestData {
   readonly bookmarks:
     readonly Bookmark[]
 
+  readonly annotations:
+    readonly Annotation[]
+
   readonly readerSettings:
     ReaderSettings | null
 }
@@ -84,7 +123,7 @@ export interface LibraryBackupManifest {
     typeof LIBRARY_BACKUP_FORMAT
 
   readonly formatVersion:
-    typeof LIBRARY_BACKUP_FORMAT_VERSION
+    LibraryBackupFormatVersion
 
   readonly createdAt: IsoDateTime
 

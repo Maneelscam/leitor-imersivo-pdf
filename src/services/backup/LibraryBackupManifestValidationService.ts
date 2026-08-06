@@ -3,11 +3,19 @@ import {
 } from '@/app/config/app.config'
 import {
   LIBRARY_BACKUP_FORMAT,
-  LIBRARY_BACKUP_FORMAT_VERSION,
+  LIBRARY_BACKUP_FORMAT_VERSION_V1,
+  LIBRARY_BACKUP_FORMAT_VERSION_V2,
+  type LibraryBackupApplicationInfo,
   type LibraryBackupBookCoverEntry,
   type LibraryBackupBookFileEntry,
+  type LibraryBackupDatabaseInfo,
+  type LibraryBackupFormatVersion,
   type LibraryBackupManifest,
+  type LibraryBackupManifestData,
 } from '@/models/dtos/LibraryBackup'
+import type {
+  Annotation,
+} from '@/models/entities/Annotation'
 import type {
   Book,
 } from '@/models/entities/Book'
@@ -21,6 +29,12 @@ import type {
   ReadingProgress,
 } from '@/models/entities/ReadingProgress'
 import {
+  isAnnotationColor,
+} from '@/models/enums/AnnotationColor'
+import {
+  AnnotationType,
+} from '@/models/enums/AnnotationType'
+import {
   PageDisplayMode,
 } from '@/models/enums/PageDisplayMode'
 import {
@@ -29,6 +43,9 @@ import {
 import {
   ZoomMode,
 } from '@/models/enums/ZoomMode'
+import {
+  isAnnotationArea,
+} from '@/models/value-objects/AnnotationArea'
 import {
   isIsoDateTime,
 } from '@/models/value-objects/IsoDateTime'
@@ -247,6 +264,70 @@ function isBookmark(
   )
 }
 
+function hasValidAnnotationBase(
+  value: Record<string, unknown>,
+): boolean {
+  return (
+    isNonEmptyString(value.id) &&
+    isNonEmptyString(value.bookId) &&
+    isPositiveInteger(
+      value.pageNumber,
+    ) &&
+    isPageOffsetRatio(
+      value.pageOffsetRatio,
+    ) &&
+    isIsoDateTime(
+      value.createdAt,
+    ) &&
+    isIsoDateTime(
+      value.updatedAt,
+    )
+  )
+}
+
+function isAnnotation(
+  value: unknown,
+): value is Annotation {
+  if (
+    !isRecord(value) ||
+    !hasValidAnnotationBase(value)
+  ) {
+    return false
+  }
+
+  if (
+    value.type ===
+    AnnotationType.NOTE
+  ) {
+    return isNonEmptyString(
+      value.content,
+    )
+  }
+
+  if (
+    value.type ===
+    AnnotationType.HIGHLIGHT
+  ) {
+    return (
+      isAnnotationColor(
+        value.color,
+      ) &&
+      isNonEmptyString(
+        value.selectedText,
+      ) &&
+      Array.isArray(
+        value.areas,
+      ) &&
+      value.areas.length > 0 &&
+      value.areas.every(
+        isAnnotationArea,
+      )
+    )
+  }
+
+  return false
+}
+
 function isReaderSettings(
   value: unknown,
 ): value is ReaderSettings {
@@ -288,7 +369,7 @@ function isReaderSettings(
 
 function isApplicationInfo(
   value: unknown,
-): boolean {
+): value is LibraryBackupApplicationInfo {
   if (!isRecord(value)) {
     return false
   }
@@ -301,7 +382,7 @@ function isApplicationInfo(
 
 function isDatabaseInfo(
   value: unknown,
-): boolean {
+): value is LibraryBackupDatabaseInfo {
   if (!isRecord(value)) {
     return false
   }
@@ -312,68 +393,162 @@ function isDatabaseInfo(
   )
 }
 
-function isManifestData(
+function isSupportedFormatVersion(
   value: unknown,
-): boolean {
-  if (!isRecord(value)) {
-    return false
+): value is LibraryBackupFormatVersion {
+  return (
+    value ===
+      LIBRARY_BACKUP_FORMAT_VERSION_V1 ||
+    value ===
+      LIBRARY_BACKUP_FORMAT_VERSION_V2
+  )
+}
+
+function normalizeAnnotations(
+  value: Record<string, unknown>,
+  formatVersion: LibraryBackupFormatVersion,
+): readonly Annotation[] | null {
+  const annotations =
+    value.annotations
+
+  if (
+    formatVersion ===
+      LIBRARY_BACKUP_FORMAT_VERSION_V1 &&
+    annotations === undefined
+  ) {
+    return []
   }
 
-  return (
-    Array.isArray(value.books) &&
-    value.books.every(isBook) &&
-    Array.isArray(value.bookFiles) &&
-    value.bookFiles.every(
+  if (
+    !Array.isArray(annotations) ||
+    !annotations.every(
+      isAnnotation,
+    )
+  ) {
+    return null
+  }
+
+  return annotations
+}
+
+function normalizeManifestData(
+  value: unknown,
+  formatVersion: LibraryBackupFormatVersion,
+): LibraryBackupManifestData | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  if (
+    !Array.isArray(value.books) ||
+    !value.books.every(isBook) ||
+    !Array.isArray(value.bookFiles) ||
+    !value.bookFiles.every(
       isBookFileEntry,
-    ) &&
-    Array.isArray(value.bookCovers) &&
-    value.bookCovers.every(
+    ) ||
+    !Array.isArray(value.bookCovers) ||
+    !value.bookCovers.every(
       isBookCoverEntry,
-    ) &&
-    Array.isArray(
+    ) ||
+    !Array.isArray(
       value.readingProgress,
-    ) &&
-    value.readingProgress.every(
+    ) ||
+    !value.readingProgress.every(
       isReadingProgress,
-    ) &&
-    Array.isArray(value.bookmarks) &&
-    value.bookmarks.every(
+    ) ||
+    !Array.isArray(value.bookmarks) ||
+    !value.bookmarks.every(
       isBookmark,
-    ) &&
-    (
+    ) ||
+    !(
       value.readerSettings === null ||
       isReaderSettings(
         value.readerSettings,
       )
     )
-  )
-}
-
-function isLibraryBackupManifest(
-  value: unknown,
-): value is LibraryBackupManifest {
-  if (!isRecord(value)) {
-    return false
+  ) {
+    return null
   }
 
-  return (
-    value.format ===
-      LIBRARY_BACKUP_FORMAT &&
-    value.formatVersion ===
-      LIBRARY_BACKUP_FORMAT_VERSION &&
-    isIsoDateTime(
-      value.createdAt,
-    ) &&
-    isApplicationInfo(
-      value.application,
-    ) &&
-    isDatabaseInfo(
-      value.database,
-    ) &&
-    isManifestData(
-      value.data,
+  const annotations =
+    normalizeAnnotations(
+      value,
+      formatVersion,
     )
-  )
+
+  if (annotations === null) {
+    return null
+  }
+
+  return {
+    books: value.books,
+    bookFiles: value.bookFiles,
+    bookCovers: value.bookCovers,
+
+    readingProgress:
+      value.readingProgress,
+
+    bookmarks:
+      value.bookmarks,
+
+    annotations,
+
+    readerSettings:
+      value.readerSettings,
+  }
+}
+
+function normalizeLibraryBackupManifest(
+  value: unknown,
+): LibraryBackupManifest | null {
+  if (
+    !isRecord(value) ||
+    value.format !==
+      LIBRARY_BACKUP_FORMAT ||
+    !isSupportedFormatVersion(
+      value.formatVersion,
+    ) ||
+    !isIsoDateTime(
+      value.createdAt,
+    ) ||
+    !isApplicationInfo(
+      value.application,
+    ) ||
+    !isDatabaseInfo(
+      value.database,
+    )
+  ) {
+    return null
+  }
+
+  const data =
+    normalizeManifestData(
+      value.data,
+      value.formatVersion,
+    )
+
+  if (data === null) {
+    return null
+  }
+
+  return {
+    format:
+      LIBRARY_BACKUP_FORMAT,
+
+    formatVersion:
+      value.formatVersion,
+
+    createdAt:
+      value.createdAt,
+
+    application:
+      value.application,
+
+    database:
+      value.database,
+
+    data,
+  }
 }
 
 function createExpectedPdfPath(
@@ -466,6 +641,9 @@ function validateBookRelationships(
   const bookmarks =
     manifest.data.bookmarks
 
+  const annotations =
+    manifest.data.annotations
+
   assertUniqueValues(
     books.map(
       (book) => book.id,
@@ -507,6 +685,13 @@ function validateBookRelationships(
         `${bookmark.bookId}:${bookmark.pageNumber}`,
     ),
     'favoritos para a mesma página',
+  )
+
+  assertUniqueValues(
+    annotations.map(
+      (annotation) => annotation.id,
+    ),
+    'identificadores de anotações',
   )
 
   assertUniqueValues(
@@ -652,6 +837,31 @@ function validateBookRelationships(
     }
   }
 
+  for (
+    const annotation of
+    annotations
+  ) {
+    const book =
+      bookById.get(
+        annotation.bookId,
+      )
+
+    if (book === undefined) {
+      throw new Error(
+        'O backup contém uma anotação sem livro correspondente.',
+      )
+    }
+
+    if (
+      annotation.pageNumber >
+      book.totalPages
+    ) {
+      throw new Error(
+        `Uma anotação de “${book.title}” aponta para uma página inexistente.`,
+      )
+    }
+  }
+
   const fingerprints =
     books
       .map(
@@ -675,24 +885,25 @@ export class LibraryBackupManifestValidationService {
   validate(
     value: unknown,
   ): LibraryBackupManifest {
-    if (
-      !isLibraryBackupManifest(
+    const manifest =
+      normalizeLibraryBackupManifest(
         value,
       )
-    ) {
+
+    if (manifest === null) {
       throw new Error(
         'O arquivo backup.json está ausente, corrompido ou possui uma estrutura inválida.',
       )
     }
 
     validateApplicationCompatibility(
-      value,
+      manifest,
     )
 
     validateBookRelationships(
-      value,
+      manifest,
     )
 
-    return value
+    return manifest
   }
 }

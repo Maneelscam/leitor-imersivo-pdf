@@ -15,6 +15,9 @@ import type {
   LibraryBackupSnapshot,
 } from '@/models/dtos/LibraryBackup'
 import type {
+  Annotation,
+} from '@/models/entities/Annotation'
+import type {
   Book,
 } from '@/models/entities/Book'
 import type {
@@ -42,6 +45,7 @@ const BACKUP_STORE_NAMES = [
   DATABASE_STORE_NAMES.BOOK_COVERS,
   DATABASE_STORE_NAMES.READING_PROGRESS,
   DATABASE_STORE_NAMES.BOOKMARKS,
+  DATABASE_STORE_NAMES.ANNOTATIONS,
   DATABASE_STORE_NAMES.READER_SETTINGS,
 ] as const
 
@@ -120,6 +124,15 @@ export class IndexedDbLibraryBackupRepository
             .getAll(),
         ) as Promise<Bookmark[]>
 
+      const annotationsPromise =
+        requestToPromise(
+          transaction
+            .objectStore(
+              DATABASE_STORE_NAMES.ANNOTATIONS,
+            )
+            .getAll(),
+        ) as Promise<Annotation[]>
+
       const readerSettingsPromise =
         requestToPromise(
           transaction
@@ -139,6 +152,7 @@ export class IndexedDbLibraryBackupRepository
         bookCovers,
         readingProgress,
         bookmarks,
+        annotations,
         readerSettings,
       ] = await Promise.all([
         booksPromise,
@@ -146,6 +160,7 @@ export class IndexedDbLibraryBackupRepository
         bookCoversPromise,
         readingProgressPromise,
         bookmarksPromise,
+        annotationsPromise,
         readerSettingsPromise,
       ])
 
@@ -157,6 +172,7 @@ export class IndexedDbLibraryBackupRepository
         bookCovers,
         readingProgress,
         bookmarks,
+        annotations,
         readerSettings:
           readerSettings ?? null,
       }
@@ -212,6 +228,11 @@ export class IndexedDbLibraryBackupRepository
           DATABASE_STORE_NAMES.BOOKMARKS,
         )
 
+      const annotationsStore =
+        transaction.objectStore(
+          DATABASE_STORE_NAMES.ANNOTATIONS,
+        )
+
       const readerSettingsStore =
         transaction.objectStore(
           DATABASE_STORE_NAMES.READER_SETTINGS,
@@ -222,6 +243,7 @@ export class IndexedDbLibraryBackupRepository
       bookCoversStore.clear()
       readingProgressStore.clear()
       bookmarksStore.clear()
+      annotationsStore.clear()
       readerSettingsStore.clear()
 
       for (
@@ -263,6 +285,15 @@ export class IndexedDbLibraryBackupRepository
       ) {
         bookmarksStore.put(
           bookmark,
+        )
+      }
+
+      for (
+        const annotation of
+        snapshot.annotations
+      ) {
+        annotationsStore.put(
+          annotation,
         )
       }
 
