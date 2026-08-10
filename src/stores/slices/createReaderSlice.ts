@@ -849,7 +849,8 @@ export const createReaderSlice:
 
           if (
             get().loadedPdfDocument !==
-            loadedPdfDocument
+              loadedPdfDocument ||
+            loadedPdfDocument.isClosed
           ) {
             return
           }
@@ -1014,6 +1015,7 @@ export const createReaderSlice:
               latestState
                 .loadedPdfDocument !==
                 loadedPdfDocument ||
+              loadedPdfDocument.isClosed ||
               latestState
                 .loadedPdfPage
                 ?.pageNumber !==
@@ -1172,6 +1174,7 @@ export const createReaderSlice:
               latestState
                 .loadedPdfDocument !==
                 loadedPdfDocument ||
+              loadedPdfDocument.isClosed ||
               latestState
                 .openedBook
                 ?.book
@@ -1360,6 +1363,7 @@ export const createReaderSlice:
               latestState
                 .loadedPdfDocument !==
                 loadedPdfDocument ||
+              loadedPdfDocument.isClosed ||
               latestState
                 .openedBook
                 ?.book
@@ -1530,6 +1534,7 @@ export const createReaderSlice:
               latestState
                 .loadedPdfDocument !==
                 loadedPdfDocument ||
+              loadedPdfDocument.isClosed ||
               latestState
                 .openedBook
                 ?.book
