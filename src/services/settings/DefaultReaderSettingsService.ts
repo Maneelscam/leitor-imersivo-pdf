@@ -7,14 +7,20 @@ export class DefaultReaderSettingsService {
     const { defaults } = READER_SETTINGS_CONFIG
 
     return {
+      theme: defaults.theme,
+
       pageDisplayMode: defaults.pageDisplayMode,
       readingFlowMode: defaults.readingFlowMode,
+
       zoomMode: defaults.zoomMode,
       customZoomScale: defaults.customZoomScale,
+
       enableKeyboardShortcuts:
         defaults.enableKeyboardShortcuts,
+
       autoHideReaderControls:
         defaults.autoHideReaderControls,
+
       updatedAt: createIsoDateTime(),
     }
   }

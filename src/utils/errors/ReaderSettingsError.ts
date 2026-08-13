@@ -1,9 +1,20 @@
 export const ReaderSettingsErrorCode = {
   LOAD_FAILED: 'load-failed',
-  INVALID_PAGE_DISPLAY_MODE: 'invalid-page-display-mode',
-  INVALID_READING_FLOW_MODE: 'invalid-reading-flow-mode',
-  INVALID_ZOOM_MODE: 'invalid-zoom-mode',
-  INVALID_ZOOM_SCALE: 'invalid-zoom-scale',
+
+  INVALID_THEME: 'invalid-theme',
+
+  INVALID_PAGE_DISPLAY_MODE:
+    'invalid-page-display-mode',
+
+  INVALID_READING_FLOW_MODE:
+    'invalid-reading-flow-mode',
+
+  INVALID_ZOOM_MODE:
+    'invalid-zoom-mode',
+
+  INVALID_ZOOM_SCALE:
+    'invalid-zoom-scale',
+
   SAVE_FAILED: 'save-failed',
   RESET_FAILED: 'reset-failed',
 } as const
@@ -21,6 +32,9 @@ export class ReaderSettingsError extends Error {
   ) {
     super(message, options)
 
-    Object.setPrototypeOf(this, new.target.prototype)
+    Object.setPrototypeOf(
+      this,
+      new.target.prototype,
+    )
   }
 }

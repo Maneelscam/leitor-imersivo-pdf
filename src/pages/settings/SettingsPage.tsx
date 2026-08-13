@@ -25,6 +25,10 @@ import type {
   ReaderSettings,
 } from '@/models/entities/ReaderSettings'
 import {
+  AppTheme,
+  type AppTheme as AppThemeValue,
+} from '@/models/enums/AppTheme'
+import {
   PageDisplayMode,
   type PageDisplayMode as PageDisplayModeValue,
 } from '@/models/enums/PageDisplayMode'
@@ -91,6 +95,27 @@ function ErrorIcon() {
   )
 }
 
+function formatAppTheme(
+  theme: AppThemeValue,
+): string {
+  switch (theme) {
+    case AppTheme.DARK:
+      return 'Escuro'
+
+    case AppTheme.OLED:
+      return 'Preto OLED'
+
+    case AppTheme.GRAPHITE:
+      return 'Grafite'
+
+    case AppTheme.LIGHT:
+      return 'Claro'
+
+    case AppTheme.SEPIA:
+      return 'Sépia'
+  }
+}
+
 function formatPageDisplayMode(
   mode: PageDisplayModeValue,
 ): string {
@@ -153,6 +178,13 @@ function ReaderSettingsForm({
   onReset,
 }: ReaderSettingsFormProps) {
   const [
+    theme,
+    setTheme,
+  ] = useState<AppThemeValue>(
+    settings.theme,
+  )
+
+  const [
     pageDisplayMode,
     setPageDisplayMode,
   ] = useState<PageDisplayModeValue>(
@@ -209,6 +241,23 @@ function ReaderSettingsForm({
 
   const customZoomPercentage =
     Math.round(customZoomScale * 100)
+
+  const handleThemeChange = (
+    event: ChangeEvent<HTMLSelectElement>,
+  ) => {
+    const selectedTheme =
+      event.currentTarget.value
+
+    if (
+      Object.values(AppTheme).includes(
+        selectedTheme as AppThemeValue,
+      )
+    ) {
+      setTheme(
+        selectedTheme as AppThemeValue,
+      )
+    }
+  }
 
   const handlePageDisplayModeChange = (
     event: ChangeEvent<HTMLSelectElement>,
@@ -320,6 +369,8 @@ function ReaderSettingsForm({
         : pageDisplayMode
 
     await onSave({
+      theme,
+
       pageDisplayMode:
         normalizedPageDisplayMode,
 
@@ -345,6 +396,70 @@ function ReaderSettingsForm({
         <section className="settings-page__section">
           <header className="settings-page__section-header">
             <h2 className="settings-page__section-title">
+              Aparência
+            </h2>
+
+            <p className="settings-page__section-description">
+              Escolha a aparência geral do aplicativo.
+              O conteúdo original das páginas do PDF
+              permanece independente do tema.
+            </p>
+          </header>
+
+          <div className="settings-page__fields">
+            <div className="settings-page__field">
+              <div className="settings-page__field-information">
+                <label
+                  className="settings-page__field-label"
+                  htmlFor="application-theme"
+                >
+                  Tema da interface
+                </label>
+
+                <p className="settings-page__field-description">
+                  Escolha uma aparência confortável
+                  para o ambiente em que você está lendo.
+                </p>
+              </div>
+
+              <div className="settings-page__field-control">
+                <select
+                  id="application-theme"
+                  className="settings-page__select"
+                  value={theme}
+                  disabled={isSaving}
+                  onChange={
+                    handleThemeChange
+                  }
+                >
+                  <option value={AppTheme.DARK}>
+                    Escuro
+                  </option>
+
+                  <option value={AppTheme.OLED}>
+                    Preto OLED
+                  </option>
+
+                  <option value={AppTheme.GRAPHITE}>
+                    Grafite
+                  </option>
+
+                  <option value={AppTheme.LIGHT}>
+                    Claro
+                  </option>
+
+                  <option value={AppTheme.SEPIA}>
+                    Sépia
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="settings-page__section">
+          <header className="settings-page__section-header">
+            <h2 className="settings-page__section-title">
               Exibição das páginas
             </h2>
 
@@ -366,7 +481,8 @@ function ReaderSettingsForm({
 
                 <p className="settings-page__field-description">
                   Escolha uma página ou duas lado a lado.
-                  O modo de duas páginas usa navegação paginada.
+                  O modo de duas páginas usa navegação
+                  paginada.
                 </p>
               </div>
 
@@ -409,8 +525,9 @@ function ReaderSettingsForm({
                 </label>
 
                 <p className="settings-page__field-description">
-                  Use páginas separadas ou rolagem contínua.
-                  A rolagem contínua exibe uma página por linha.
+                  Use páginas separadas ou rolagem
+                  contínua. A rolagem contínua exibe
+                  uma página por linha.
                 </p>
               </div>
 
@@ -580,7 +697,8 @@ function ReaderSettingsForm({
 
                 <p className="settings-page__field-description">
                   Permite navegar, ajustar o zoom, girar
-                  páginas e controlar o painel pelo teclado.
+                  páginas e controlar o painel pelo
+                  teclado.
                 </p>
               </div>
 
@@ -664,6 +782,18 @@ function ReaderSettingsForm({
           </h2>
 
           <div className="settings-page__summary-list">
+            <div className="settings-page__summary-item">
+              <span className="settings-page__summary-label">
+                Tema
+              </span>
+
+              <strong className="settings-page__summary-value">
+                {formatAppTheme(
+                  theme,
+                )}
+              </strong>
+            </div>
+
             <div className="settings-page__summary-item">
               <span className="settings-page__summary-label">
                 Exibição

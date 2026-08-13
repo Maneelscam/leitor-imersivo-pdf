@@ -31,18 +31,27 @@ describe('DefaultReaderSettingsService', () => {
       service.create()
 
     expect(settings).toEqual({
+      theme:
+        READER_SETTINGS_CONFIG.defaults.theme,
+
       pageDisplayMode:
         READER_SETTINGS_CONFIG.defaults.pageDisplayMode,
+
       readingFlowMode:
         READER_SETTINGS_CONFIG.defaults.readingFlowMode,
+
       zoomMode:
         READER_SETTINGS_CONFIG.defaults.zoomMode,
+
       customZoomScale:
         READER_SETTINGS_CONFIG.defaults.customZoomScale,
+
       enableKeyboardShortcuts:
         READER_SETTINGS_CONFIG.defaults.enableKeyboardShortcuts,
+
       autoHideReaderControls:
         READER_SETTINGS_CONFIG.defaults.autoHideReaderControls,
+
       updatedAt:
         fixedDate.toISOString(),
     })

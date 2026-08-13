@@ -18,6 +18,7 @@ import type {
 import type {
   ReaderSettings,
 } from '@/models/entities/ReaderSettings'
+import { AppTheme } from '@/models/enums/AppTheme'
 import { AsyncStatus } from '@/models/enums/AsyncStatus'
 import { PageDisplayMode } from '@/models/enums/PageDisplayMode'
 import { ReadingFlowMode } from '@/models/enums/ReadingFlowMode'
@@ -38,6 +39,13 @@ const controllerMocks = vi.hoisted(
       vi.fn(),
 
     reset:
+      vi.fn(),
+  }),
+)
+
+const themeServiceMocks = vi.hoisted(
+  () => ({
+    synchronizeTheme:
       vi.fn(),
   }),
 )
@@ -66,6 +74,16 @@ vi.mock(
   }),
 )
 
+vi.mock(
+  '@/services/settings/AppThemeService',
+  () => ({
+    appThemeService: {
+      synchronizeTheme:
+        themeServiceMocks.synchronizeTheme,
+    },
+  }),
+)
+
 function createStoreForTest() {
   return createStore<AppStore>()(
     createReaderSettingsSlice as unknown as StateCreator<AppStore>,
@@ -77,6 +95,9 @@ function createSettings(
     Partial<ReaderSettings> = {},
 ): ReaderSettings {
   return {
+    theme:
+      AppTheme.DARK,
+
     pageDisplayMode:
       PageDisplayMode.SINGLE,
 
@@ -104,6 +125,9 @@ function createSettings(
 function createSaveCommand():
   SaveReaderSettingsCommand {
   return {
+    theme:
+      AppTheme.DARK,
+
     pageDisplayMode:
       PageDisplayMode.SINGLE,
 
@@ -183,14 +207,21 @@ describe(
           readerSettingsErrorMessage:
             null,
         })
+
+        expect(
+          themeServiceMocks.synchronizeTheme,
+        ).not.toHaveBeenCalled()
       },
     )
 
     it(
-      'carrega configurações e marca sucesso',
+      'carrega configurações, sincroniza o tema e marca sucesso',
       async () => {
         const settings =
-          createSettings()
+          createSettings({
+            theme:
+              AppTheme.GRAPHITE,
+          })
 
         controllerMocks.load
           .mockResolvedValue(
@@ -211,6 +242,18 @@ describe(
         )
 
         expect(
+          themeServiceMocks.synchronizeTheme,
+        ).toHaveBeenCalledWith(
+          AppTheme.GRAPHITE,
+        )
+
+        expect(
+          themeServiceMocks.synchronizeTheme,
+        ).toHaveBeenCalledTimes(
+          1,
+        )
+
+        expect(
           store.getState(),
         ).toMatchObject({
           readerSettings:
@@ -226,7 +269,7 @@ describe(
     )
 
     it(
-      'registra erro ao falhar no carregamento',
+      'registra erro ao falhar no carregamento sem alterar o tema',
       async () => {
         controllerMocks.load
           .mockRejectedValue(
@@ -243,6 +286,10 @@ describe(
           .loadReaderSettings()
 
         expect(
+          themeServiceMocks.synchronizeTheme,
+        ).not.toHaveBeenCalled()
+
+        expect(
           store.getState(),
         ).toMatchObject({
           readerSettingsLoadStatus:
@@ -255,13 +302,20 @@ describe(
     )
 
     it(
-      'salva configurações, encaminha o comando e atualiza o estado',
+      'salva configurações, sincroniza o tema e atualiza o estado',
       async () => {
-        const command =
-          createSaveCommand()
+        const command = {
+          ...createSaveCommand(),
+
+          theme:
+            AppTheme.OLED,
+        }
 
         const saved =
           createSettings({
+            theme:
+              AppTheme.OLED,
+
             customZoomScale:
               1.25,
           })
@@ -287,6 +341,12 @@ describe(
         )
 
         expect(
+          themeServiceMocks.synchronizeTheme,
+        ).toHaveBeenCalledWith(
+          AppTheme.OLED,
+        )
+
+        expect(
           store.getState(),
         ).toMatchObject({
           readerSettings:
@@ -302,7 +362,7 @@ describe(
     )
 
     it(
-      'registra erro ao falhar no salvamento',
+      'registra erro ao falhar no salvamento sem alterar o tema',
       async () => {
         controllerMocks.save
           .mockRejectedValue(
@@ -321,6 +381,10 @@ describe(
           )
 
         expect(
+          themeServiceMocks.synchronizeTheme,
+        ).not.toHaveBeenCalled()
+
+        expect(
           store.getState(),
         ).toMatchObject({
           readerSettingsSaveStatus:
@@ -333,10 +397,13 @@ describe(
     )
 
     it(
-      'restaura configurações padrão e atualiza o estado',
+      'restaura configurações padrão, sincroniza o tema e atualiza o estado',
       async () => {
         const defaults =
-          createSettings()
+          createSettings({
+            theme:
+              AppTheme.DARK,
+          })
 
         controllerMocks.reset
           .mockResolvedValue(
@@ -357,6 +424,12 @@ describe(
         )
 
         expect(
+          themeServiceMocks.synchronizeTheme,
+        ).toHaveBeenCalledWith(
+          AppTheme.DARK,
+        )
+
+        expect(
           store.getState(),
         ).toMatchObject({
           readerSettings:
@@ -372,7 +445,7 @@ describe(
     )
 
     it(
-      'registra erro ao falhar na restauração dos padrões',
+      'registra erro ao falhar na restauração dos padrões sem alterar o tema',
       async () => {
         controllerMocks.reset
           .mockRejectedValue(
@@ -387,6 +460,10 @@ describe(
         await store
           .getState()
           .resetReaderSettings()
+
+        expect(
+          themeServiceMocks.synchronizeTheme,
+        ).not.toHaveBeenCalled()
 
         expect(
           store.getState(),
@@ -413,6 +490,9 @@ describe(
 
         const saved =
           createSettings({
+            theme:
+              AppTheme.SEPIA,
+
             customZoomScale:
               1.5,
           })
@@ -438,6 +518,9 @@ describe(
 
         deferred.resolve(
           createSettings({
+            theme:
+              AppTheme.GRAPHITE,
+
             customZoomScale:
               0.75,
           }),
@@ -450,6 +533,18 @@ describe(
             .readerSettings,
         ).toBe(
           saved,
+        )
+
+        expect(
+          themeServiceMocks.synchronizeTheme,
+        ).toHaveBeenCalledTimes(
+          1,
+        )
+
+        expect(
+          themeServiceMocks.synchronizeTheme,
+        ).toHaveBeenCalledWith(
+          AppTheme.SEPIA,
         )
       },
     )
@@ -466,7 +561,10 @@ describe(
           )
 
         const saved =
-          createSettings()
+          createSettings({
+            theme:
+              AppTheme.LIGHT,
+          })
 
         controllerMocks.save
           .mockResolvedValue(
@@ -506,11 +604,23 @@ describe(
         ).toBe(
           saved,
         )
+
+        expect(
+          themeServiceMocks.synchronizeTheme,
+        ).toHaveBeenCalledTimes(
+          1,
+        )
+
+        expect(
+          themeServiceMocks.synchronizeTheme,
+        ).toHaveBeenCalledWith(
+          AppTheme.LIGHT,
+        )
       },
     )
 
     it(
-      'a operação mais recente entre salvar e restaurar é a única que pode atualizar configurações',
+      'a operação mais recente entre salvar e restaurar é a única que pode atualizar configurações e tema',
       async () => {
         const deferredSave =
           createDeferred<ReaderSettings>()
@@ -522,6 +632,9 @@ describe(
 
         const defaults =
           createSettings({
+            theme:
+              AppTheme.DARK,
+
             customZoomScale:
               1,
           })
@@ -547,6 +660,9 @@ describe(
 
         deferredSave.resolve(
           createSettings({
+            theme:
+              AppTheme.OLED,
+
             customZoomScale:
               2,
           }),
@@ -559,6 +675,18 @@ describe(
             .readerSettings,
         ).toBe(
           defaults,
+        )
+
+        expect(
+          themeServiceMocks.synchronizeTheme,
+        ).toHaveBeenCalledTimes(
+          1,
+        )
+
+        expect(
+          themeServiceMocks.synchronizeTheme,
+        ).toHaveBeenCalledWith(
+          AppTheme.DARK,
         )
       },
     )

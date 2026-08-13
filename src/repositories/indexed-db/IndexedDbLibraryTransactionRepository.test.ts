@@ -19,6 +19,9 @@ import {
   AnnotationType,
 } from '@/models/enums/AnnotationType'
 import {
+  AppTheme,
+} from '@/models/enums/AppTheme'
+import {
   PageDisplayMode,
 } from '@/models/enums/PageDisplayMode'
 import {
@@ -428,6 +431,9 @@ function createLibrarySnapshot():
     ],
 
     readerSettings: {
+      theme:
+        AppTheme.DARK,
+
       pageDisplayMode:
         PageDisplayMode.SINGLE,
 

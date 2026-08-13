@@ -2,6 +2,7 @@ import type { StateCreator } from 'zustand'
 
 import { applicationContainer } from '@/app/providers/applicationContainer'
 import { AsyncStatus } from '@/models/enums/AsyncStatus'
+import { appThemeService } from '@/services/settings/AppThemeService'
 import type {
   AppStore,
   ReaderSettingsSlice,
@@ -22,17 +23,25 @@ export const createReaderSettingsSlice:
     return {
       readerSettings: null,
 
-      readerSettingsLoadStatus: AsyncStatus.IDLE,
-      readerSettingsSaveStatus: AsyncStatus.IDLE,
+      readerSettingsLoadStatus:
+        AsyncStatus.IDLE,
 
-      readerSettingsErrorMessage: null,
+      readerSettingsSaveStatus:
+        AsyncStatus.IDLE,
+
+      readerSettingsErrorMessage:
+        null,
 
       loadReaderSettings: async () => {
-        const operationId = ++settingsOperationSequence
+        const operationId =
+          ++settingsOperationSequence
 
         set({
-          readerSettingsLoadStatus: AsyncStatus.LOADING,
-          readerSettingsErrorMessage: null,
+          readerSettingsLoadStatus:
+            AsyncStatus.LOADING,
+
+          readerSettingsErrorMessage:
+            null,
         })
 
         try {
@@ -40,71 +49,113 @@ export const createReaderSettingsSlice:
             await applicationContainer.controllers
               .loadReaderSettings.execute()
 
-          if (operationId !== settingsOperationSequence) {
+          if (
+            operationId !==
+            settingsOperationSequence
+          ) {
             return
           }
+
+          appThemeService.synchronizeTheme(
+            readerSettings.theme,
+          )
 
           set({
             readerSettings,
-            readerSettingsLoadStatus: AsyncStatus.SUCCESS,
+
+            readerSettingsLoadStatus:
+              AsyncStatus.SUCCESS,
           })
         } catch (error) {
-          if (operationId !== settingsOperationSequence) {
+          if (
+            operationId !==
+            settingsOperationSequence
+          ) {
             return
           }
 
           set({
-            readerSettingsLoadStatus: AsyncStatus.ERROR,
-            readerSettingsErrorMessage: getErrorMessage(
-              error,
-              'Não foi possível carregar as configurações do leitor.',
-            ),
+            readerSettingsLoadStatus:
+              AsyncStatus.ERROR,
+
+            readerSettingsErrorMessage:
+              getErrorMessage(
+                error,
+                'Não foi possível carregar as configurações do leitor.',
+              ),
           })
         }
       },
 
-      saveReaderSettings: async (command) => {
-        const operationId = ++settingsOperationSequence
+      saveReaderSettings: async (
+        command,
+      ) => {
+        const operationId =
+          ++settingsOperationSequence
 
         set({
-          readerSettingsSaveStatus: AsyncStatus.LOADING,
-          readerSettingsErrorMessage: null,
+          readerSettingsSaveStatus:
+            AsyncStatus.LOADING,
+
+          readerSettingsErrorMessage:
+            null,
         })
 
         try {
           const readerSettings =
             await applicationContainer.controllers
-              .saveReaderSettings.execute(command)
+              .saveReaderSettings.execute(
+                command,
+              )
 
-          if (operationId !== settingsOperationSequence) {
+          if (
+            operationId !==
+            settingsOperationSequence
+          ) {
             return
           }
+
+          appThemeService.synchronizeTheme(
+            readerSettings.theme,
+          )
 
           set({
             readerSettings,
-            readerSettingsSaveStatus: AsyncStatus.SUCCESS,
+
+            readerSettingsSaveStatus:
+              AsyncStatus.SUCCESS,
           })
         } catch (error) {
-          if (operationId !== settingsOperationSequence) {
+          if (
+            operationId !==
+            settingsOperationSequence
+          ) {
             return
           }
 
           set({
-            readerSettingsSaveStatus: AsyncStatus.ERROR,
-            readerSettingsErrorMessage: getErrorMessage(
-              error,
-              'Não foi possível salvar as configurações do leitor.',
-            ),
+            readerSettingsSaveStatus:
+              AsyncStatus.ERROR,
+
+            readerSettingsErrorMessage:
+              getErrorMessage(
+                error,
+                'Não foi possível salvar as configurações do leitor.',
+              ),
           })
         }
       },
 
       resetReaderSettings: async () => {
-        const operationId = ++settingsOperationSequence
+        const operationId =
+          ++settingsOperationSequence
 
         set({
-          readerSettingsSaveStatus: AsyncStatus.LOADING,
-          readerSettingsErrorMessage: null,
+          readerSettingsSaveStatus:
+            AsyncStatus.LOADING,
+
+          readerSettingsErrorMessage:
+            null,
         })
 
         try {
@@ -112,33 +163,50 @@ export const createReaderSettingsSlice:
             await applicationContainer.controllers
               .resetReaderSettings.execute()
 
-          if (operationId !== settingsOperationSequence) {
+          if (
+            operationId !==
+            settingsOperationSequence
+          ) {
             return
           }
+
+          appThemeService.synchronizeTheme(
+            readerSettings.theme,
+          )
 
           set({
             readerSettings,
-            readerSettingsSaveStatus: AsyncStatus.SUCCESS,
+
+            readerSettingsSaveStatus:
+              AsyncStatus.SUCCESS,
           })
         } catch (error) {
-          if (operationId !== settingsOperationSequence) {
+          if (
+            operationId !==
+            settingsOperationSequence
+          ) {
             return
           }
 
           set({
-            readerSettingsSaveStatus: AsyncStatus.ERROR,
-            readerSettingsErrorMessage: getErrorMessage(
-              error,
-              'Não foi possível restaurar as configurações padrão.',
-            ),
+            readerSettingsSaveStatus:
+              AsyncStatus.ERROR,
+
+            readerSettingsErrorMessage:
+              getErrorMessage(
+                error,
+                'Não foi possível restaurar as configurações padrão.',
+              ),
           })
         }
       },
 
-      clearReaderSettingsError: () => {
-        set({
-          readerSettingsErrorMessage: null,
-        })
-      },
+      clearReaderSettingsError:
+        () => {
+          set({
+            readerSettingsErrorMessage:
+              null,
+          })
+        },
     }
   }

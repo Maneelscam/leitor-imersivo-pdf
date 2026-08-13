@@ -1,6 +1,10 @@
 import { READER_SETTINGS_CONFIG } from '@/app/config/readerSettings.config'
 import type { ReaderSettings } from '@/models/entities/ReaderSettings'
 import {
+  isAppTheme,
+  type AppTheme,
+} from '@/models/enums/AppTheme'
+import {
   isPageDisplayMode,
   type PageDisplayMode,
 } from '@/models/enums/PageDisplayMode'
@@ -20,6 +24,8 @@ import {
 } from '@/utils/errors/ReaderSettingsError'
 
 export interface SaveReaderSettingsCommand {
+  readonly theme: AppTheme
+
   readonly pageDisplayMode: PageDisplayMode
   readonly readingFlowMode: ReadingFlowMode
 
@@ -28,6 +34,17 @@ export interface SaveReaderSettingsCommand {
 
   readonly enableKeyboardShortcuts: boolean
   readonly autoHideReaderControls: boolean
+}
+
+function validateTheme(
+  theme: unknown,
+): asserts theme is AppTheme {
+  if (!isAppTheme(theme)) {
+    throw new ReaderSettingsError(
+      ReaderSettingsErrorCode.INVALID_THEME,
+      'O tema informado é inválido.',
+    )
+  }
 }
 
 function validatePageDisplayMode(
@@ -66,8 +83,10 @@ function validateZoomMode(
 function validateCustomZoomScale(
   customZoomScale: number,
 ): void {
-  const { minimumScale, maximumScale } =
-    READER_SETTINGS_CONFIG.zoom
+  const {
+    minimumScale,
+    maximumScale,
+  } = READER_SETTINGS_CONFIG.zoom
 
   if (
     !Number.isFinite(customZoomScale) ||
@@ -92,25 +111,53 @@ export class SaveReaderSettingsController {
   async execute(
     command: SaveReaderSettingsCommand,
   ): Promise<ReaderSettings> {
-    validatePageDisplayMode(command.pageDisplayMode)
-    validateReadingFlowMode(command.readingFlowMode)
-    validateZoomMode(command.zoomMode)
-    validateCustomZoomScale(command.customZoomScale)
+    validateTheme(command.theme)
+
+    validatePageDisplayMode(
+      command.pageDisplayMode,
+    )
+
+    validateReadingFlowMode(
+      command.readingFlowMode,
+    )
+
+    validateZoomMode(
+      command.zoomMode,
+    )
+
+    validateCustomZoomScale(
+      command.customZoomScale,
+    )
 
     const settings: ReaderSettings = {
-      pageDisplayMode: command.pageDisplayMode,
-      readingFlowMode: command.readingFlowMode,
-      zoomMode: command.zoomMode,
-      customZoomScale: command.customZoomScale,
+      theme: command.theme,
+
+      pageDisplayMode:
+        command.pageDisplayMode,
+
+      readingFlowMode:
+        command.readingFlowMode,
+
+      zoomMode:
+        command.zoomMode,
+
+      customZoomScale:
+        command.customZoomScale,
+
       enableKeyboardShortcuts:
         command.enableKeyboardShortcuts,
+
       autoHideReaderControls:
         command.autoHideReaderControls,
-      updatedAt: createIsoDateTime(),
+
+      updatedAt:
+        createIsoDateTime(),
     }
 
     try {
-      await this.readerSettingsRepository.save(settings)
+      await this.readerSettingsRepository.save(
+        settings,
+      )
     } catch (error) {
       throw new ReaderSettingsError(
         ReaderSettingsErrorCode.SAVE_FAILED,

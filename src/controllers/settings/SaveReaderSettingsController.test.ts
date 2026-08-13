@@ -12,6 +12,7 @@ import {
   SaveReaderSettingsController,
   type SaveReaderSettingsCommand,
 } from '@/controllers/settings/SaveReaderSettingsController'
+import { AppTheme } from '@/models/enums/AppTheme'
 import { PageDisplayMode } from '@/models/enums/PageDisplayMode'
 import { ReadingFlowMode } from '@/models/enums/ReadingFlowMode'
 import { ZoomMode } from '@/models/enums/ZoomMode'
@@ -33,262 +34,340 @@ function createCommand(
   overrides: Partial<SaveReaderSettingsCommand> = {},
 ): SaveReaderSettingsCommand {
   return {
+    theme: AppTheme.DARK,
+
     pageDisplayMode:
       PageDisplayMode.DOUBLE,
+
     readingFlowMode:
       ReadingFlowMode.PAGINATED,
+
     zoomMode:
       ZoomMode.CUSTOM,
+
     customZoomScale:
       1.5,
+
     enableKeyboardShortcuts:
       false,
+
     autoHideReaderControls:
       true,
+
     ...overrides,
   }
 }
 
-describe('SaveReaderSettingsController', () => {
-  const fixedDate =
-    new Date('2026-08-12T12:00:00.000Z')
-
-  beforeEach(() => {
-    vi.useFakeTimers()
-    vi.setSystemTime(fixedDate)
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
-  })
-
-  it('valida, persiste e retorna as configurações informadas com updatedAt atual', async () => {
-    const repository =
-      createRepository()
-
-    vi.mocked(
-      repository.save,
-    ).mockResolvedValue(
-      undefined,
-    )
-
-    const controller =
-      new SaveReaderSettingsController(
-        repository,
+describe(
+  'SaveReaderSettingsController',
+  () => {
+    const fixedDate =
+      new Date(
+        '2026-08-12T12:00:00.000Z',
       )
 
-    const command =
-      createCommand()
-
-    const settings =
-      await controller.execute(
-        command,
+    beforeEach(() => {
+      vi.useFakeTimers()
+      vi.setSystemTime(
+        fixedDate,
       )
-
-    expect(settings).toEqual({
-      ...command,
-      updatedAt:
-        fixedDate.toISOString(),
     })
 
-    expect(
-      repository.save,
-    ).toHaveBeenCalledTimes(
-      1,
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it(
+      'valida, persiste e retorna as configurações informadas com updatedAt atual',
+      async () => {
+        const repository =
+          createRepository()
+
+        vi.mocked(
+          repository.save,
+        ).mockResolvedValue(
+          undefined,
+        )
+
+        const controller =
+          new SaveReaderSettingsController(
+            repository,
+          )
+
+        const command =
+          createCommand({
+            theme:
+              AppTheme.OLED,
+          })
+
+        const settings =
+          await controller.execute(
+            command,
+          )
+
+        expect(
+          settings,
+        ).toEqual({
+          ...command,
+
+          updatedAt:
+            fixedDate.toISOString(),
+        })
+
+        expect(
+          repository.save,
+        ).toHaveBeenCalledTimes(
+          1,
+        )
+
+        expect(
+          repository.save,
+        ).toHaveBeenCalledWith(
+          settings,
+        )
+      },
     )
 
-    expect(
-      repository.save,
-    ).toHaveBeenCalledWith(
-      settings,
+    it.each([
+      [
+        'theme',
+        'neon',
+        ReaderSettingsErrorCode.INVALID_THEME,
+      ],
+      [
+        'pageDisplayMode',
+        'triple',
+        ReaderSettingsErrorCode.INVALID_PAGE_DISPLAY_MODE,
+      ],
+      [
+        'readingFlowMode',
+        'book',
+        ReaderSettingsErrorCode.INVALID_READING_FLOW_MODE,
+      ],
+      [
+        'zoomMode',
+        'automatic',
+        ReaderSettingsErrorCode.INVALID_ZOOM_MODE,
+      ],
+    ] as const)(
+      'rejeita %s inválido antes de acessar o repositório',
+      async (
+        property,
+        invalidValue,
+        expectedCode,
+      ) => {
+        const repository =
+          createRepository()
+
+        const controller =
+          new SaveReaderSettingsController(
+            repository,
+          )
+
+        const command = {
+          ...createCommand(),
+
+          [property]:
+            invalidValue,
+        } as unknown as SaveReaderSettingsCommand
+
+        await expect(
+          controller.execute(
+            command,
+          ),
+        ).rejects.toMatchObject({
+          name:
+            'ReaderSettingsError',
+
+          code:
+            expectedCode,
+        })
+
+        expect(
+          repository.save,
+        ).not.toHaveBeenCalled()
+      },
     )
-  })
 
-  it.each([
-    [
-      'pageDisplayMode',
-      'triple',
-      ReaderSettingsErrorCode.INVALID_PAGE_DISPLAY_MODE,
-    ],
-    [
-      'readingFlowMode',
-      'book',
-      ReaderSettingsErrorCode.INVALID_READING_FLOW_MODE,
-    ],
-    [
-      'zoomMode',
-      'automatic',
-      ReaderSettingsErrorCode.INVALID_ZOOM_MODE,
-    ],
-  ] as const)(
-    'rejeita %s inválido antes de acessar o repositório',
-    async (
-      property,
-      invalidValue,
-      expectedCode,
-    ) => {
-      const repository =
-        createRepository()
-
-      const controller =
-        new SaveReaderSettingsController(
-          repository,
-        )
-
-      const command = {
-        ...createCommand(),
-        [property]:
-          invalidValue,
-      } as unknown as SaveReaderSettingsCommand
-
-      await expect(
-        controller.execute(
-          command,
-        ),
-      ).rejects.toMatchObject({
-        name:
-          'ReaderSettingsError',
-        code:
-          expectedCode,
-      })
-
-      expect(
-        repository.save,
-      ).not.toHaveBeenCalled()
-    },
-  )
-
-  it.each([
-    [
-      READER_SETTINGS_CONFIG.zoom.minimumScale - 0.01,
-    ],
-    [
-      READER_SETTINGS_CONFIG.zoom.maximumScale + 0.01,
-    ],
-    [
-      Number.NaN,
-    ],
-    [
-      Number.POSITIVE_INFINITY,
-    ],
-    [
-      Number.NEGATIVE_INFINITY,
-    ],
-  ])(
-    'rejeita escala de zoom inválida: %s',
-    async (
-      customZoomScale,
-    ) => {
-      const repository =
-        createRepository()
-
-      const controller =
-        new SaveReaderSettingsController(
-          repository,
-        )
-
-      await expect(
-        controller.execute(
-          createCommand({
-            customZoomScale,
-          }),
-        ),
-      ).rejects.toMatchObject({
-        name:
-          'ReaderSettingsError',
-        code:
-          ReaderSettingsErrorCode.INVALID_ZOOM_SCALE,
-      })
-
-      expect(
-        repository.save,
-      ).not.toHaveBeenCalled()
-    },
-  )
-
-  it.each([
-    READER_SETTINGS_CONFIG.zoom.minimumScale,
-    READER_SETTINGS_CONFIG.zoom.maximumScale,
-  ])(
-    'aceita o limite de zoom %s',
-    async (
-      customZoomScale,
-    ) => {
-      const repository =
-        createRepository()
-
-      vi.mocked(
-        repository.save,
-      ).mockResolvedValue(
-        undefined,
-      )
-
-      const controller =
-        new SaveReaderSettingsController(
-          repository,
-        )
-
-      await expect(
-        controller.execute(
-          createCommand({
-            customZoomScale,
-          }),
-        ),
-      ).resolves.toMatchObject({
+    it.each([
+      [
+        READER_SETTINGS_CONFIG.zoom.minimumScale -
+          0.01,
+      ],
+      [
+        READER_SETTINGS_CONFIG.zoom.maximumScale +
+          0.01,
+      ],
+      [
+        Number.NaN,
+      ],
+      [
+        Number.POSITIVE_INFINITY,
+      ],
+      [
+        Number.NEGATIVE_INFINITY,
+      ],
+    ])(
+      'rejeita escala de zoom inválida: %s',
+      async (
         customZoomScale,
-      })
+      ) => {
+        const repository =
+          createRepository()
 
-      expect(
-        repository.save,
-      ).toHaveBeenCalledTimes(
-        1,
-      )
-    },
-  )
+        const controller =
+          new SaveReaderSettingsController(
+            repository,
+          )
 
-  it('converte falha do repositório em SAVE_FAILED preservando a causa', async () => {
-    const repositoryError =
-      new Error(
-        'falha ao salvar',
-      )
+        await expect(
+          controller.execute(
+            createCommand({
+              customZoomScale,
+            }),
+          ),
+        ).rejects.toMatchObject({
+          name:
+            'ReaderSettingsError',
 
-    const repository =
-      createRepository()
+          code:
+            ReaderSettingsErrorCode.INVALID_ZOOM_SCALE,
+        })
 
-    vi.mocked(
-      repository.save,
-    ).mockRejectedValue(
-      repositoryError,
+        expect(
+          repository.save,
+        ).not.toHaveBeenCalled()
+      },
     )
 
-    const controller =
-      new SaveReaderSettingsController(
-        repository,
-      )
+    it.each([
+      READER_SETTINGS_CONFIG.zoom.minimumScale,
+      READER_SETTINGS_CONFIG.zoom.maximumScale,
+    ])(
+      'aceita o limite de zoom %s',
+      async (
+        customZoomScale,
+      ) => {
+        const repository =
+          createRepository()
 
-    try {
-      await controller.execute(
-        createCommand(),
-      )
+        vi.mocked(
+          repository.save,
+        ).mockResolvedValue(
+          undefined,
+        )
 
-      throw new Error(
-        'O salvamento deveria falhar.',
-      )
-    } catch (error) {
-      expect(
-        error,
-      ).toBeInstanceOf(
-        ReaderSettingsError,
-      )
+        const controller =
+          new SaveReaderSettingsController(
+            repository,
+          )
 
-      expect(
-        error,
-      ).toMatchObject({
-        code:
-          ReaderSettingsErrorCode.SAVE_FAILED,
-        cause:
+        await expect(
+          controller.execute(
+            createCommand({
+              customZoomScale,
+            }),
+          ),
+        ).resolves.toMatchObject({
+          customZoomScale,
+        })
+
+        expect(
+          repository.save,
+        ).toHaveBeenCalledTimes(
+          1,
+        )
+      },
+    )
+
+    it(
+      'aceita todos os temas oficiais',
+      async () => {
+        const repository =
+          createRepository()
+
+        vi.mocked(
+          repository.save,
+        ).mockResolvedValue(
+          undefined,
+        )
+
+        const controller =
+          new SaveReaderSettingsController(
+            repository,
+          )
+
+        for (
+          const theme of
+          Object.values(AppTheme)
+        ) {
+          await expect(
+            controller.execute(
+              createCommand({
+                theme,
+              }),
+            ),
+          ).resolves.toMatchObject({
+            theme,
+          })
+        }
+
+        expect(
+          repository.save,
+        ).toHaveBeenCalledTimes(
+          Object.values(AppTheme).length,
+        )
+      },
+    )
+
+    it(
+      'converte falha do repositório em SAVE_FAILED preservando a causa',
+      async () => {
+        const repositoryError =
+          new Error(
+            'falha ao salvar',
+          )
+
+        const repository =
+          createRepository()
+
+        vi.mocked(
+          repository.save,
+        ).mockRejectedValue(
           repositoryError,
-      })
-    }
-  })
-})
+        )
+
+        const controller =
+          new SaveReaderSettingsController(
+            repository,
+          )
+
+        try {
+          await controller.execute(
+            createCommand(),
+          )
+
+          throw new Error(
+            'O salvamento deveria falhar.',
+          )
+        } catch (error) {
+          expect(
+            error,
+          ).toBeInstanceOf(
+            ReaderSettingsError,
+          )
+
+          expect(
+            error,
+          ).toMatchObject({
+            code:
+              ReaderSettingsErrorCode.SAVE_FAILED,
+
+            cause:
+              repositoryError,
+          })
+        }
+      },
+    )
+  },
+)

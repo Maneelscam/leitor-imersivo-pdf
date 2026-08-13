@@ -1,4 +1,5 @@
 import type { ReaderSettings } from '@/models/entities/ReaderSettings'
+import { isAppTheme } from '@/models/enums/AppTheme'
 import type { ReaderSettingsRepository } from '@/repositories/contracts/ReaderSettingsRepository'
 import type { DefaultReaderSettingsService } from '@/services/settings/DefaultReaderSettingsService'
 import {
@@ -24,13 +25,24 @@ export class LoadReaderSettingsController {
     } = this.dependencies
 
     try {
+      const defaultSettings =
+        defaultReaderSettingsService.create()
+
       const savedSettings =
         await readerSettingsRepository.find()
 
-      return (
-        savedSettings ??
-        defaultReaderSettingsService.create()
-      )
+      if (savedSettings === null) {
+        return defaultSettings
+      }
+
+      return {
+        ...defaultSettings,
+        ...savedSettings,
+
+        theme: isAppTheme(savedSettings.theme)
+          ? savedSettings.theme
+          : defaultSettings.theme,
+      }
     } catch (error) {
       throw new ReaderSettingsError(
         ReaderSettingsErrorCode.LOAD_FAILED,

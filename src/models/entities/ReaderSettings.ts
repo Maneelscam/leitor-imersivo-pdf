@@ -1,9 +1,12 @@
+import type { AppTheme } from '@/models/enums/AppTheme'
 import type { PageDisplayMode } from '@/models/enums/PageDisplayMode'
 import type { ReadingFlowMode } from '@/models/enums/ReadingFlowMode'
 import type { ZoomMode } from '@/models/enums/ZoomMode'
 import type { IsoDateTime } from '@/models/value-objects/IsoDateTime'
 
 export interface ReaderSettings {
+  readonly theme: AppTheme
+
   readonly pageDisplayMode: PageDisplayMode
   readonly readingFlowMode: ReadingFlowMode
 

@@ -16,6 +16,9 @@ import type {
   ReaderSettings,
 } from '@/models/entities/ReaderSettings'
 import {
+  AppTheme,
+} from '@/models/enums/AppTheme'
+import {
   PageDisplayMode,
 } from '@/models/enums/PageDisplayMode'
 import {
@@ -73,6 +76,8 @@ function deleteTestDatabase():
 }
 
 function createReaderSettings({
+  theme =
+    AppTheme.DARK,
   pageDisplayMode =
     PageDisplayMode.SINGLE,
   readingFlowMode =
@@ -84,6 +89,7 @@ function createReaderSettings({
   autoHideReaderControls = false,
   updatedAt = TEST_DATE,
 }: {
+  readonly theme?: ReaderSettings['theme']
   readonly pageDisplayMode?: ReaderSettings['pageDisplayMode']
   readonly readingFlowMode?: ReaderSettings['readingFlowMode']
   readonly zoomMode?: ReaderSettings['zoomMode']
@@ -93,6 +99,8 @@ function createReaderSettings({
   readonly updatedAt?: IsoDateTime
 } = {}): ReaderSettings {
   return {
+    theme,
+
     pageDisplayMode,
     readingFlowMode,
 
@@ -175,6 +183,9 @@ describe(
 
         const updatedSettings =
           createReaderSettings({
+            theme:
+              AppTheme.OLED,
+
             pageDisplayMode:
               PageDisplayMode.DOUBLE,
 
