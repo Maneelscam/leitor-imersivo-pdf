@@ -158,10 +158,11 @@ export function ReaderToolbar({
   className,
   ...containerProps
 }: ReaderToolbarProps) {
-  const normalizedTotalPages = Math.max(
-    0,
-    Math.trunc(totalPages),
-  )
+  const normalizedTotalPages =
+    Math.max(
+      0,
+      Math.trunc(totalPages),
+    )
 
   const normalizedCurrentPage =
     normalizePageNumber(
@@ -212,39 +213,78 @@ export function ReaderToolbar({
           : undefined
       }
     >
-      <div className="reader-page__toolbar-group">
-        <Button
-          variant={ButtonVariant.GHOST}
-          size={ButtonSize.SMALL}
-          leadingIcon={<BackIcon />}
-          aria-label="Voltar para a biblioteca"
-          onClick={onBack}
+      <div className="reader-page__toolbar-primary">
+        <div className="reader-page__toolbar-group">
+          <Button
+            variant={ButtonVariant.GHOST}
+            size={ButtonSize.SMALL}
+            iconOnly
+            aria-label="Voltar para a biblioteca"
+            title="Voltar para a biblioteca"
+            onClick={onBack}
+          >
+            <BackIcon />
+          </Button>
+
+          <div className="reader-page__book-info">
+            <strong
+              className="reader-page__book-title"
+              title={normalizedBookTitle}
+            >
+              {normalizedBookTitle}
+            </strong>
+
+            <span
+              className="reader-page__book-file"
+              title={normalizedFileName}
+            >
+              {normalizedFileName}
+            </span>
+          </div>
+        </div>
+
+        <div
+          className="
+            reader-page__toolbar-group
+            reader-page__toolbar-group--end
+          "
         >
-          Biblioteca
-        </Button>
+          {zoomControls}
 
-        <div className="reader-page__book-info">
-          <strong className="reader-page__book-title">
-            {normalizedBookTitle}
-          </strong>
-
-          <span className="reader-page__book-file">
-            {normalizedFileName}
-          </span>
+          <Button
+            variant={
+              panelOpen
+                ? ButtonVariant.SECONDARY
+                : ButtonVariant.GHOST
+            }
+            size={ButtonSize.SMALL}
+            iconOnly
+            aria-pressed={panelOpen}
+            aria-label={
+              panelOpen
+                ? 'Fechar painel lateral'
+                : 'Abrir painel lateral'
+            }
+            title={
+              panelOpen
+                ? 'Fechar painel'
+                : 'Abrir painel'
+            }
+            onClick={onTogglePanel}
+          >
+            <PanelIcon />
+          </Button>
         </div>
       </div>
 
-      <div
-        className="
-          reader-page__toolbar-group
-          reader-page__toolbar-group--center
-        "
-      >
+      <div className="reader-page__navigation">
         <Button
           variant={ButtonVariant.GHOST}
           size={ButtonSize.SMALL}
+          iconOnly
           disabled={previousPageDisabled}
           aria-label="Ir para a página anterior"
+          title="Página anterior"
           onClick={onPreviousPage}
         >
           <PreviousPageIcon />
@@ -259,47 +299,33 @@ export function ReaderToolbar({
               : 'Página indisponível'
           }
         >
-          {normalizedTotalPages > 0
-            ? `${normalizedCurrentPage} / ${normalizedTotalPages}`
-            : '— / —'}
+          <span className="reader-page__page-indicator-current">
+            {normalizedTotalPages > 0
+              ? normalizedCurrentPage
+              : '—'}
+          </span>
+
+          <span className="reader-page__page-indicator-separator">
+            de
+          </span>
+
+          <span className="reader-page__page-indicator-total">
+            {normalizedTotalPages > 0
+              ? normalizedTotalPages
+              : '—'}
+          </span>
         </span>
 
         <Button
           variant={ButtonVariant.GHOST}
           size={ButtonSize.SMALL}
+          iconOnly
           disabled={nextPageDisabled}
           aria-label="Ir para a próxima página"
+          title="Próxima página"
           onClick={onNextPage}
         >
           <NextPageIcon />
-        </Button>
-      </div>
-
-      <div
-        className="
-          reader-page__toolbar-group
-          reader-page__toolbar-group--end
-        "
-      >
-        {zoomControls}
-
-        <Button
-          variant={
-            panelOpen
-              ? ButtonVariant.SECONDARY
-              : ButtonVariant.GHOST
-          }
-          size={ButtonSize.SMALL}
-          leadingIcon={<PanelIcon />}
-          aria-pressed={panelOpen}
-          aria-label={
-            panelOpen
-              ? 'Fechar painel lateral'
-              : 'Abrir painel lateral'
-          }
-          onClick={onTogglePanel}
-        >
-          Painel
         </Button>
       </div>
     </div>

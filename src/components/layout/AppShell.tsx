@@ -1,16 +1,24 @@
 import {
+  useCallback,
   useEffect,
   useId,
+  useMemo,
   useState,
   type HTMLAttributes,
   type ReactNode,
 } from 'react'
 
-import { subscribeToAppRoute } from '@/app/routes/browserNavigation'
+import {
+  subscribeToAppRoute,
+} from '@/app/routes/browserNavigation'
 import {
   Button,
   ButtonVariant,
 } from '@/components/buttons/Button'
+import {
+  AppShellContext,
+  type AppShellContextValue,
+} from '@/components/layout/AppShellContext'
 
 import '@/styles/components/app-shell.css'
 
@@ -26,12 +34,21 @@ export interface AppShellProps
 
 function createAppShellClassName(
   isSidebarOpen: boolean,
+  immersiveMode: boolean,
   customClassName: string | undefined,
 ): string {
   const classNames = ['app-shell']
 
   if (isSidebarOpen) {
-    classNames.push('app-shell--sidebar-open')
+    classNames.push(
+      'app-shell--sidebar-open',
+    )
+  }
+
+  if (immersiveMode) {
+    classNames.push(
+      'app-shell--immersive',
+    )
   }
 
   if (
@@ -47,10 +64,14 @@ function createAppShellClassName(
 function createContentClassName(
   readerMode: boolean,
 ): string {
-  const classNames = ['app-shell__content']
+  const classNames = [
+    'app-shell__content',
+  ]
 
   if (readerMode) {
-    classNames.push('app-shell__content--reader')
+    classNames.push(
+      'app-shell__content--reader',
+    )
   }
 
   return classNames.join(' ')
@@ -84,26 +105,44 @@ export function AppShell({
 }: AppShellProps) {
   const sidebarId = useId()
 
-  const [isSidebarOpen, setIsSidebarOpen] =
-    useState(false)
+  const [
+    isSidebarOpen,
+    setIsSidebarOpen,
+  ] = useState(false)
+
+  const [
+    immersiveMode,
+    setImmersiveMode,
+  ] = useState(false)
 
   useEffect(() => {
     return subscribeToAppRoute(() => {
       setIsSidebarOpen(false)
+      setImmersiveMode(false)
     })
   }, [])
 
   useEffect(() => {
-    if (!isSidebarOpen) {
+    if (
+      !isSidebarOpen &&
+      !immersiveMode
+    ) {
       return
     }
 
     const handleEscapeKey = (
       event: KeyboardEvent,
     ) => {
-      if (event.key === 'Escape') {
-        setIsSidebarOpen(false)
+      if (event.key !== 'Escape') {
+        return
       }
+
+      if (immersiveMode) {
+        setImmersiveMode(false)
+        return
+      }
+
+      setIsSidebarOpen(false)
     }
 
     document.addEventListener(
@@ -117,18 +156,73 @@ export function AppShell({
         handleEscapeKey,
       )
     }
-  }, [isSidebarOpen])
+  }, [
+    immersiveMode,
+    isSidebarOpen,
+  ])
+
+  const enterImmersiveMode =
+    useCallback(() => {
+      if (!readerMode) {
+        return
+      }
+
+      setIsSidebarOpen(false)
+      setImmersiveMode(true)
+    }, [readerMode])
+
+  const exitImmersiveMode =
+    useCallback(() => {
+      setImmersiveMode(false)
+    }, [])
+
+  const toggleImmersiveMode =
+    useCallback(() => {
+      if (!readerMode) {
+        return
+      }
+
+      setIsSidebarOpen(false)
+
+      setImmersiveMode(
+        (currentImmersiveMode) =>
+          !currentImmersiveMode,
+      )
+    }, [readerMode])
+
+  const appShellContextValue =
+    useMemo<AppShellContextValue>(
+      () => ({
+        immersiveMode,
+        enterImmersiveMode,
+        exitImmersiveMode,
+        toggleImmersiveMode,
+      }),
+      [
+        immersiveMode,
+        enterImmersiveMode,
+        exitImmersiveMode,
+        toggleImmersiveMode,
+      ],
+    )
 
   const appShellClassName =
     createAppShellClassName(
       isSidebarOpen,
+      immersiveMode,
       className,
     )
 
   const contentClassName =
-    createContentClassName(readerMode)
+    createContentClassName(
+      readerMode,
+    )
 
   const openSidebar = () => {
+    if (immersiveMode) {
+      return
+    }
+
     setIsSidebarOpen(true)
   }
 
@@ -137,48 +231,97 @@ export function AppShell({
   }
 
   return (
-    <div
-      {...containerProps}
-      className={appShellClassName}
+    <AppShellContext.Provider
+      value={appShellContextValue}
     >
-      <aside
-        id={sidebarId}
-        className="app-shell__sidebar"
-        aria-label={sidebarLabel}
+      <div
+        {...containerProps}
+        className={appShellClassName}
+        data-reader-mode={
+          readerMode
+            ? 'true'
+            : 'false'
+        }
+        data-immersive-mode={
+          immersiveMode
+            ? 'true'
+            : 'false'
+        }
       >
-        {sidebar}
-      </aside>
+        <aside
+          id={sidebarId}
+          className="app-shell__sidebar"
+          aria-label={sidebarLabel}
+          aria-hidden={
+            immersiveMode
+              ? true
+              : undefined
+          }
+          inert={
+            immersiveMode
+              ? true
+              : undefined
+          }
+        >
+          {sidebar}
+        </aside>
 
-      <button
-        type="button"
-        className="app-shell__mobile-backdrop"
-        aria-label="Fechar menu de navegação"
-        tabIndex={isSidebarOpen ? 0 : -1}
-        onClick={closeSidebar}
-      />
+        <button
+          type="button"
+          className="app-shell__mobile-backdrop"
+          aria-label="Fechar menu de navegação"
+          tabIndex={
+            isSidebarOpen &&
+            !immersiveMode
+              ? 0
+              : -1
+          }
+          onClick={closeSidebar}
+        />
 
-      <div className="app-shell__main">
-        <header className="app-shell__topbar">
-          <div className="app-shell__mobile-header">
-            <Button
-              variant={ButtonVariant.GHOST}
-              iconOnly
-              aria-label="Abrir menu de navegação"
-              aria-controls={sidebarId}
-              aria-expanded={isSidebarOpen}
-              onClick={openSidebar}
-            >
-              <MenuIcon />
-            </Button>
-          </div>
+        <div className="app-shell__main">
+          <header
+            className="app-shell__topbar"
+            aria-hidden={
+              immersiveMode
+                ? true
+                : undefined
+            }
+            inert={
+              immersiveMode
+                ? true
+                : undefined
+            }
+          >
+            <div className="app-shell__mobile-header">
+              <Button
+                variant={
+                  ButtonVariant.GHOST
+                }
+                iconOnly
+                aria-label="Abrir menu de navegação"
+                aria-controls={sidebarId}
+                aria-expanded={
+                  isSidebarOpen
+                }
+                onClick={openSidebar}
+              >
+                <MenuIcon />
+              </Button>
+            </div>
 
-          {topbar}
-        </header>
+            {topbar}
+          </header>
 
-        <main className={contentClassName}>
-          {children}
-        </main>
+          <main
+            className={
+              contentClassName
+            }
+          >
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </AppShellContext.Provider>
   )
 }

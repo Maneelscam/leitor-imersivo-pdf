@@ -1,4 +1,10 @@
 @import "@/styles/tokens/design-tokens.css";
+
 @import "@/styles/themes/dark-theme.css";
+@import "@/styles/themes/oled-theme.css";
+@import "@/styles/themes/graphite-theme.css";
+@import "@/styles/themes/light-theme.css";
+@import "@/styles/themes/sepia-theme.css";
+
 @import "@/styles/base/reset.css";
 @import "@/styles/base/global.css";

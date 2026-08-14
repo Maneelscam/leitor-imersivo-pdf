@@ -80,7 +80,7 @@ export class AppThemeService {
 
   initializeFromCache(): AppTheme {
     const theme =
-      this.readCachedTheme()
+      this.readCachedTheme() 
 
     this.applyTheme(theme)
 
