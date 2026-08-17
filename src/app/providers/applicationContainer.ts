@@ -35,6 +35,9 @@ import {
   LoadLibraryController,
 } from '@/controllers/library/LoadLibraryController'
 import {
+  LoadPdfOutlineController,
+} from '@/controllers/reader/LoadPdfOutlineController'
+import {
   LoadPdfPageBatchController,
 } from '@/controllers/reader/LoadPdfPageBatchController'
 import {
@@ -119,6 +122,9 @@ import {
   PdfDocumentService,
 } from '@/services/pdf/PdfDocumentService'
 import {
+  PdfOutlineService,
+} from '@/services/pdf/PdfOutlineService'
+import {
   PdfPageService,
 } from '@/services/pdf/PdfPageService'
 import {
@@ -171,6 +177,9 @@ const pdfDocumentService =
 
 const pdfPageService =
   new PdfPageService()
+
+const pdfOutlineService =
+  new PdfOutlineService()
 
 const pdfTextSearchService =
   new PdfTextSearchService()
@@ -264,6 +273,11 @@ const loadPdfPageBatchController =
     pdfPageService,
   )
 
+const loadPdfOutlineController =
+  new LoadPdfOutlineController(
+    pdfOutlineService,
+  )
+
 const searchPdfTextController =
   new SearchPdfTextController(
     pdfTextSearchService,
@@ -348,6 +362,9 @@ export const applicationContainer = {
     loadPdfPageBatch:
       loadPdfPageBatchController,
 
+    loadPdfOutline:
+      loadPdfOutlineController,
+
     searchPdfText:
       searchPdfTextController,
 
@@ -412,6 +429,9 @@ export const applicationContainer = {
     pdfWorker: pdfWorkerService,
     pdfDocument: pdfDocumentService,
     pdfPage: pdfPageService,
+
+    pdfOutline:
+      pdfOutlineService,
 
     pdfTextSearch:
       pdfTextSearchService,

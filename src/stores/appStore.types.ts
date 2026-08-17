@@ -21,6 +21,9 @@ import type {
   PdfImportWarningCode,
 } from '@/models/dtos/PdfImportResult'
 import type {
+  PdfOutlineItem,
+} from '@/models/dtos/PdfOutlineItem'
+import type {
   PdfTextSearchResult,
 } from '@/models/dtos/PdfTextSearchResult'
 import type {
@@ -272,6 +275,23 @@ export interface AnnotationSlice {
   clearAnnotationError(): void
 }
 
+export interface PdfOutlineSlice {
+  readonly pdfOutlineItems:
+    readonly PdfOutlineItem[]
+
+  readonly pdfOutlineStatus:
+    AsyncStatus
+
+  readonly pdfOutlineErrorMessage:
+    string | null
+
+  loadPdfOutline(): Promise<void>
+
+  clearPdfOutline(): void
+
+  clearPdfOutlineError(): void
+}
+
 export interface PdfTextSearchSlice {
   readonly pdfTextSearchQuery:
     string
@@ -329,5 +349,6 @@ export type AppStore =
   LibraryBackupSlice &
   ReaderSlice &
   AnnotationSlice &
+  PdfOutlineSlice &
   PdfTextSearchSlice &
   ReaderSettingsSlice

@@ -18,6 +18,8 @@ export interface ReaderSidePanelProps
   readonly currentPage: number
   readonly totalPages: number
 
+  readonly outlineContent?: ReactNode
+
   readonly searchContent?: ReactNode
 
   readonly bookmarksContent?: ReactNode
@@ -113,6 +115,7 @@ function normalizeCurrentPage(
 export function ReaderSidePanel({
   currentPage,
   totalPages,
+  outlineContent,
   searchContent,
   bookmarksContent,
   annotationsContent,
@@ -254,6 +257,18 @@ export function ReaderSidePanel({
             />
           </div>
         </section>
+
+        {outlineContent !== undefined && (
+          <div
+            className="
+              reader-side-panel__section
+              reader-side-panel__section--content
+            "
+            data-reader-section="outline"
+          >
+            {outlineContent}
+          </div>
+        )}
 
         {searchContent !== undefined && (
           <div

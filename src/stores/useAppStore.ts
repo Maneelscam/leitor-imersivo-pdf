@@ -15,6 +15,9 @@ import {
   createLibrarySlice,
 } from '@/stores/slices/createLibrarySlice'
 import {
+  createPdfOutlineSlice,
+} from '@/stores/slices/createPdfOutlineSlice'
+import {
   createPdfTextSearchSlice,
 } from '@/stores/slices/createPdfTextSearchSlice'
 import {
@@ -40,6 +43,10 @@ export const useAppStore =
       ),
 
       ...createAnnotationSlice(
+        ...storeArguments,
+      ),
+
+      ...createPdfOutlineSlice(
         ...storeArguments,
       ),
 
