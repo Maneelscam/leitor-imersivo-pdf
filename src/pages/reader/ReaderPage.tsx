@@ -28,6 +28,9 @@ import {
   FeedbackMessageVariant,
 } from '@/components/feedback/FeedbackMessage'
 import {
+  useAppShell,
+} from '@/components/layout/AppShellContext'
+import {
   ReaderAnnotations,
 } from '@/features/reader/components/ReaderAnnotations'
 import {
@@ -548,6 +551,10 @@ function scrollToContinuousPagePosition(
 }
 
 export function ReaderPage() {
+  const {
+    immersiveMode,
+  } = useAppShell()
+
   const openedBook = useAppStore(
     selectOpenedBook,
   )
@@ -919,8 +926,12 @@ export function ReaderPage() {
     READER_SETTINGS_CONFIG.defaults
       .autoHideReaderControls
 
+  const shouldAutoHideReaderControls =
+    autoHideReaderControls ||
+    immersiveMode
+
   const toolbarIsHidden =
-    autoHideReaderControls &&
+    shouldAutoHideReaderControls &&
     controlsHidden
 
   const isContinuousMode =
@@ -1012,7 +1023,7 @@ export function ReaderPage() {
       clearControlsHideTimeout()
 
       if (
-        !autoHideReaderControls ||
+        !shouldAutoHideReaderControls ||
         openedBook === null
       ) {
         return
@@ -1026,7 +1037,7 @@ export function ReaderPage() {
             null
         }, CONTROLS_HIDE_DELAY_MS)
     }, [
-      autoHideReaderControls,
+      shouldAutoHideReaderControls,
       openedBook,
       clearControlsHideTimeout,
     ])
@@ -1254,7 +1265,7 @@ export function ReaderPage() {
     ])
 
   useEffect(() => {
-    if (!autoHideReaderControls) {
+    if (!shouldAutoHideReaderControls) {
       clearControlsHideTimeout()
 
       const animationFrameId =
@@ -1345,10 +1356,27 @@ export function ReaderPage() {
       )
     }
   }, [
-    autoHideReaderControls,
+    shouldAutoHideReaderControls,
     revealReaderControls,
     clearControlsHideTimeout,
   ])
+
+  useEffect(() => {
+    if (!immersiveMode) {
+      return
+    }
+
+    const animationFrameId =
+      window.requestAnimationFrame(() => {
+        setPanelOpen(false)
+      })
+
+    return () => {
+      window.cancelAnimationFrame(
+        animationFrameId,
+      )
+    }
+  }, [immersiveMode])
 
   useEffect(() => {
     if (

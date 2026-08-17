@@ -8,6 +8,9 @@ import {
   ButtonSize,
   ButtonVariant,
 } from '@/components/buttons/Button'
+import {
+  useAppShell,
+} from '@/components/layout/AppShellContext'
 
 export interface ReaderToolbarProps
   extends HTMLAttributes<HTMLDivElement> {
@@ -101,6 +104,44 @@ function PanelIcon() {
   )
 }
 
+function EnterImmersiveIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M8 3H3v5" />
+      <path d="M16 3h5v5" />
+      <path d="M8 21H3v-5" />
+      <path d="M16 21h5v-5" />
+    </svg>
+  )
+}
+
+function ExitImmersiveIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M8 3v5H3" />
+      <path d="M16 3v5h5" />
+      <path d="M8 21v-5H3" />
+      <path d="M16 21v-5h5" />
+    </svg>
+  )
+}
+
 function createToolbarClassName(
   isHidden: boolean,
   customClassName: string | undefined,
@@ -158,6 +199,11 @@ export function ReaderToolbar({
   className,
   ...containerProps
 }: ReaderToolbarProps) {
+  const {
+    immersiveMode,
+    toggleImmersiveMode,
+  } = useAppShell()
+
   const normalizedTotalPages =
     Math.max(
       0,
@@ -190,6 +236,11 @@ export function ReaderToolbar({
     normalizedCurrentPage >=
       normalizedTotalPages
 
+  const immersiveButtonLabel =
+    immersiveMode
+      ? 'Sair do modo imersivo'
+      : 'Entrar no modo imersivo'
+
   return (
     <div
       {...containerProps}
@@ -199,6 +250,11 @@ export function ReaderToolbar({
       )}
       data-controls-hidden={
         isHidden
+          ? 'true'
+          : 'false'
+      }
+      data-immersive-mode={
+        immersiveMode
           ? 'true'
           : 'false'
       }
@@ -273,6 +329,25 @@ export function ReaderToolbar({
             onClick={onTogglePanel}
           >
             <PanelIcon />
+          </Button>
+
+          <Button
+            variant={
+              immersiveMode
+                ? ButtonVariant.SECONDARY
+                : ButtonVariant.GHOST
+            }
+            size={ButtonSize.SMALL}
+            iconOnly
+            className="reader-page__immersive-toggle"
+            aria-pressed={immersiveMode}
+            aria-label={immersiveButtonLabel}
+            title={immersiveButtonLabel}
+            onClick={toggleImmersiveMode}
+          >
+            {immersiveMode
+              ? <ExitImmersiveIcon />
+              : <EnterImmersiveIcon />}
           </Button>
         </div>
       </div>
