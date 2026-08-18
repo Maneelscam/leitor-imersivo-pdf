@@ -25,6 +25,7 @@ type ReaderSliceCreator = StateCreator<
 >
 
 const CONTINUOUS_PAGE_BATCH_SIZE = 4
+const THUMBNAIL_PAGE_BATCH_SIZE = 8
 
 interface ReadingPosition {
   readonly currentPage: number
@@ -137,7 +138,7 @@ function mergeBookmark(
   ])
 }
 
-function mergeContinuousPdfPages(
+function mergePdfPages(
   currentPages: readonly PDFPageProxy[],
   incomingPages: readonly PDFPageProxy[],
 ): readonly PDFPageProxy[] {
@@ -192,7 +193,7 @@ function createContinuousPdfPagesState(
   totalPages: number,
 ): ContinuousPdfPagesState {
   const sortedPages =
-    mergeContinuousPdfPages(
+    mergePdfPages(
       [],
       pages,
     )
@@ -237,6 +238,62 @@ function createContinuousPdfPagesState(
   }
 }
 
+interface ThumbnailPdfPagesState {
+  readonly loadedThumbnailPdfPages:
+    readonly PDFPageProxy[]
+
+  readonly thumbnailPagesStartPage:
+    number | null
+
+  readonly thumbnailPagesEndPage:
+    number | null
+
+  readonly thumbnailHasPreviousPages:
+    boolean
+
+  readonly thumbnailHasNextPages:
+    boolean
+}
+
+function createThumbnailPdfPagesState(
+  pages: readonly PDFPageProxy[],
+  totalPages: number,
+): ThumbnailPdfPagesState {
+  const sortedPages =
+    mergePdfPages(
+      [],
+      pages,
+    )
+
+  const firstPage =
+    sortedPages[0] ?? null
+
+  const lastPage =
+    sortedPages[
+      sortedPages.length - 1
+    ] ?? null
+
+  return {
+    loadedThumbnailPdfPages:
+      sortedPages,
+
+    thumbnailPagesStartPage:
+      firstPage?.pageNumber ?? null,
+
+    thumbnailPagesEndPage:
+      lastPage?.pageNumber ?? null,
+
+    thumbnailHasPreviousPages:
+      firstPage !== null &&
+      firstPage.pageNumber > 1,
+
+    thumbnailHasNextPages:
+      lastPage !== null &&
+      lastPage.pageNumber <
+        totalPages,
+  }
+}
+
 async function closeDocumentSilently(
   loadedPdfDocument:
     LoadedPdfDocument | null,
@@ -264,6 +321,7 @@ export const createReaderSlice:
     let pageLoadOperationSequence = 0
     let secondaryPageLoadOperationSequence = 0
     let continuousPagesLoadOperationSequence = 0
+    let thumbnailPagesLoadOperationSequence = 0
     let bookmarkLoadOperationSequence = 0
     let bookmarkMutationOperationSequence = 0
 
@@ -279,6 +337,12 @@ export const createReaderSlice:
       continuousPagesEndPage: null,
       continuousHasPreviousPages: false,
       continuousHasNextPages: false,
+
+      loadedThumbnailPdfPages: [],
+      thumbnailPagesStartPage: null,
+      thumbnailPagesEndPage: null,
+      thumbnailHasPreviousPages: false,
+      thumbnailHasNextPages: false,
 
       bookmarks: [],
 
@@ -297,6 +361,9 @@ export const createReaderSlice:
       continuousPagesLoadStatus:
         AsyncStatus.IDLE,
 
+      thumbnailPagesLoadStatus:
+        AsyncStatus.IDLE,
+
       progressSaveStatus:
         AsyncStatus.IDLE,
 
@@ -310,6 +377,7 @@ export const createReaderSlice:
       pageLoadErrorMessage: null,
       secondaryPageLoadErrorMessage: null,
       continuousPagesLoadErrorMessage: null,
+      thumbnailPagesLoadErrorMessage: null,
       bookmarkErrorMessage: null,
 
       openBook: async (
@@ -322,6 +390,7 @@ export const createReaderSlice:
         ++pageLoadOperationSequence
         ++secondaryPageLoadOperationSequence
         ++continuousPagesLoadOperationSequence
+        ++thumbnailPagesLoadOperationSequence
         ++bookmarkLoadOperationSequence
         ++bookmarkMutationOperationSequence
 
@@ -334,6 +403,12 @@ export const createReaderSlice:
           continuousPagesEndPage: null,
           continuousHasPreviousPages: false,
           continuousHasNextPages: false,
+
+          loadedThumbnailPdfPages: [],
+          thumbnailPagesStartPage: null,
+          thumbnailPagesEndPage: null,
+          thumbnailHasPreviousPages: false,
+          thumbnailHasNextPages: false,
 
           bookmarks: [],
 
@@ -349,6 +424,9 @@ export const createReaderSlice:
           continuousPagesLoadStatus:
             AsyncStatus.IDLE,
 
+          thumbnailPagesLoadStatus:
+            AsyncStatus.IDLE,
+
           bookmarksLoadStatus:
             AsyncStatus.IDLE,
 
@@ -359,6 +437,7 @@ export const createReaderSlice:
           pageLoadErrorMessage: null,
           secondaryPageLoadErrorMessage: null,
           continuousPagesLoadErrorMessage: null,
+          thumbnailPagesLoadErrorMessage: null,
           bookmarkErrorMessage: null,
         })
 
@@ -616,6 +695,12 @@ export const createReaderSlice:
           continuousHasPreviousPages: false,
           continuousHasNextPages: false,
 
+          loadedThumbnailPdfPages: [],
+          thumbnailPagesStartPage: null,
+          thumbnailPagesEndPage: null,
+          thumbnailHasPreviousPages: false,
+          thumbnailHasNextPages: false,
+
           bookmarks: [],
 
           readerOpenStatus:
@@ -630,6 +715,9 @@ export const createReaderSlice:
           continuousPagesLoadStatus:
             AsyncStatus.IDLE,
 
+          thumbnailPagesLoadStatus:
+            AsyncStatus.IDLE,
+
           bookmarksLoadStatus:
             AsyncStatus.IDLE,
 
@@ -640,6 +728,7 @@ export const createReaderSlice:
           pageLoadErrorMessage: null,
           secondaryPageLoadErrorMessage: null,
           continuousPagesLoadErrorMessage: null,
+          thumbnailPagesLoadErrorMessage: null,
           bookmarkErrorMessage: null,
 
           progressSaveStatus:
@@ -703,6 +792,12 @@ export const createReaderSlice:
           continuousHasPreviousPages: false,
           continuousHasNextPages: false,
 
+          loadedThumbnailPdfPages: [],
+          thumbnailPagesStartPage: null,
+          thumbnailPagesEndPage: null,
+          thumbnailHasPreviousPages: false,
+          thumbnailHasNextPages: false,
+
           bookmarks: [],
 
           currentPage: 1,
@@ -720,6 +815,9 @@ export const createReaderSlice:
           continuousPagesLoadStatus:
             AsyncStatus.IDLE,
 
+          thumbnailPagesLoadStatus:
+            AsyncStatus.IDLE,
+
           progressSaveStatus,
 
           bookmarksLoadStatus:
@@ -734,6 +832,7 @@ export const createReaderSlice:
           pageLoadErrorMessage: null,
           secondaryPageLoadErrorMessage: null,
           continuousPagesLoadErrorMessage: null,
+          thumbnailPagesLoadErrorMessage: null,
           bookmarkErrorMessage: null,
         })
       },
@@ -1201,6 +1300,155 @@ export const createReaderSlice:
           }
         },
 
+      loadInitialThumbnailPdfPages:
+        async () => {
+          const operationId =
+            ++thumbnailPagesLoadOperationSequence
+
+          const currentState = get()
+
+          const {
+            openedBook,
+            loadedPdfDocument,
+            currentPage,
+          } = currentState
+
+          if (
+            openedBook === null ||
+            loadedPdfDocument === null ||
+            loadedPdfDocument.isClosed
+          ) {
+            set({
+              ...createThumbnailPdfPagesState(
+                [],
+                0,
+              ),
+
+              thumbnailPagesLoadStatus:
+                AsyncStatus.ERROR,
+
+              thumbnailPagesLoadErrorMessage:
+                'Nenhum documento PDF está aberto para carregar as miniaturas.',
+            })
+
+            return
+          }
+
+          const openedBookId =
+            openedBook.book.id
+
+          const totalPages =
+            openedBook.book.totalPages
+
+          const startPage =
+            normalizeCurrentPage(
+              currentPage,
+              totalPages,
+            )
+
+          set({
+            ...createThumbnailPdfPagesState(
+              [],
+              totalPages,
+            ),
+
+            thumbnailPagesLoadStatus:
+              AsyncStatus.LOADING,
+
+            thumbnailPagesLoadErrorMessage: null,
+          })
+
+          try {
+            const result =
+              await applicationContainer
+                .controllers
+                .loadPdfPageBatch
+                .execute({
+                  document:
+                    loadedPdfDocument.document,
+
+                  startPage,
+
+                  batchSize:
+                    THUMBNAIL_PAGE_BATCH_SIZE,
+
+                  totalPages,
+                })
+
+            if (
+              operationId !==
+              thumbnailPagesLoadOperationSequence
+            ) {
+              return
+            }
+
+            const latestState = get()
+
+            if (
+              latestState
+                .loadedPdfDocument !==
+                loadedPdfDocument ||
+              loadedPdfDocument.isClosed ||
+              latestState
+                .openedBook
+                ?.book
+                .id !== openedBookId
+            ) {
+              return
+            }
+
+            set({
+              ...createThumbnailPdfPagesState(
+                result.pages,
+                totalPages,
+              ),
+
+              thumbnailPagesLoadStatus:
+                AsyncStatus.SUCCESS,
+
+              thumbnailPagesLoadErrorMessage: null,
+            })
+          } catch (error) {
+            if (
+              operationId !==
+              thumbnailPagesLoadOperationSequence
+            ) {
+              return
+            }
+
+            const latestState = get()
+
+            if (
+              latestState
+                .loadedPdfDocument !==
+                loadedPdfDocument ||
+              loadedPdfDocument.isClosed ||
+              latestState
+                .openedBook
+                ?.book
+                .id !== openedBookId
+            ) {
+              return
+            }
+
+            set({
+              ...createThumbnailPdfPagesState(
+                [],
+                totalPages,
+              ),
+
+              thumbnailPagesLoadStatus:
+                AsyncStatus.ERROR,
+
+              thumbnailPagesLoadErrorMessage:
+                getErrorMessage(
+                  error,
+                  'Não foi possível carregar as miniaturas iniciais.',
+                ),
+            })
+          }
+        },
+
       loadPreviousContinuousPdfPages:
         async () => {
           const currentState = get()
@@ -1332,7 +1580,7 @@ export const createReaderSlice:
             }
 
             const mergedPages =
-              mergeContinuousPdfPages(
+              mergePdfPages(
                 latestState
                   .loadedContinuousPdfPages,
                 result.pages,
@@ -1377,6 +1625,190 @@ export const createReaderSlice:
                 AsyncStatus.ERROR,
 
               continuousPagesLoadErrorMessage:
+                getErrorMessage(
+                  error,
+                  'Não foi possível carregar as páginas anteriores.',
+                ),
+            })
+          }
+        },
+
+      loadPreviousThumbnailPdfPages:
+        async () => {
+          const currentState = get()
+
+          if (
+            currentState
+              .thumbnailPagesLoadStatus ===
+            AsyncStatus.LOADING
+          ) {
+            return
+          }
+
+          const {
+            openedBook,
+            loadedPdfDocument,
+            loadedThumbnailPdfPages,
+            thumbnailPagesStartPage,
+            thumbnailHasPreviousPages,
+          } = currentState
+
+          if (
+            openedBook === null ||
+            loadedPdfDocument === null ||
+            loadedPdfDocument.isClosed
+          ) {
+            set({
+              thumbnailPagesLoadStatus:
+                AsyncStatus.ERROR,
+
+              thumbnailPagesLoadErrorMessage:
+                'Nenhum documento PDF está aberto para carregar páginas anteriores.',
+            })
+
+            return
+          }
+
+          if (
+            thumbnailPagesStartPage ===
+              null ||
+            loadedThumbnailPdfPages
+              .length === 0
+          ) {
+            await get()
+              .loadInitialThumbnailPdfPages()
+
+            return
+          }
+
+          if (
+            !thumbnailHasPreviousPages
+          ) {
+            set({
+              thumbnailPagesLoadStatus:
+                AsyncStatus.SUCCESS,
+
+              thumbnailPagesLoadErrorMessage: null,
+            })
+
+            return
+          }
+
+          const operationId =
+            ++thumbnailPagesLoadOperationSequence
+
+          const openedBookId =
+            openedBook.book.id
+
+          const totalPages =
+            openedBook.book.totalPages
+
+          const capturedStartPage =
+            thumbnailPagesStartPage
+
+          const batchStartPage =
+            Math.max(
+              1,
+              capturedStartPage -
+                THUMBNAIL_PAGE_BATCH_SIZE,
+            )
+
+          const batchSize =
+            capturedStartPage -
+            batchStartPage
+
+          set({
+            thumbnailPagesLoadStatus:
+              AsyncStatus.LOADING,
+
+            thumbnailPagesLoadErrorMessage: null,
+          })
+
+          try {
+            const result =
+              await applicationContainer
+                .controllers
+                .loadPdfPageBatch
+                .execute({
+                  document:
+                    loadedPdfDocument.document,
+
+                  startPage:
+                    batchStartPage,
+
+                  batchSize,
+
+                  totalPages,
+                })
+
+            if (
+              operationId !==
+              thumbnailPagesLoadOperationSequence
+            ) {
+              return
+            }
+
+            const latestState = get()
+
+            if (
+              latestState
+                .loadedPdfDocument !==
+                loadedPdfDocument ||
+              loadedPdfDocument.isClosed ||
+              latestState
+                .openedBook
+                ?.book
+                .id !== openedBookId
+            ) {
+              return
+            }
+
+            const mergedPages =
+              mergePdfPages(
+                latestState
+                  .loadedThumbnailPdfPages,
+                result.pages,
+              )
+
+            set({
+              ...createThumbnailPdfPagesState(
+                mergedPages,
+                totalPages,
+              ),
+
+              thumbnailPagesLoadStatus:
+                AsyncStatus.SUCCESS,
+
+              thumbnailPagesLoadErrorMessage: null,
+            })
+          } catch (error) {
+            if (
+              operationId !==
+              thumbnailPagesLoadOperationSequence
+            ) {
+              return
+            }
+
+            const latestState = get()
+
+            if (
+              latestState
+                .loadedPdfDocument !==
+                loadedPdfDocument ||
+              loadedPdfDocument.isClosed ||
+              latestState
+                .openedBook
+                ?.book
+                .id !== openedBookId
+            ) {
+              return
+            }
+
+            set({
+              thumbnailPagesLoadStatus:
+                AsyncStatus.ERROR,
+
+              thumbnailPagesLoadErrorMessage:
                 getErrorMessage(
                   error,
                   'Não foi possível carregar as páginas anteriores.',
@@ -1503,7 +1935,7 @@ export const createReaderSlice:
             }
 
             const mergedPages =
-              mergeContinuousPdfPages(
+              mergePdfPages(
                 latestState
                   .loadedContinuousPdfPages,
                 result.pages,
@@ -1556,6 +1988,177 @@ export const createReaderSlice:
           }
         },
 
+      loadNextThumbnailPdfPages:
+        async () => {
+          const currentState = get()
+
+          if (
+            currentState
+              .thumbnailPagesLoadStatus ===
+            AsyncStatus.LOADING
+          ) {
+            return
+          }
+
+          const {
+            openedBook,
+            loadedPdfDocument,
+            loadedThumbnailPdfPages,
+            thumbnailPagesEndPage,
+            thumbnailHasNextPages,
+          } = currentState
+
+          if (
+            openedBook === null ||
+            loadedPdfDocument === null ||
+            loadedPdfDocument.isClosed
+          ) {
+            set({
+              thumbnailPagesLoadStatus:
+                AsyncStatus.ERROR,
+
+              thumbnailPagesLoadErrorMessage:
+                'Nenhum documento PDF está aberto para carregar as próximas páginas.',
+            })
+
+            return
+          }
+
+          if (
+            thumbnailPagesEndPage ===
+              null ||
+            loadedThumbnailPdfPages
+              .length === 0
+          ) {
+            await get()
+              .loadInitialThumbnailPdfPages()
+
+            return
+          }
+
+          if (!thumbnailHasNextPages) {
+            set({
+              thumbnailPagesLoadStatus:
+                AsyncStatus.SUCCESS,
+
+              thumbnailPagesLoadErrorMessage: null,
+            })
+
+            return
+          }
+
+          const operationId =
+            ++thumbnailPagesLoadOperationSequence
+
+          const openedBookId =
+            openedBook.book.id
+
+          const totalPages =
+            openedBook.book.totalPages
+
+          const startPage =
+            thumbnailPagesEndPage + 1
+
+          set({
+            thumbnailPagesLoadStatus:
+              AsyncStatus.LOADING,
+
+            thumbnailPagesLoadErrorMessage: null,
+          })
+
+          try {
+            const result =
+              await applicationContainer
+                .controllers
+                .loadPdfPageBatch
+                .execute({
+                  document:
+                    loadedPdfDocument.document,
+
+                  startPage,
+
+                  batchSize:
+                    THUMBNAIL_PAGE_BATCH_SIZE,
+
+                  totalPages,
+                })
+
+            if (
+              operationId !==
+              thumbnailPagesLoadOperationSequence
+            ) {
+              return
+            }
+
+            const latestState = get()
+
+            if (
+              latestState
+                .loadedPdfDocument !==
+                loadedPdfDocument ||
+              loadedPdfDocument.isClosed ||
+              latestState
+                .openedBook
+                ?.book
+                .id !== openedBookId
+            ) {
+              return
+            }
+
+            const mergedPages =
+              mergePdfPages(
+                latestState
+                  .loadedThumbnailPdfPages,
+                result.pages,
+              )
+
+            set({
+              ...createThumbnailPdfPagesState(
+                mergedPages,
+                totalPages,
+              ),
+
+              thumbnailPagesLoadStatus:
+                AsyncStatus.SUCCESS,
+
+              thumbnailPagesLoadErrorMessage: null,
+            })
+          } catch (error) {
+            if (
+              operationId !==
+              thumbnailPagesLoadOperationSequence
+            ) {
+              return
+            }
+
+            const latestState = get()
+
+            if (
+              latestState
+                .loadedPdfDocument !==
+                loadedPdfDocument ||
+              loadedPdfDocument.isClosed ||
+              latestState
+                .openedBook
+                ?.book
+                .id !== openedBookId
+            ) {
+              return
+            }
+
+            set({
+              thumbnailPagesLoadStatus:
+                AsyncStatus.ERROR,
+
+              thumbnailPagesLoadErrorMessage:
+                getErrorMessage(
+                  error,
+                  'Não foi possível carregar as próximas páginas.',
+                ),
+            })
+          }
+        },
+
       clearContinuousPdfPages: () => {
         ++continuousPagesLoadOperationSequence
 
@@ -1574,6 +2177,27 @@ export const createReaderSlice:
             AsyncStatus.IDLE,
 
           continuousPagesLoadErrorMessage: null,
+        })
+      },
+
+      clearThumbnailPdfPages: () => {
+        ++thumbnailPagesLoadOperationSequence
+
+        const totalPages =
+          get().openedBook
+            ?.book
+            .totalPages ?? 0
+
+        set({
+          ...createThumbnailPdfPagesState(
+            [],
+            totalPages,
+          ),
+
+          thumbnailPagesLoadStatus:
+            AsyncStatus.IDLE,
+
+          thumbnailPagesLoadErrorMessage: null,
         })
       },
 
@@ -2032,6 +2656,12 @@ export const createReaderSlice:
       clearSecondaryPageLoadError: () => {
         set({
           secondaryPageLoadErrorMessage: null,
+        })
+      },
+
+      clearThumbnailPagesLoadError: () => {
+        set({
+          thumbnailPagesLoadErrorMessage: null,
         })
       },
 

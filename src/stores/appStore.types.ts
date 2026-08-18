@@ -135,6 +135,21 @@ export interface ReaderSlice {
   readonly loadedContinuousPdfPages:
     readonly PDFPageProxy[]
 
+  readonly loadedThumbnailPdfPages:
+    readonly PDFPageProxy[]
+
+  readonly thumbnailPagesStartPage:
+    number | null
+
+  readonly thumbnailPagesEndPage:
+    number | null
+
+  readonly thumbnailHasPreviousPages:
+    boolean
+
+  readonly thumbnailHasNextPages:
+    boolean
+
   readonly continuousPagesStartPage:
     number | null
 
@@ -166,6 +181,9 @@ export interface ReaderSlice {
   readonly continuousPagesLoadStatus:
     AsyncStatus
 
+  readonly thumbnailPagesLoadStatus:
+    AsyncStatus
+
   readonly progressSaveStatus:
     AsyncStatus
 
@@ -185,6 +203,9 @@ export interface ReaderSlice {
     string | null
 
   readonly continuousPagesLoadErrorMessage:
+    string | null
+
+  readonly thumbnailPagesLoadErrorMessage:
     string | null
 
   readonly bookmarkErrorMessage:
@@ -213,6 +234,14 @@ export interface ReaderSlice {
 
   clearContinuousPdfPages(): void
 
+  loadInitialThumbnailPdfPages(): Promise<void>
+
+  loadPreviousThumbnailPdfPages(): Promise<void>
+
+  loadNextThumbnailPdfPages(): Promise<void>
+
+  clearThumbnailPdfPages(): void
+
   setReadingPosition(
     currentPage: number,
     pageOffsetRatio: number,
@@ -233,6 +262,8 @@ export interface ReaderSlice {
   clearPageLoadError(): void
 
   clearSecondaryPageLoadError(): void
+
+  clearThumbnailPagesLoadError(): void
 
   clearContinuousPagesLoadError(): void
 

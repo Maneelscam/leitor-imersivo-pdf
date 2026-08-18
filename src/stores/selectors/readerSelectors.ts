@@ -36,6 +36,26 @@ export const selectContinuousHasNextPages = (
   state: AppStore,
 ) => state.continuousHasNextPages
 
+export const selectLoadedThumbnailPdfPages = (
+  state: AppStore,
+) => state.loadedThumbnailPdfPages
+
+export const selectThumbnailPagesStartPage = (
+  state: AppStore,
+) => state.thumbnailPagesStartPage
+
+export const selectThumbnailPagesEndPage = (
+  state: AppStore,
+) => state.thumbnailPagesEndPage
+
+export const selectThumbnailHasPreviousPages = (
+  state: AppStore,
+) => state.thumbnailHasPreviousPages
+
+export const selectThumbnailHasNextPages = (
+  state: AppStore,
+) => state.thumbnailHasNextPages
+
 export const selectBookmarks = (
   state: AppStore,
 ) => state.bookmarks
@@ -64,6 +84,10 @@ export const selectContinuousPagesLoadStatus = (
   state: AppStore,
 ) => state.continuousPagesLoadStatus
 
+export const selectThumbnailPagesLoadStatus = (
+  state: AppStore,
+) => state.thumbnailPagesLoadStatus
+
 export const selectProgressSaveStatus = (
   state: AppStore,
 ) => state.progressSaveStatus
@@ -91,6 +115,10 @@ export const selectSecondaryPageLoadErrorMessage = (
 export const selectContinuousPagesLoadErrorMessage = (
   state: AppStore,
 ) => state.continuousPagesLoadErrorMessage
+
+export const selectThumbnailPagesLoadErrorMessage = (
+  state: AppStore,
+) => state.thumbnailPagesLoadErrorMessage
 
 export const selectBookmarkErrorMessage = (
   state: AppStore,
@@ -132,6 +160,22 @@ export const selectClearContinuousPdfPages = (
   state: AppStore,
 ) => state.clearContinuousPdfPages
 
+export const selectLoadInitialThumbnailPdfPages = (
+  state: AppStore,
+) => state.loadInitialThumbnailPdfPages
+
+export const selectLoadPreviousThumbnailPdfPages = (
+  state: AppStore,
+) => state.loadPreviousThumbnailPdfPages
+
+export const selectLoadNextThumbnailPdfPages = (
+  state: AppStore,
+) => state.loadNextThumbnailPdfPages
+
+export const selectClearThumbnailPdfPages = (
+  state: AppStore,
+) => state.clearThumbnailPdfPages
+
 export const selectSetReadingPosition = (
   state: AppStore,
 ) => state.setReadingPosition
@@ -167,6 +211,10 @@ export const selectClearSecondaryPageLoadError = (
 export const selectClearContinuousPagesLoadError = (
   state: AppStore,
 ) => state.clearContinuousPagesLoadError
+
+export const selectClearThumbnailPagesLoadError = (
+  state: AppStore,
+) => state.clearThumbnailPagesLoadError
 
 export const selectClearBookmarkError = (
   state: AppStore,

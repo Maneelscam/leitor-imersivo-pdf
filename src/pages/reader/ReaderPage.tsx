@@ -52,6 +52,9 @@ import {
   ReaderTextSearch,
 } from '@/features/reader/components/ReaderTextSearch'
 import {
+  ReaderThumbnails,
+} from '@/features/reader/components/ReaderThumbnails'
+import {
   ReaderToolbar,
 } from '@/features/reader/components/ReaderToolbar'
 import {
@@ -81,6 +84,9 @@ import {
 import {
   ReadingFlowMode,
 } from '@/models/enums/ReadingFlowMode'
+import {
+  ReaderPanelSection,
+} from '@/models/enums/ReaderPanelSection'
 import {
   ZoomMode,
 } from '@/models/enums/ZoomMode'
@@ -124,24 +130,33 @@ import {
   selectClearBookmarkError,
   selectClearContinuousPdfPages,
   selectClearReaderError,
+  selectClearThumbnailPagesLoadError,
   selectClearSecondaryPdfPage,
   selectCloseBook,
   selectContinuousHasNextPages,
+  selectThumbnailHasNextPages,
+  selectThumbnailHasPreviousPages,
   selectContinuousHasPreviousPages,
   selectContinuousPagesLoadErrorMessage,
+  selectThumbnailPagesLoadErrorMessage,
   selectContinuousPagesLoadStatus,
+  selectThumbnailPagesLoadStatus,
   selectCreateCurrentPageBookmark,
   selectCurrentPage,
   selectDeleteBookmark,
   selectLoadedContinuousPdfPages,
+  selectLoadedThumbnailPdfPages,
   selectLoadedPdfDocument,
   selectLoadedPdfPage,
   selectLoadedSecondaryPdfPage,
   selectLoadBookmarks,
   selectLoadInitialContinuousPdfPages,
+  selectLoadInitialThumbnailPdfPages,
   selectLoadNextContinuousPdfPages,
+  selectLoadNextThumbnailPdfPages,
   selectLoadPdfPage,
   selectLoadPreviousContinuousPdfPages,
+  selectLoadPreviousThumbnailPdfPages,
   selectLoadSecondaryPdfPage,
   selectOpenedBook,
   selectPageLoadErrorMessage,
@@ -591,6 +606,11 @@ export function ReaderPage() {
       selectLoadedContinuousPdfPages,
     )
 
+  const loadedThumbnailPdfPages =
+    useAppStore(
+      selectLoadedThumbnailPdfPages,
+    )
+
   const readerSettings = useAppStore(
     selectReaderSettings,
   )
@@ -668,6 +688,11 @@ export function ReaderPage() {
       selectContinuousPagesLoadStatus,
     )
 
+  const thumbnailPagesLoadStatus =
+    useAppStore(
+      selectThumbnailPagesLoadStatus,
+    )
+
   const continuousHasPreviousPages =
     useAppStore(
       selectContinuousHasPreviousPages,
@@ -676,6 +701,16 @@ export function ReaderPage() {
   const continuousHasNextPages =
     useAppStore(
       selectContinuousHasNextPages,
+    )
+
+  const thumbnailHasPreviousPages =
+    useAppStore(
+      selectThumbnailHasPreviousPages,
+    )
+
+  const thumbnailHasNextPages =
+    useAppStore(
+      selectThumbnailHasNextPages,
     )
 
   const bookmarksLoadStatus = useAppStore(
@@ -715,6 +750,11 @@ export function ReaderPage() {
       selectContinuousPagesLoadErrorMessage,
     )
 
+  const thumbnailPagesLoadErrorMessage =
+    useAppStore(
+      selectThumbnailPagesLoadErrorMessage,
+    )
+
   const bookmarkErrorMessage =
     useAppStore(
       selectBookmarkErrorMessage,
@@ -744,14 +784,29 @@ export function ReaderPage() {
       selectLoadInitialContinuousPdfPages,
     )
 
+  const loadInitialThumbnailPdfPages =
+    useAppStore(
+      selectLoadInitialThumbnailPdfPages,
+    )
+
   const loadPreviousContinuousPdfPages =
     useAppStore(
       selectLoadPreviousContinuousPdfPages,
     )
 
+  const loadPreviousThumbnailPdfPages =
+    useAppStore(
+      selectLoadPreviousThumbnailPdfPages,
+    )
+
   const loadNextContinuousPdfPages =
     useAppStore(
       selectLoadNextContinuousPdfPages,
+    )
+
+  const loadNextThumbnailPdfPages =
+    useAppStore(
+      selectLoadNextThumbnailPdfPages,
     )
 
   const clearContinuousPdfPages =
@@ -816,6 +871,11 @@ export function ReaderPage() {
     selectClearReaderError,
   )
 
+  const clearThumbnailPagesLoadError =
+    useAppStore(
+      selectClearThumbnailPagesLoadError,
+    )
+
   const clearBookmarkError = useAppStore(
     selectClearBookmarkError,
   )
@@ -855,6 +915,36 @@ export function ReaderPage() {
     panelOpen,
     setPanelOpen,
   ] = useState(true)
+
+  const [
+    activePanelSection,
+    setActivePanelSection,
+  ] = useState<ReaderPanelSection>(
+    ReaderPanelSection.OUTLINE,
+  )
+
+  useEffect(() => {
+    if (
+      !panelOpen ||
+      activePanelSection !== ReaderPanelSection.THUMBNAILS ||
+      openedBook === null ||
+      loadedPdfDocument === null ||
+      loadedThumbnailPdfPages.length > 0 ||
+      thumbnailPagesLoadStatus !== AsyncStatus.IDLE
+    ) {
+      return
+    }
+
+    void loadInitialThumbnailPdfPages()
+  }, [
+    panelOpen,
+    activePanelSection,
+    openedBook,
+    loadedPdfDocument,
+    loadedThumbnailPdfPages.length,
+    thumbnailPagesLoadStatus,
+    loadInitialThumbnailPdfPages,
+  ])
 
   const [
     searchFocusRequestId,
@@ -2190,6 +2280,12 @@ export function ReaderPage() {
     handleFitWidth,
   ])
 
+  const handleOpenThumbnailPage =
+    useCallback((pageNumber: number) => {
+      revealReaderControls()
+      setReadingPosition(pageNumber, 0)
+    }, [revealReaderControls, setReadingPosition])
+
   const handleTogglePanel =
     useCallback(() => {
       revealReaderControls()
@@ -2205,10 +2301,30 @@ export function ReaderPage() {
       setPanelOpen(false)
     }, [])
 
+  const handlePanelSectionChange =
+    useCallback(
+      (
+        section: ReaderPanelSection,
+      ) => {
+        revealReaderControls()
+
+        setActivePanelSection(
+          section,
+        )
+      },
+      [revealReaderControls],
+    )
+
   const handleFocusSearch =
     useCallback(() => {
       revealReaderControls()
+
+      setActivePanelSection(
+        ReaderPanelSection.SEARCH,
+      )
+
       setPanelOpen(true)
+
       setSearchFocusRequestId(
         (currentRequestId) =>
           currentRequestId + 1,
@@ -2719,7 +2835,7 @@ export function ReaderPage() {
           variant={
             FeedbackMessageVariant.WARNING
           }
-          title="A leitura requer atenção"
+          title="A leitura requer atenÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o"
           description={
             readerErrorMessage
           }
@@ -2860,6 +2976,25 @@ export function ReaderPage() {
           <ReaderSidePanel
             currentPage={currentPage}
             totalPages={totalPages}
+            activeSection={
+              activePanelSection
+            }
+            thumbnailsContent={
+              <ReaderThumbnails
+                pages={loadedThumbnailPdfPages}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                rotation={pageRotation}
+                isLoading={thumbnailPagesLoadStatus === AsyncStatus.LOADING}
+                hasPreviousPages={thumbnailHasPreviousPages}
+                hasNextPages={thumbnailHasNextPages}
+                errorMessage={thumbnailPagesLoadErrorMessage}
+                onOpenPage={handleOpenThumbnailPage}
+                onLoadPrevious={loadPreviousThumbnailPdfPages}
+                onLoadNext={loadNextThumbnailPdfPages}
+                onDismissError={clearThumbnailPagesLoadError}
+              />
+            }
             outlineContent={
               <ReaderOutline
                 items={
@@ -2981,6 +3116,9 @@ export function ReaderPage() {
                   clearBookmarkError
                 }
               />
+            }
+            onSectionChange={
+              handlePanelSectionChange
             }
             onClose={
               handleClosePanel

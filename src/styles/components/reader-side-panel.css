@@ -171,6 +171,120 @@
     var(--easing-standard);
 }
 
+.reader-side-panel__navigation {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      5,
+      minmax(0, 1fr)
+    );
+
+  gap: 0.25rem;
+
+  padding: 0.25rem;
+
+  background: var(--color-background-soft);
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.reader-side-panel__navigation-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 0;
+  min-height: 3.5rem;
+
+  padding:
+    0.4375rem
+    0.1875rem;
+
+  gap: 0.25rem;
+
+  color: var(--color-text-muted);
+
+  font: inherit;
+
+  background: transparent;
+  border:
+    var(--border-width-thin)
+    solid
+    transparent;
+  border-radius: var(--radius-md);
+
+  cursor: pointer;
+
+  transition:
+    color
+    var(--duration-fast)
+    var(--easing-standard),
+    background
+    var(--duration-fast)
+    var(--easing-standard),
+    border-color
+    var(--duration-fast)
+    var(--easing-standard);
+}
+
+.reader-side-panel__navigation-button:hover {
+  color: var(--color-text-primary);
+
+  background: var(--color-background-active);
+}
+
+.reader-side-panel__navigation-button--active {
+  color: var(--color-accent);
+
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-border);
+}
+
+.reader-side-panel__navigation-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.reader-side-panel__navigation-icon > svg {
+  display: block;
+
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+.reader-side-panel__navigation-label {
+  display: block;
+
+  max-width: 100%;
+
+  overflow: hidden;
+
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.1;
+
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reader-side-panel__navigation-button:focus-visible {
+  outline:
+    2px
+    solid
+    var(--color-accent);
+  outline-offset: 2px;
+}
+
 .reader-side-panel__section--content
   > :first-child {
   min-width: 0;
