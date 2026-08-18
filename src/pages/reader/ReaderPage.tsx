@@ -89,6 +89,11 @@ import {
   selectLoadAnnotations,
 } from '@/stores/selectors/annotationSelectors'
 import {
+  selectClearPdfOutline,
+  selectLoadPdfOutline,
+  selectPdfOutlineStatus,
+} from '@/stores/selectors/pdfOutlineSelectors'
+import {
   selectClearPdfTextSearch,
   selectClearPdfTextSearchError,
   selectPdfTextSearchCompletedPages,
@@ -589,6 +594,10 @@ export function ReaderPage() {
     selectAnnotations,
   )
 
+  const pdfOutlineStatus = useAppStore(
+    selectPdfOutlineStatus,
+  )
+
   const pdfTextSearchQuery =
     useAppStore(
       selectPdfTextSearchQuery,
@@ -763,6 +772,14 @@ export function ReaderPage() {
     useAppStore(
       selectClearAnnotationError,
     )
+
+  const loadPdfOutline = useAppStore(
+    selectLoadPdfOutline,
+  )
+
+  const clearPdfOutline = useAppStore(
+    selectClearPdfOutline,
+  )
 
   const setReadingPosition = useAppStore(
     selectSetReadingPosition,
@@ -1471,6 +1488,34 @@ export function ReaderPage() {
   }, [
     openedBook,
     loadAnnotations,
+  ])
+
+  useEffect(() => {
+    if (
+      openedBook === null ||
+      loadedPdfDocument === null ||
+      loadedPdfDocument.isClosed ||
+      pdfOutlineStatus !==
+        AsyncStatus.IDLE
+    ) {
+      return
+    }
+
+    void loadPdfOutline()
+  }, [
+    openedBook,
+    loadedPdfDocument,
+    pdfOutlineStatus,
+    loadPdfOutline,
+  ])
+
+  useEffect(() => {
+    return () => {
+      clearPdfOutline()
+    }
+  }, [
+    openedBook?.book.id,
+    clearPdfOutline,
   ])
 
   useEffect(() => {
