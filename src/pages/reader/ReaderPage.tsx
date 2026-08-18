@@ -40,6 +40,9 @@ import {
   ReaderDocumentStage,
 } from '@/features/reader/components/ReaderDocumentStage'
 import {
+  ReaderOutline,
+} from '@/features/reader/components/ReaderOutline'
+import {
   ReaderRotationControls,
 } from '@/features/reader/components/ReaderRotationControls'
 import {
@@ -57,6 +60,9 @@ import {
 import {
   useReaderKeyboardShortcuts,
 } from '@/features/reader/hooks/useReaderKeyboardShortcuts'
+import type {
+  PdfOutlineItem,
+} from '@/models/dtos/PdfOutlineItem'
 import type {
   PdfTextSearchOccurrence,
 } from '@/models/dtos/PdfTextSearchResult'
@@ -90,7 +96,10 @@ import {
 } from '@/stores/selectors/annotationSelectors'
 import {
   selectClearPdfOutline,
+  selectClearPdfOutlineError,
   selectLoadPdfOutline,
+  selectPdfOutlineErrorMessage,
+  selectPdfOutlineItems,
   selectPdfOutlineStatus,
 } from '@/stores/selectors/pdfOutlineSelectors'
 import {
@@ -594,9 +603,18 @@ export function ReaderPage() {
     selectAnnotations,
   )
 
+  const pdfOutlineItems = useAppStore(
+    selectPdfOutlineItems,
+  )
+
   const pdfOutlineStatus = useAppStore(
     selectPdfOutlineStatus,
   )
+
+  const pdfOutlineErrorMessage =
+    useAppStore(
+      selectPdfOutlineErrorMessage,
+    )
 
   const pdfTextSearchQuery =
     useAppStore(
@@ -781,6 +799,11 @@ export function ReaderPage() {
     selectClearPdfOutline,
   )
 
+  const clearPdfOutlineError =
+    useAppStore(
+      selectClearPdfOutlineError,
+    )
+
   const setReadingPosition = useAppStore(
     selectSetReadingPosition,
   )
@@ -893,6 +916,10 @@ export function ReaderPage() {
 
   const isAnnotationMutating =
     annotationMutationStatus ===
+    AsyncStatus.LOADING
+
+  const isPdfOutlineLoading =
+    pdfOutlineStatus ===
     AsyncStatus.LOADING
 
   const isPdfTextSearching =
@@ -2302,6 +2329,58 @@ export function ReaderPage() {
       revealReaderControls,
     ])
 
+  const handleOpenPdfOutlineItem =
+    useCallback(
+      async (
+        item: PdfOutlineItem,
+      ) => {
+        if (
+          navigationDisabled ||
+          item.pageNumber === null
+        ) {
+          return
+        }
+
+        revealReaderControls()
+
+        if (isContinuousMode) {
+          await navigateToContinuousPosition(
+            item.pageNumber,
+          )
+
+          return
+        }
+
+        await loadPdfPage(
+          item.pageNumber,
+        )
+
+        const latestReaderState =
+          useAppStore.getState()
+
+        if (
+          latestReaderState
+            .loadedPdfPage
+            ?.pageNumber !==
+          item.pageNumber
+        ) {
+          return
+        }
+
+        setReadingPosition(
+          item.pageNumber,
+          0,
+        )
+      },
+      [
+        navigationDisabled,
+        isContinuousMode,
+        navigateToContinuousPosition,
+        loadPdfPage,
+        setReadingPosition,
+        revealReaderControls,
+      ],
+    )
   const handleOpenBookmark =
     useCallback(
       async (
@@ -2781,6 +2860,28 @@ export function ReaderPage() {
           <ReaderSidePanel
             currentPage={currentPage}
             totalPages={totalPages}
+            outlineContent={
+              <ReaderOutline
+                items={
+                  pdfOutlineItems
+                }
+                currentPage={
+                  currentPage
+                }
+                isLoading={
+                  isPdfOutlineLoading
+                }
+                errorMessage={
+                  pdfOutlineErrorMessage
+                }
+                onOpenItem={
+                  handleOpenPdfOutlineItem
+                }
+                onDismissError={
+                  clearPdfOutlineError
+                }
+              />
+            }
             searchContent={
               <ReaderTextSearch
                 searchQuery={
