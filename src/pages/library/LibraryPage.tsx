@@ -669,6 +669,11 @@ export function LibraryPage() {
           !hasInitialLoadError && (
             <>
               <LibraryToolbar
+                primaryAction={
+                  <PdfImportButton
+                  label="Adicionar PDF"
+                  />
+                }
                 totalBooks={
                   libraryItems.length
                 }

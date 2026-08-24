@@ -80,22 +80,28 @@ function DeleteIcon() {
   )
 }
 
-function formatPageCount(totalPages: number): string {
+function formatPageCount(
+  totalPages: number,
+): string {
   return totalPages === 1
-    ? '1 pÃ¡gina'
-    : `${totalPages} pÃ¡ginas`
+    ? '1 página'
+    : `${totalPages} páginas`
 }
 
 function createCardClassName(
   customClassName: string | undefined,
 ): string {
-  const classNames = ['library-book-card']
+  const classNames = [
+    'library-book-card',
+  ]
 
   if (
     customClassName !== undefined &&
     customClassName.trim().length > 0
   ) {
-    classNames.push(customClassName)
+    classNames.push(
+      customClassName,
+    )
   }
 
   return classNames.join(' ')
@@ -116,7 +122,8 @@ export function LibraryBookCard({
     readingProgress,
   } = item
 
-  const coverUrl = useBookCoverUrl(cover)
+  const coverUrl =
+    useBookCoverUrl(cover)
 
   const progressRatio =
     calculateReadingProgressRatio(
@@ -124,31 +131,39 @@ export function LibraryBookCard({
       book.totalPages,
     )
 
-  const progressPercentage = Math.round(
-    progressRatio * 100,
-  )
+  const progressPercentage =
+    Math.round(
+      progressRatio * 100,
+    )
 
-  const progressLabel = formatReadingProgress(
-    readingProgress,
-    book.totalPages,
-  )
+  const progressLabel =
+    formatReadingProgress(
+      readingProgress,
+      book.totalPages,
+    )
 
-  const progressStyle: ReadingProgressStyle = {
-    '--library-book-progress':
-      `${progressPercentage}%`,
-  }
+  const progressStyle:
+    ReadingProgressStyle = {
+      '--library-book-progress':
+        `${progressPercentage}%`,
+    }
 
   const cardClassName =
-    createCardClassName(className)
+    createCardClassName(
+      className,
+    )
 
-  const isBusy = isOpening || isDeleting
+  const isBusy =
+    isOpening ||
+    isDeleting
 
   const authorLabel =
-    book.author ?? 'Autor nÃ£o informado'
+    book.author ??
+    'Autor não informado'
 
   const lastAccessLabel =
     book.lastOpenedAt === null
-      ? 'Ainda nÃ£o aberto'
+      ? 'Ainda não aberto'
       : `Aberto em ${formatDate(
           book.lastOpenedAt,
         )}`
@@ -158,7 +173,9 @@ export function LibraryBookCard({
       return
     }
 
-    void onOpen(book.id)
+    void onOpen(
+      book.id,
+    )
   }
 
   const handleDelete = () => {
@@ -166,7 +183,9 @@ export function LibraryBookCard({
       return
     }
 
-    void onDelete(book.id)
+    void onDelete(
+      book.id,
+    )
   }
 
   return (
@@ -198,7 +217,7 @@ export function LibraryBookCard({
               </span>
 
               <span className="library-book-card__cover-placeholder-label">
-                Capa indisponÃ­vel
+                Capa indisponível
               </span>
             </div>
           )}
@@ -209,13 +228,19 @@ export function LibraryBookCard({
             aria-label={`Progresso de leitura de ${book.title}`}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-valuenow={progressPercentage}
-            aria-valuetext={progressLabel}
+            aria-valuenow={
+              progressPercentage
+            }
+            aria-valuetext={
+              progressLabel
+            }
           >
             <span className="library-book-card__progress-track">
               <span
                 className="library-book-card__progress-value"
-                style={progressStyle}
+                style={
+                  progressStyle
+                }
               />
             </span>
 
@@ -248,7 +273,9 @@ export function LibraryBookCard({
 
           <div className="library-book-card__metadata">
             <span className="library-book-card__metadata-item">
-              {formatPageCount(book.totalPages)}
+              {formatPageCount(
+                book.totalPages,
+              )}
             </span>
 
             <span className="library-book-card__metadata-item">
@@ -259,7 +286,9 @@ export function LibraryBookCard({
 
             <span className="library-book-card__metadata-item">
               Importado em{' '}
-              {formatDate(book.importedAt)}
+              {formatDate(
+                book.importedAt,
+              )}
             </span>
           </div>
         </div>
@@ -267,7 +296,9 @@ export function LibraryBookCard({
         <div className="library-book-card__footer">
           <span
             className="library-book-card__last-access"
-            title={lastAccessLabel}
+            title={
+              lastAccessLabel
+            }
           >
             {lastAccessLabel}
           </span>
@@ -275,13 +306,19 @@ export function LibraryBookCard({
           <div className="library-book-card__actions">
             <Button
               className="library-book-card__delete-button"
-              variant={ButtonVariant.DANGER}
-              size={ButtonSize.SMALL}
+              variant={
+                ButtonVariant.DANGER
+              }
+              size={
+                ButtonSize.SMALL
+              }
               iconOnly
               disabled={isBusy}
               aria-label={`Excluir ${book.title}`}
               title={`Excluir ${book.title}`}
-              onClick={handleDelete}
+              onClick={
+                handleDelete
+              }
             >
               <DeleteIcon />
             </Button>

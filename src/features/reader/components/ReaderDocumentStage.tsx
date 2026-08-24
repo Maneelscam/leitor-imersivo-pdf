@@ -210,7 +210,7 @@ function getRenderErrorMessage(
     return error.message
   }
 
-  return 'NÃ£o foi possÃvel renderizar esta pÃ¡gina do PDF.'
+  return 'Não foi possível renderizar esta página do PDF.'
 }
 
 function normalizeErrorMessage(
@@ -260,7 +260,7 @@ function ReaderPageCanvas({
   return (
     <div
       className="reader-page__page"
-      aria-label={`PÃ¡gina ${pageNumber}`}
+      aria-label={`Página ${pageNumber}`}
       data-page-number={pageNumber}
     >
       <PdfPageCanvas
@@ -268,7 +268,7 @@ function ReaderPageCanvas({
         scale={scale}
         rotation={rotation}
         aria-label={
-          `PÃ¡gina ${pageNumber} do documento`
+          `Página ${pageNumber} do documento`
         }
         onRenderSuccess={
           handlePageRenderSuccess
@@ -309,7 +309,7 @@ function ReaderPageCanvas({
             variant={
               FeedbackMessageVariant.ERROR
             }
-            title="Erro ao renderizar a pÃ¡gina"
+            title="Erro ao renderizar a página"
             description={renderError}
             icon={<ErrorIcon />}
           />
@@ -572,7 +572,7 @@ export const ReaderDocumentStage =
                         size={
                           LoadingIndicatorSize.LARGE
                         }
-                        label="Carregando pÃ¡gina..."
+                        label="Carregando página..."
                         vertical
                       />
                     </div>
@@ -585,7 +585,7 @@ export const ReaderDocumentStage =
                         variant={
                           FeedbackMessageVariant.ERROR
                         }
-                        title="NÃ£o foi possÃvel carregar a pÃ¡gina"
+                        title="Não foi possível carregar a página"
                         description={
                           normalizedPageLoadError
                         }
@@ -638,7 +638,7 @@ export const ReaderDocumentStage =
                         size={
                           LoadingIndicatorSize.LARGE
                         }
-                        label="Carregando prÃ³xima pÃ¡gina..."
+                        label="Carregando próxima página..."
                         vertical
                       />
                     </div>
@@ -652,7 +652,7 @@ export const ReaderDocumentStage =
                         variant={
                           FeedbackMessageVariant.ERROR
                         }
-                        title="NÃ£o foi possÃvel carregar a prÃ³xima pÃ¡gina"
+                        title="Não foi possível carregar a próxima página"
                         description={
                           normalizedSecondaryPageLoadError
                         }
@@ -721,7 +721,7 @@ export const ReaderDocumentStage =
                         size={
                           LoadingIndicatorSize.LARGE
                         }
-                        label="Carregando pÃ¡ginas..."
+                        label="Carregando páginas..."
                         vertical
                       />
                     </div>
@@ -735,7 +735,7 @@ export const ReaderDocumentStage =
                         variant={
                           FeedbackMessageVariant.ERROR
                         }
-                        title="NÃ£o foi possÃvel carregar as pÃ¡ginas"
+                        title="Não foi possível carregar as páginas"
                         description={
                           normalizedContinuousPagesLoadError
                         }
@@ -794,7 +794,7 @@ export const ReaderDocumentStage =
                         variant={
                           FeedbackMessageVariant.ERROR
                         }
-                        title="NÃ£o foi possÃvel carregar mais pÃ¡ginas"
+                        title="Não foi possível carregar mais páginas"
                         description={
                           normalizedContinuousPagesLoadError
                         }
@@ -810,7 +810,7 @@ export const ReaderDocumentStage =
                         size={
                           LoadingIndicatorSize.MEDIUM
                         }
-                        label="Carregando mais pÃ¡ginas..."
+                        label="Carregando mais páginas..."
                       />
                     </div>
                   )}

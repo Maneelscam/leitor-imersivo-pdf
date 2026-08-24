@@ -3,6 +3,7 @@ import {
   useRef,
   type ChangeEvent,
   type HTMLAttributes,
+  type ReactNode,
 } from 'react'
 
 import {
@@ -24,6 +25,8 @@ export interface LibraryToolbarProps
   readonly backupExporting?: boolean
 
   readonly backupRestoring?: boolean
+
+  readonly primaryAction?: ReactNode
 
   readonly onSortModeChange: (
     sortMode: LibrarySortModeValue,
@@ -76,6 +79,7 @@ export function LibraryToolbar({
   disabled = false,
   backupExporting = false,
   backupRestoring = false,
+  primaryAction,
   onSortModeChange,
   onExportBackup,
   onBackupFileSelected,
@@ -205,6 +209,8 @@ export function LibraryToolbar({
       </div>
 
       <div className="library-toolbar__controls">
+        {primaryAction}
+
         <input
           ref={backupFileInputRef}
           id={backupFileInputId}
