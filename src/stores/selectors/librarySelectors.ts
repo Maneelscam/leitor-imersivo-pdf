@@ -40,6 +40,10 @@ export const selectImportPdf = (
   state: AppStore,
 ) => state.importPdf
 
+export const selectImportPdfs = (
+  state: AppStore,
+) => state.importPdfs
+
 export const selectDeleteBook = (
   state: AppStore,
 ) => state.deleteBook

@@ -12,7 +12,7 @@ import {
 } from '@/components/buttons/Button'
 import { AsyncStatus } from '@/models/enums/AsyncStatus'
 import {
-  selectImportPdf,
+  selectImportPdfs,
   selectPdfImportStatus,
 } from '@/stores/selectors/librarySelectors'
 import { useAppStore } from '@/stores/useAppStore'
@@ -48,7 +48,10 @@ function ImportPdfIcon() {
 
 function createButtonSizeProps(
   size: ButtonSize | undefined,
-): Pick<ButtonProps, 'size'> | Record<string, never> {
+): Pick<
+  ButtonProps,
+  'size'
+> | Record<string, never> {
   if (size === undefined) {
     return {}
   }
@@ -66,17 +69,24 @@ export function PdfImportButton({
   const fileInputRef =
     useRef<HTMLInputElement>(null)
 
-  const importPdf = useAppStore(selectImportPdf)
+  const importPdfs =
+    useAppStore(
+      selectImportPdfs,
+    )
 
-  const pdfImportStatus = useAppStore(
-    selectPdfImportStatus,
-  )
+  const pdfImportStatus =
+    useAppStore(
+      selectPdfImportStatus,
+    )
 
   const isImporting =
-    pdfImportStatus === AsyncStatus.LOADING
+    pdfImportStatus ===
+    AsyncStatus.LOADING
 
   const buttonSizeProps =
-    createButtonSizeProps(size)
+    createButtonSizeProps(
+      size,
+    )
 
   const openFileSelector = () => {
     if (isImporting) {
@@ -87,18 +97,26 @@ export function PdfImportButton({
   }
 
   const handleFileSelection = async (
-    event: ChangeEvent<HTMLInputElement>,
+    event:
+      ChangeEvent<HTMLInputElement>,
   ) => {
-    const selectedFile =
-      event.currentTarget.files?.[0]
+    const selectedFiles =
+      Array.from(
+        event.currentTarget.files ??
+          [],
+      )
 
     event.currentTarget.value = ''
 
-    if (selectedFile === undefined) {
+    if (
+      selectedFiles.length === 0
+    ) {
       return
     }
 
-    await importPdf(selectedFile)
+    await importPdfs(
+      selectedFiles,
+    )
   }
 
   return (
@@ -107,22 +125,31 @@ export function PdfImportButton({
         ref={fileInputRef}
         type="file"
         accept={PDF_FILE_ACCEPT}
+        multiple
         hidden
         tabIndex={-1}
         aria-hidden="true"
         onChange={(event) => {
-          void handleFileSelection(event)
+          void handleFileSelection(
+            event,
+          )
         }}
       />
 
       <Button
         {...buttonSizeProps}
-        variant={ButtonVariant.PRIMARY}
+        variant={
+          ButtonVariant.PRIMARY
+        }
         fullWidth={fullWidth}
-        leadingIcon={<ImportPdfIcon />}
+        leadingIcon={
+          <ImportPdfIcon />
+        }
         disabled={isImporting}
         aria-busy={isImporting}
-        onClick={openFileSelector}
+        onClick={
+          openFileSelector
+        }
       >
         {isImporting
           ? 'Importando...'

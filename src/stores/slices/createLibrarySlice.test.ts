@@ -92,6 +92,23 @@ function createLibraryItem(
   } as unknown as LibraryBookItem
 }
 
+function createPdfFile(
+  fileName: string,
+): File {
+  return new File(
+    [
+      new ArrayBuffer(
+        1,
+      ),
+    ],
+    fileName,
+    {
+      type:
+        'application/pdf',
+    },
+  )
+}
+
 describe(
   'createLibrarySlice',
   () => {
@@ -263,17 +280,8 @@ describe(
       'importa PDF sem incluir password quando ele não foi informado e recarrega a biblioteca',
       async () => {
         const file =
-          new File(
-            [
-              new ArrayBuffer(
-                1,
-              ),
-            ],
+          createPdfFile(
             'livro.pdf',
-            {
-              type:
-                'application/pdf',
-            },
           )
 
         const warnings = [
@@ -335,17 +343,8 @@ describe(
       'encaminha password quando informado na importação',
       async () => {
         const file =
-          new File(
-            [
-              new ArrayBuffer(
-                1,
-              ),
-            ],
+          createPdfFile(
             'protegido.pdf',
-            {
-              type:
-                'application/pdf',
-            },
           )
 
         controllerMocks.importPdf
@@ -394,12 +393,7 @@ describe(
         await store
           .getState()
           .importPdf(
-            new File(
-              [
-                new ArrayBuffer(
-                  1,
-                ),
-              ],
+            createPdfFile(
               'invalido.pdf',
             ),
           )
@@ -415,6 +409,344 @@ describe(
             AsyncStatus.ERROR,
           libraryErrorMessage:
             'PDF inválido',
+        })
+      },
+    )
+
+    it(
+      'não executa importação quando o lote de PDFs está vazio',
+      async () => {
+        const store =
+          createStoreForTest()
+
+        await store
+          .getState()
+          .importPdfs(
+            [],
+          )
+
+        expect(
+          controllerMocks.importPdf,
+        ).not.toHaveBeenCalled()
+
+        expect(
+          controllerMocks.loadLibrary,
+        ).not.toHaveBeenCalled()
+
+        expect(
+          store.getState()
+            .pdfImportStatus,
+        ).toBe(
+          AsyncStatus.IDLE,
+        )
+      },
+    )
+
+    it(
+      'importa vários PDFs em sequência e recarrega a biblioteca somente uma vez',
+      async () => {
+        const firstFile =
+          createPdfFile(
+            'primeiro.pdf',
+          )
+
+        const secondFile =
+          createPdfFile(
+            'segundo.pdf',
+          )
+
+        const thirdFile =
+          createPdfFile(
+            'terceiro.pdf',
+          )
+
+        const items = [
+          createLibraryItem(),
+        ]
+
+        controllerMocks.importPdf
+          .mockResolvedValueOnce({
+            warnings: [],
+          })
+          .mockResolvedValueOnce({
+            warnings: [
+              TEST_IMPORT_WARNING,
+            ],
+          })
+          .mockResolvedValueOnce({
+            warnings: [],
+          })
+
+        controllerMocks.loadLibrary
+          .mockResolvedValue(
+            items,
+          )
+
+        const store =
+          createStoreForTest()
+
+        await store
+          .getState()
+          .importPdfs(
+            [
+              firstFile,
+              secondFile,
+              thirdFile,
+            ],
+          )
+
+        expect(
+          controllerMocks.importPdf,
+        ).toHaveBeenCalledTimes(
+          3,
+        )
+
+        expect(
+          controllerMocks.importPdf,
+        ).toHaveBeenNthCalledWith(
+          1,
+          {
+            file:
+              firstFile,
+          },
+        )
+
+        expect(
+          controllerMocks.importPdf,
+        ).toHaveBeenNthCalledWith(
+          2,
+          {
+            file:
+              secondFile,
+          },
+        )
+
+        expect(
+          controllerMocks.importPdf,
+        ).toHaveBeenNthCalledWith(
+          3,
+          {
+            file:
+              thirdFile,
+          },
+        )
+
+        expect(
+          controllerMocks.loadLibrary,
+        ).toHaveBeenCalledTimes(
+          1,
+        )
+
+        expect(
+          controllerMocks.loadLibrary,
+        ).toHaveBeenCalledWith({
+          sortMode:
+            LibrarySortMode.RECENTLY_OPENED,
+        })
+
+        const firstImportCallOrder =
+          controllerMocks.importPdf
+            .mock
+            .invocationCallOrder[0]
+
+        const secondImportCallOrder =
+          controllerMocks.importPdf
+            .mock
+            .invocationCallOrder[1]
+
+        const thirdImportCallOrder =
+          controllerMocks.importPdf
+            .mock
+            .invocationCallOrder[2]
+
+        const libraryLoadCallOrder =
+          controllerMocks.loadLibrary
+            .mock
+            .invocationCallOrder[0]
+
+        expect(
+          firstImportCallOrder,
+        ).toBeLessThan(
+          secondImportCallOrder ?? 0,
+        )
+
+        expect(
+          secondImportCallOrder,
+        ).toBeLessThan(
+          thirdImportCallOrder ?? 0,
+        )
+
+        expect(
+          thirdImportCallOrder,
+        ).toBeLessThan(
+          libraryLoadCallOrder ?? 0,
+        )
+
+        expect(
+          store.getState(),
+        ).toMatchObject({
+          libraryItems:
+            items,
+          pdfImportStatus:
+            AsyncStatus.SUCCESS,
+          lastImportWarnings: [
+            TEST_IMPORT_WARNING,
+          ],
+          libraryErrorMessage:
+            null,
+        })
+      },
+    )
+
+    it(
+      'continua o lote quando um PDF falha e preserva os documentos importados com sucesso',
+      async () => {
+        const firstFile =
+          createPdfFile(
+            'primeiro.pdf',
+          )
+
+        const invalidFile =
+          createPdfFile(
+            'invalido.pdf',
+          )
+
+        const thirdFile =
+          createPdfFile(
+            'terceiro.pdf',
+          )
+
+        const items = [
+          createLibraryItem(),
+        ]
+
+        controllerMocks.importPdf
+          .mockResolvedValueOnce({
+            warnings: [
+              TEST_IMPORT_WARNING,
+            ],
+          })
+          .mockRejectedValueOnce(
+            new Error(
+              'PDF inválido',
+            ),
+          )
+          .mockResolvedValueOnce({
+            warnings: [],
+          })
+
+        controllerMocks.loadLibrary
+          .mockResolvedValue(
+            items,
+          )
+
+        const store =
+          createStoreForTest()
+
+        await store
+          .getState()
+          .importPdfs(
+            [
+              firstFile,
+              invalidFile,
+              thirdFile,
+            ],
+          )
+
+        expect(
+          controllerMocks.importPdf,
+        ).toHaveBeenCalledTimes(
+          3,
+        )
+
+        expect(
+          controllerMocks.importPdf,
+        ).toHaveBeenNthCalledWith(
+          3,
+          {
+            file:
+              thirdFile,
+          },
+        )
+
+        expect(
+          controllerMocks.loadLibrary,
+        ).toHaveBeenCalledTimes(
+          1,
+        )
+
+        expect(
+          store.getState(),
+        ).toMatchObject({
+          libraryItems:
+            items,
+          pdfImportStatus:
+            AsyncStatus.ERROR,
+          lastImportWarnings: [
+            TEST_IMPORT_WARNING,
+          ],
+          libraryErrorMessage:
+            'PDF inválido',
+        })
+      },
+    )
+
+    it(
+      'registra erro quando a biblioteca não pode ser atualizada após processar um lote',
+      async () => {
+        const firstFile =
+          createPdfFile(
+            'primeiro.pdf',
+          )
+
+        const secondFile =
+          createPdfFile(
+            'segundo.pdf',
+          )
+
+        controllerMocks.importPdf
+          .mockResolvedValue({
+            warnings: [],
+          })
+
+        controllerMocks.loadLibrary
+          .mockRejectedValue(
+            new Error(
+              'falha ao atualizar biblioteca',
+            ),
+          )
+
+        const store =
+          createStoreForTest()
+
+        await store
+          .getState()
+          .importPdfs(
+            [
+              firstFile,
+              secondFile,
+            ],
+          )
+
+        expect(
+          controllerMocks.importPdf,
+        ).toHaveBeenCalledTimes(
+          2,
+        )
+
+        expect(
+          controllerMocks.loadLibrary,
+        ).toHaveBeenCalledTimes(
+          1,
+        )
+
+        expect(
+          store.getState(),
+        ).toMatchObject({
+          pdfImportStatus:
+            AsyncStatus.ERROR,
+          libraryErrorMessage:
+            'falha ao atualizar biblioteca',
         })
       },
     )
@@ -477,10 +809,13 @@ describe(
         })
 
         expect(
-          closeBook.mock.invocationCallOrder[0],
+          closeBook.mock
+            .invocationCallOrder[0],
         ).toBeLessThan(
           controllerMocks.deleteBook
-            .mock.invocationCallOrder[0] ?? 0,
+            .mock
+            .invocationCallOrder[0] ??
+            0,
         )
 
         expect(

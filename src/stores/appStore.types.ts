@@ -89,6 +89,10 @@ export interface LibrarySlice {
     password?: string,
   ): Promise<void>
 
+  importPdfs(
+    files: readonly File[],
+  ): Promise<void>
+
   deleteBook(
     bookId: BookId,
   ): Promise<void>

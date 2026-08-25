@@ -52,31 +52,45 @@ export const createLibrarySlice: LibrarySliceCreator = (
 
     try {
       const libraryItems =
-        await loadSortedLibraryItems(selectedSortMode)
+        await loadSortedLibraryItems(
+          selectedSortMode,
+        )
 
       set({
         libraryItems,
-        librarySortMode: selectedSortMode,
-        libraryLoadStatus: AsyncStatus.SUCCESS,
+        librarySortMode:
+          selectedSortMode,
+        libraryLoadStatus:
+          AsyncStatus.SUCCESS,
       })
     } catch (error) {
       set({
-        libraryLoadStatus: AsyncStatus.ERROR,
-        libraryErrorMessage: getErrorMessage(
-          error,
-          'Não foi possível carregar a biblioteca.',
-        ),
+        libraryLoadStatus:
+          AsyncStatus.ERROR,
+        libraryErrorMessage:
+          getErrorMessage(
+            error,
+            'Não foi possível carregar a biblioteca.',
+          ),
       })
     }
   },
 
-  setLibrarySortMode: async (sortMode) => {
-    await get().loadLibrary(sortMode)
+  setLibrarySortMode: async (
+    sortMode,
+  ) => {
+    await get().loadLibrary(
+      sortMode,
+    )
   },
 
-  importPdf: async (file, password) => {
+  importPdf: async (
+    file,
+    password,
+  ) => {
     set({
-      pdfImportStatus: AsyncStatus.LOADING,
+      pdfImportStatus:
+        AsyncStatus.LOADING,
       libraryErrorMessage: null,
       lastImportWarnings: [],
     })
@@ -97,60 +111,167 @@ export const createLibrarySlice: LibrarySliceCreator = (
           command,
         )
 
-      const selectedSortMode = get().librarySortMode
+      const selectedSortMode =
+        get().librarySortMode
 
       const libraryItems =
-        await loadSortedLibraryItems(selectedSortMode)
+        await loadSortedLibraryItems(
+          selectedSortMode,
+        )
 
       set({
         libraryItems,
-        pdfImportStatus: AsyncStatus.SUCCESS,
-        lastImportWarnings: result.warnings,
+        pdfImportStatus:
+          AsyncStatus.SUCCESS,
+        lastImportWarnings:
+          result.warnings,
       })
     } catch (error) {
       set({
-        pdfImportStatus: AsyncStatus.ERROR,
-        libraryErrorMessage: getErrorMessage(
-          error,
-          'Não foi possível importar o documento PDF.',
-        ),
+        pdfImportStatus:
+          AsyncStatus.ERROR,
+        libraryErrorMessage:
+          getErrorMessage(
+            error,
+            'Não foi possível importar o documento PDF.',
+          ),
+      })
+    }
+  },
+
+  importPdfs: async (files) => {
+    if (files.length === 0) {
+      return
+    }
+
+    set({
+      pdfImportStatus:
+        AsyncStatus.LOADING,
+      libraryErrorMessage: null,
+      lastImportWarnings: [],
+    })
+
+    const importWarnings = [
+      ...get().lastImportWarnings,
+    ]
+
+    let firstImportError:
+      unknown | null = null
+
+    for (const file of files) {
+      try {
+        const result =
+          await applicationContainer.controllers.importPdf.execute(
+            {
+              file,
+            },
+          )
+
+        importWarnings.push(
+          ...result.warnings,
+        )
+      } catch (error) {
+        firstImportError ??=
+          error
+      }
+    }
+
+    try {
+      const selectedSortMode =
+        get().librarySortMode
+
+      const libraryItems =
+        await loadSortedLibraryItems(
+          selectedSortMode,
+        )
+
+      if (
+        firstImportError !== null
+      ) {
+        set({
+          libraryItems,
+          pdfImportStatus:
+            AsyncStatus.ERROR,
+          lastImportWarnings:
+            importWarnings,
+          libraryErrorMessage:
+            getErrorMessage(
+              firstImportError,
+              'Não foi possível importar um ou mais documentos PDF.',
+            ),
+        })
+
+        return
+      }
+
+      set({
+        libraryItems,
+        pdfImportStatus:
+          AsyncStatus.SUCCESS,
+        lastImportWarnings:
+          importWarnings,
+      })
+    } catch (error) {
+      set({
+        pdfImportStatus:
+          AsyncStatus.ERROR,
+        lastImportWarnings:
+          importWarnings,
+        libraryErrorMessage:
+          getErrorMessage(
+            error,
+            'Os PDFs foram processados, mas não foi possível atualizar a biblioteca.',
+          ),
       })
     }
   },
 
   deleteBook: async (bookId) => {
     set({
-      bookDeleteStatus: AsyncStatus.LOADING,
+      bookDeleteStatus:
+        AsyncStatus.LOADING,
       libraryErrorMessage: null,
     })
 
     try {
-      const openedBook = get().openedBook
+      const openedBook =
+        get().openedBook
 
-      if (openedBook?.book.id === bookId) {
+      if (
+        openedBook?.book.id ===
+        bookId
+      ) {
         await get().closeBook()
       }
 
-      await applicationContainer.controllers.deleteBook.execute({
-        bookId,
-      })
+      await applicationContainer.controllers.deleteBook.execute(
+        {
+          bookId,
+        },
+      )
 
-      const selectedSortMode = get().librarySortMode
+      const selectedSortMode =
+        get().librarySortMode
 
       const libraryItems =
-        await loadSortedLibraryItems(selectedSortMode)
+        await loadSortedLibraryItems(
+          selectedSortMode,
+        )
 
       set({
         libraryItems,
-        bookDeleteStatus: AsyncStatus.SUCCESS,
+        bookDeleteStatus:
+          AsyncStatus.SUCCESS,
       })
     } catch (error) {
       set({
-        bookDeleteStatus: AsyncStatus.ERROR,
-        libraryErrorMessage: getErrorMessage(
-          error,
-          'Não foi possível excluir o livro.',
-        ),
+        bookDeleteStatus:
+          AsyncStatus.ERROR,
+        libraryErrorMessage:
+          getErrorMessage(
+            error,
+            'Não foi possível excluir o livro.',
+          ),
       })
     }
   },
