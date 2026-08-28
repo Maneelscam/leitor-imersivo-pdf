@@ -16,6 +16,7 @@ export class LoadPdfPageController {
   async execute(
     document: PDFDocumentProxy,
     pageNumber: number,
+    prefetchPageNumber?: number,
   ): Promise<PDFPageProxy> {
     const page =
       await this.pdfPageService.loadPage(
@@ -23,17 +24,18 @@ export class LoadPdfPageController {
         pageNumber,
       )
 
-    this.prefetchNextPage(
+    this.prefetchPage(
       document,
-      page,
+      prefetchPageNumber ??
+        page.pageNumber + 1,
     )
 
     return page
   }
 
-  private prefetchNextPage(
+  private prefetchPage(
     document: PDFDocumentProxy,
-    page: PDFPageProxy,
+    pageNumber: number,
   ): void {
     const totalPages =
       Math.max(
@@ -43,12 +45,12 @@ export class LoadPdfPageController {
         ),
       )
 
-    const nextPageNumber =
-      page.pageNumber + 1
-
     if (
-      nextPageNumber >
-      totalPages
+      !Number.isInteger(
+        pageNumber,
+      ) ||
+      pageNumber < 1 ||
+      pageNumber > totalPages
     ) {
       return
     }
@@ -56,7 +58,7 @@ export class LoadPdfPageController {
     void this.pdfPageService
       .loadPage(
         document,
-        nextPageNumber,
+        pageNumber,
       )
       .catch(
         () => undefined,

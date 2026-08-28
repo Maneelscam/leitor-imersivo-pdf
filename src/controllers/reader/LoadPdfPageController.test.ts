@@ -30,7 +30,7 @@ function createPage(
 
 describe('LoadPdfPageController', () => {
   it(
-    'delega o carregamento ao PdfPageService, retorna a página e pré-carrega a próxima',
+    'delega o carregamento ao PdfPageService, retorna a página e pré-carrega a próxima por padrão',
     async () => {
       const document =
         createDocument(10)
@@ -86,6 +86,176 @@ describe('LoadPdfPageController', () => {
         2,
         document,
         4,
+      )
+    },
+  )
+
+  it(
+    'permite pré-carregar uma página específica à frente',
+    async () => {
+      const document =
+        createDocument(20)
+
+      const page =
+        createPage(7)
+
+      const prefetchedPage =
+        createPage(9)
+
+      const loadPage =
+        vi.fn()
+          .mockResolvedValueOnce(
+            page,
+          )
+          .mockResolvedValueOnce(
+            prefetchedPage,
+          )
+
+      const service = {
+        loadPage,
+      } as unknown as PdfPageService
+
+      const controller =
+        new LoadPdfPageController(
+          service,
+        )
+
+      await expect(
+        controller.execute(
+          document,
+          7,
+          9,
+        ),
+      ).resolves.toBe(page)
+
+      expect(
+        loadPage,
+      ).toHaveBeenCalledTimes(
+        2,
+      )
+
+      expect(
+        loadPage,
+      ).toHaveBeenNthCalledWith(
+        1,
+        document,
+        7,
+      )
+
+      expect(
+        loadPage,
+      ).toHaveBeenNthCalledWith(
+        2,
+        document,
+        9,
+      )
+    },
+  )
+
+  it(
+    'permite pré-carregar uma página anterior quando a leitura está voltando',
+    async () => {
+      const document =
+        createDocument(20)
+
+      const page =
+        createPage(5)
+
+      const prefetchedPage =
+        createPage(3)
+
+      const loadPage =
+        vi.fn()
+          .mockResolvedValueOnce(
+            page,
+          )
+          .mockResolvedValueOnce(
+            prefetchedPage,
+          )
+
+      const service = {
+        loadPage,
+      } as unknown as PdfPageService
+
+      const controller =
+        new LoadPdfPageController(
+          service,
+        )
+
+      await expect(
+        controller.execute(
+          document,
+          5,
+          3,
+        ),
+      ).resolves.toBe(page)
+
+      expect(
+        loadPage,
+      ).toHaveBeenCalledTimes(
+        2,
+      )
+
+      expect(
+        loadPage,
+      ).toHaveBeenNthCalledWith(
+        1,
+        document,
+        5,
+      )
+
+      expect(
+        loadPage,
+      ).toHaveBeenNthCalledWith(
+        2,
+        document,
+        3,
+      )
+    },
+  )
+
+  it(
+    'ignora alvo de pré-carregamento fora dos limites do documento',
+    async () => {
+      const document =
+        createDocument(10)
+
+      const page =
+        createPage(8)
+
+      const loadPage =
+        vi.fn().mockResolvedValue(
+          page,
+        )
+
+      const service = {
+        loadPage,
+      } as unknown as PdfPageService
+
+      const controller =
+        new LoadPdfPageController(
+          service,
+        )
+
+      await expect(
+        controller.execute(
+          document,
+          8,
+          11,
+        ),
+      ).resolves.toBe(page)
+
+      expect(
+        loadPage,
+      ).toHaveBeenCalledTimes(
+        1,
+      )
+
+      expect(
+        loadPage,
+      ).toHaveBeenCalledWith(
+        document,
+        8,
       )
     },
   )

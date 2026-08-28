@@ -223,8 +223,9 @@ export interface ReaderSlice {
   closeBook(): Promise<void>
 
   loadPdfPage(
-    pageNumber: number,
-  ): Promise<void>
+  pageNumber: number,
+  prefetchPageNumber?: number,
+): Promise<void>
 
   loadSecondaryPdfPage(): Promise<void>
 

@@ -1986,6 +1986,8 @@ export function ReaderPage() {
 
       void loadPdfPage(
         previousPage,
+        previousPage -
+          pageNavigationStep,
       )
     }, [
       navigationDisabled,
@@ -2026,6 +2028,8 @@ export function ReaderPage() {
 
       void loadPdfPage(
         nextPage,
+        nextPage +
+          pageNavigationStep,
       )
     }, [
       navigationDisabled,

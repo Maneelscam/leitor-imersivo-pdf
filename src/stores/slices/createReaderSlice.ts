@@ -839,6 +839,7 @@ export const createReaderSlice:
 
       loadPdfPage: async (
         pageNumber,
+        prefetchPageNumber,
       ) => {
         const operationId =
           ++pageLoadOperationSequence
@@ -885,14 +886,24 @@ export const createReaderSlice:
         })
 
         try {
-          const loadedPdfPage =
-            await applicationContainer
+          const loadPdfPageController =
+            applicationContainer
               .controllers
               .loadPdfPage
-              .execute(
-                loadedPdfDocument.document,
-                pageNumber,
-              )
+
+          const loadedPdfPage =
+            prefetchPageNumber === undefined
+              ? await loadPdfPageController
+                  .execute(
+                    loadedPdfDocument.document,
+                    pageNumber,
+                  )
+              : await loadPdfPageController
+                  .execute(
+                    loadedPdfDocument.document,
+                    pageNumber,
+                    prefetchPageNumber,
+                  )
 
           if (
             operationId !==
