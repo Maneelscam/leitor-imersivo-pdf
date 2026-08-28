@@ -17,9 +17,49 @@ export class LoadPdfPageController {
     document: PDFDocumentProxy,
     pageNumber: number,
   ): Promise<PDFPageProxy> {
-    return this.pdfPageService.loadPage(
+    const page =
+      await this.pdfPageService.loadPage(
+        document,
+        pageNumber,
+      )
+
+    this.prefetchNextPage(
       document,
-      pageNumber,
+      page,
     )
+
+    return page
+  }
+
+  private prefetchNextPage(
+    document: PDFDocumentProxy,
+    page: PDFPageProxy,
+  ): void {
+    const totalPages =
+      Math.max(
+        0,
+        Math.trunc(
+          document.numPages,
+        ),
+      )
+
+    const nextPageNumber =
+      page.pageNumber + 1
+
+    if (
+      nextPageNumber >
+      totalPages
+    ) {
+      return
+    }
+
+    void this.pdfPageService
+      .loadPage(
+        document,
+        nextPageNumber,
+      )
+      .catch(
+        () => undefined,
+      )
   }
 }
