@@ -43,6 +43,9 @@ import {
 import {
   filterLibraryItems,
 } from '@/features/library/utils/filterLibraryItems'
+import {
+  filterLibraryItemsByReadingStatus,
+} from '@/features/library/utils/filterLibraryItemsByReadingStatus'
 import type {
   LibraryBookItem,
 } from '@/models/dtos/LibraryBookItem'
@@ -53,6 +56,10 @@ import {
 import {
   AsyncStatus,
 } from '@/models/enums/AsyncStatus'
+import {
+  LibraryReadingFilter,
+  type LibraryReadingFilter as LibraryReadingFilterValue,
+} from '@/models/enums/LibraryReadingFilter'
 import type {
   BookId,
 } from '@/models/value-objects/BookId'
@@ -305,16 +312,27 @@ export function LibraryPage() {
     setSearchQuery,
   ] = useState('')
 
+  const [
+    readingFilter,
+    setReadingFilter,
+  ] = useState<LibraryReadingFilterValue>(
+    LibraryReadingFilter.ALL,
+  )
+
   const filteredLibraryItems =
     useMemo(
       () =>
-        filterLibraryItems(
-          libraryItems,
-          searchQuery,
+        filterLibraryItemsByReadingStatus(
+          filterLibraryItems(
+            libraryItems,
+            searchQuery,
+          ),
+          readingFilter,
         ),
       [
         libraryItems,
         searchQuery,
+        readingFilter,
       ],
     )
 
@@ -323,6 +341,21 @@ export function LibraryPage() {
 
   const hasActiveSearch =
     normalizedSearchQuery.length > 0
+
+  const hasActiveReadingFilter =
+    readingFilter !==
+    LibraryReadingFilter.ALL
+
+  const hasActiveLibraryFilter =
+    hasActiveSearch ||
+    hasActiveReadingFilter
+
+  const clearLibraryFilters = () => {
+    setSearchQuery('')
+    setReadingFilter(
+      LibraryReadingFilter.ALL,
+    )
+  }
 
   const isInitialLoading =
     libraryItems.length === 0 &&
@@ -822,6 +855,9 @@ export function LibraryPage() {
                 searchQuery={
                   searchQuery
                 }
+                readingFilter={
+                  readingFilter
+                }
                 sortMode={
                   librarySortMode
                 }
@@ -839,6 +875,9 @@ export function LibraryPage() {
                 }
                 onSearchQueryChange={
                   setSearchQuery
+                }
+                onReadingFilterChange={
+                  setReadingFilter
                 }
                 onSortModeChange={
                   setLibrarySortMode
@@ -871,12 +910,17 @@ export function LibraryPage() {
                 0 &&
                 filteredLibraryItems
                   .length === 0 &&
-                hasActiveSearch && (
+                hasActiveLibraryFilter && (
                 <div className="library-page__empty">
                   <EmptyState
                     title="Nenhum documento encontrado"
                     description={
-                      `Nenhum PDF corresponde à busca “${normalizedSearchQuery}”. Tente outro título, autor ou nome de arquivo.`
+                      hasActiveSearch &&
+                      hasActiveReadingFilter
+                        ? `Nenhum PDF corresponde à busca “${normalizedSearchQuery}” dentro do filtro de leitura selecionado.`
+                        : hasActiveSearch
+                          ? `Nenhum PDF corresponde à busca “${normalizedSearchQuery}”. Tente outro título, autor ou nome de arquivo.`
+                          : 'Nenhum PDF corresponde ao status de leitura selecionado.'
                     }
                     icon={
                       <LibraryIcon />
@@ -886,11 +930,11 @@ export function LibraryPage() {
                         variant={
                           ButtonVariant.GHOST
                         }
-                        onClick={() => {
-                          setSearchQuery('')
-                        }}
+                        onClick={
+                          clearLibraryFilters
+                        }
                       >
-                        Limpar busca
+                        Limpar filtros
                       </Button>
                     }
                   />

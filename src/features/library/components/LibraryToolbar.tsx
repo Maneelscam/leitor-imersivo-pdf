@@ -7,6 +7,11 @@ import {
 } from 'react'
 
 import {
+  LibraryReadingFilter,
+  type LibraryReadingFilter as LibraryReadingFilterValue,
+  isLibraryReadingFilter,
+} from '@/models/enums/LibraryReadingFilter'
+import {
   LibrarySortMode,
   type LibrarySortMode as LibrarySortModeValue,
 } from '@/models/enums/LibrarySortMode'
@@ -19,6 +24,9 @@ export interface LibraryToolbarProps
 
   readonly sortMode:
     LibrarySortModeValue
+
+  readonly readingFilter:
+    LibraryReadingFilterValue
 
   readonly searchQuery:
     string
@@ -33,6 +41,11 @@ export interface LibraryToolbarProps
 
   readonly onSearchQueryChange: (
     searchQuery: string,
+  ) => void
+
+  readonly onReadingFilterChange: (
+    readingFilter:
+      LibraryReadingFilterValue,
   ) => void
 
   readonly onSortModeChange: (
@@ -83,12 +96,14 @@ function formatBookCount(
 export function LibraryToolbar({
   totalBooks,
   sortMode,
+  readingFilter,
   searchQuery,
   disabled = false,
   backupExporting = false,
   backupRestoring = false,
   primaryAction,
   onSearchQueryChange,
+  onReadingFilterChange,
   onSortModeChange,
   onExportBackup,
   onBackupFileSelected,
@@ -96,6 +111,8 @@ export function LibraryToolbar({
   ...containerProps
 }: LibraryToolbarProps) {
   const searchInputId = useId()
+  const readingFilterSelectId =
+    useId()
   const sortSelectId = useId()
   const backupFileInputId = useId()
 
@@ -135,6 +152,26 @@ export function LibraryToolbar({
   ) => {
     onSearchQueryChange(
       event.currentTarget.value,
+    )
+  }
+
+  const handleReadingFilterChange = (
+    event:
+      ChangeEvent<HTMLSelectElement>,
+  ) => {
+    const selectedReadingFilter =
+      event.currentTarget.value
+
+    if (
+      !isLibraryReadingFilter(
+        selectedReadingFilter,
+      )
+    ) {
+      return
+    }
+
+    onReadingFilterChange(
+      selectedReadingFilter,
     )
   }
 
@@ -324,6 +361,65 @@ export function LibraryToolbar({
             ? 'Exportando...'
             : 'Exportar backup'}
         </button>
+
+        <div className="library-toolbar__field">
+          <label
+            className="library-toolbar__label"
+            htmlFor={
+              readingFilterSelectId
+            }
+          >
+            Leitura
+          </label>
+
+          <select
+            id={
+              readingFilterSelectId
+            }
+            className="library-toolbar__select"
+            value={readingFilter}
+            disabled={
+              disabled ||
+              backupOperationRunning
+            }
+            aria-label="Filtrar por status de leitura"
+            onChange={
+              handleReadingFilterChange
+            }
+          >
+            <option
+              value={
+                LibraryReadingFilter.ALL
+              }
+            >
+              Todos
+            </option>
+
+            <option
+              value={
+                LibraryReadingFilter.NOT_STARTED
+              }
+            >
+              Não iniciados
+            </option>
+
+            <option
+              value={
+                LibraryReadingFilter.IN_PROGRESS
+              }
+            >
+              Em andamento
+            </option>
+
+            <option
+              value={
+                LibraryReadingFilter.COMPLETED
+              }
+            >
+              Concluídos
+            </option>
+          </select>
+        </div>
 
         <div className="library-toolbar__field">
           <label
