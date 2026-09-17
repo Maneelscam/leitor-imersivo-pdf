@@ -4,6 +4,10 @@ import type {
 
 import { LibraryBookCard } from '@/features/library/components/LibraryBookCard'
 import type { LibraryBookItem } from '@/models/dtos/LibraryBookItem'
+import {
+  LibraryViewMode,
+  type LibraryViewMode as LibraryViewModeValue,
+} from '@/models/enums/LibraryViewMode'
 import type { BookId } from '@/models/value-objects/BookId'
 
 import '@/styles/components/library-grid.css'
@@ -11,6 +15,9 @@ import '@/styles/components/library-grid.css'
 export interface LibraryGridProps
   extends HTMLAttributes<HTMLUListElement> {
   readonly items: readonly LibraryBookItem[]
+
+  readonly viewMode?:
+    LibraryViewModeValue
 
   readonly openingBookId?: BookId
   readonly deletingBookId?: BookId
@@ -30,9 +37,13 @@ export interface LibraryGridProps
 }
 
 function createLibraryGridClassName(
+  viewMode: LibraryViewModeValue,
   customClassName: string | undefined,
 ): string {
-  const classNames = ['library-grid']
+  const classNames = [
+    'library-grid',
+    `library-grid--${viewMode}`,
+  ]
 
   if (
     customClassName !== undefined &&
@@ -46,6 +57,7 @@ function createLibraryGridClassName(
 
 export function LibraryGrid({
   items,
+  viewMode = LibraryViewMode.GRID,
   openingBookId,
   deletingBookId,
   editingBookId,
@@ -56,7 +68,10 @@ export function LibraryGrid({
   ...listProps
 }: LibraryGridProps) {
   const libraryGridClassName =
-    createLibraryGridClassName(className)
+    createLibraryGridClassName(
+      viewMode,
+      className,
+    )
 
   return (
     <ul
@@ -74,6 +89,12 @@ export function LibraryGrid({
           >
             <LibraryBookCard
               item={item}
+              className={
+                viewMode ===
+                LibraryViewMode.LIST
+                  ? 'library-book-card--list'
+                  : undefined
+              }
               isOpening={
                 openingBookId === bookId
               }

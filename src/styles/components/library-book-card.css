@@ -377,3 +377,67 @@
     left: var(--space-2);
   }
 }
+
+.library-book-card--list {
+  flex-direction: row;
+  min-height: 10rem;
+}
+
+.library-book-card--list
+  .library-book-card__cover-button {
+  flex: 0 0 7.5rem;
+  width: 7.5rem;
+  border-radius:
+    var(--radius-xl)
+    var(--radius-none)
+    var(--radius-none)
+    var(--radius-xl);
+}
+
+.library-book-card--list
+  .library-book-card__cover-frame {
+  width: 100%;
+  height: 100%;
+  min-height: 10rem;
+  aspect-ratio: auto;
+}
+
+.library-book-card--list
+  .library-book-card__body {
+  min-height: 10rem;
+}
+
+.library-book-card--list
+  .library-book-card__progress-overlay {
+  right: var(--space-2);
+  bottom: var(--space-2);
+  left: var(--space-2);
+  flex-direction: column;
+  align-items: stretch;
+  padding: var(--space-2);
+}
+
+.library-book-card--list
+  .library-book-card__progress-label {
+  min-width: 0;
+  text-align: left;
+}
+
+@media (max-width: 36rem) {
+  .library-book-card--list {
+    min-height: 8rem;
+  }
+
+  .library-book-card--list
+    .library-book-card__cover-button {
+    flex-basis: 5.5rem;
+    width: 5.5rem;
+  }
+
+  .library-book-card--list
+    .library-book-card__cover-frame,
+  .library-book-card--list
+    .library-book-card__body {
+    min-height: 8rem;
+  }
+}

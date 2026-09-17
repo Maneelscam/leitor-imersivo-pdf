@@ -428,3 +428,113 @@
     width: 100%;
   }
 }
+
+.settings-page__section-heading {
+  display: flex;
+  align-items: flex-start;
+
+  min-width: 0;
+  gap: var(--space-3);
+}
+
+.settings-page__section-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-accent-border);
+  border-radius: var(--radius-md);
+}
+
+.settings-page__section-icon svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.settings-page__installation-control {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  flex: 0 0 auto;
+  min-width: 14rem;
+  gap: var(--space-3);
+}
+
+.settings-page__installation-status {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 2rem;
+  padding:
+    0
+    var(--space-3);
+
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+
+  background: var(--color-background-soft);
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-border-default);
+  border-radius: var(--radius-full);
+}
+
+.settings-page__installation-status--installed {
+  color: var(--color-success);
+  background: var(--color-success-soft);
+  border-color: var(--color-accent-border);
+}
+
+.settings-page__installation-message {
+  margin-top: var(--space-2);
+
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-relaxed);
+}
+
+@media (max-width: 64rem) {
+  .settings-page__installation-control {
+    justify-content: flex-start;
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 30rem) {
+  .settings-page__installation-control {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .settings-page__installation-control > * {
+    width: 100%;
+  }
+
+  .settings-page__installation-status {
+    justify-content: center;
+  }
+}
+
+
+.settings-page__storage-usage {
+  margin-top: var(--space-2);
+
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+}

@@ -66,3 +66,13 @@
       minmax(0, 1fr);
   }
 }
+
+.library-grid--list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.library-grid--list .library-grid__item {
+  width: 100%;
+}

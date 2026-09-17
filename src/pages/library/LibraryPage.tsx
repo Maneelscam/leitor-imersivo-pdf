@@ -1,6 +1,8 @@
 import {
   useMemo,
+  useRef,
   useState,
+  type DragEvent,
 } from 'react'
 
 import {
@@ -32,6 +34,9 @@ import {
   PdfImportButton,
 } from '@/features/import-pdf/components/PdfImportButton'
 import {
+  filterPdfFiles,
+} from '@/features/import-pdf/utils/filterPdfFiles'
+import {
   EditBookMetadataDialog,
 } from '@/features/library/components/EditBookMetadataDialog'
 import {
@@ -61,8 +66,14 @@ import {
   type LibraryReadingFilter as LibraryReadingFilterValue,
 } from '@/models/enums/LibraryReadingFilter'
 import type {
+  LibraryViewMode,
+} from '@/models/enums/LibraryViewMode'
+import type {
   BookId,
 } from '@/models/value-objects/BookId'
+import {
+  libraryViewPreferenceService,
+} from '@/services/settings/LibraryViewPreferenceService'
 import {
   selectClearLibraryBackupError,
   selectExportLibraryBackup,
@@ -83,7 +94,9 @@ import {
   selectLibraryItems,
   selectLibraryLoadStatus,
   selectLibrarySortMode,
+  selectImportPdfs,
   selectLoadLibrary,
+  selectPdfImportStatus,
   selectSetLibrarySortMode,
   selectUpdateBookMetadata,
 } from '@/stores/selectors/librarySelectors'
@@ -209,6 +222,10 @@ export function LibraryPage() {
     selectLibraryLoadStatus,
   )
 
+  const pdfImportStatus = useAppStore(
+    selectPdfImportStatus,
+  )
+
   const bookDeleteStatus = useAppStore(
     selectBookDeleteStatus,
   )
@@ -240,6 +257,10 @@ export function LibraryPage() {
 
   const loadLibrary = useAppStore(
     selectLoadLibrary,
+  )
+
+  const importPdfs = useAppStore(
+    selectImportPdfs,
   )
 
   const setLibrarySortMode = useAppStore(
@@ -288,6 +309,14 @@ export function LibraryPage() {
   ] = useState<BookId | null>(null)
 
   const [
+    isPdfDragActive,
+    setIsPdfDragActive,
+  ] = useState(false)
+
+  const pdfDragDepthRef =
+    useRef(0)
+
+  const [
     deletingBookId,
     setDeletingBookId,
   ] = useState<BookId | null>(null)
@@ -318,6 +347,23 @@ export function LibraryPage() {
   ] = useState<LibraryReadingFilterValue>(
     LibraryReadingFilter.ALL,
   )
+
+  const [
+    libraryViewMode,
+    setLibraryViewMode,
+  ] = useState<LibraryViewMode>(
+    () =>
+      libraryViewPreferenceService.load(),
+  )
+
+  const handleLibraryViewModeChange = (
+    viewMode: LibraryViewMode,
+  ) => {
+    setLibraryViewMode(viewMode)
+    libraryViewPreferenceService.save(
+      viewMode,
+    )
+  }
 
   const filteredLibraryItems =
     useMemo(
@@ -367,6 +413,9 @@ export function LibraryPage() {
   const hasInitialLoadError =
     libraryItems.length === 0 &&
     libraryLoadStatus === AsyncStatus.ERROR
+
+  const isImportingPdfs =
+    pdfImportStatus === AsyncStatus.LOADING
 
   const isDeleting =
     bookDeleteStatus === AsyncStatus.LOADING
@@ -642,6 +691,98 @@ export function LibraryPage() {
     void loadLibrary()
   }
 
+  const canUsePdfDrop =
+    !isImportingPdfs &&
+    !isDeleting &&
+    !isUpdatingBookMetadata &&
+    !isBackupRestoring
+
+  const hasDraggedFiles = (
+    event: DragEvent<HTMLElement>,
+  ): boolean =>
+    Array.from(
+      event.dataTransfer.types,
+    ).includes('Files')
+
+  const handlePdfDragEnter = (
+    event: DragEvent<HTMLElement>,
+  ) => {
+    if (
+      !canUsePdfDrop ||
+      !hasDraggedFiles(event)
+    ) {
+      return
+    }
+
+    event.preventDefault()
+    pdfDragDepthRef.current += 1
+    setIsPdfDragActive(true)
+  }
+
+  const handlePdfDragOver = (
+    event: DragEvent<HTMLElement>,
+  ) => {
+    if (
+      !canUsePdfDrop ||
+      !hasDraggedFiles(event)
+    ) {
+      return
+    }
+
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'copy'
+  }
+
+  const handlePdfDragLeave = (
+    event: DragEvent<HTMLElement>,
+  ) => {
+    if (!hasDraggedFiles(event)) {
+      return
+    }
+
+    event.preventDefault()
+
+    pdfDragDepthRef.current =
+      Math.max(
+        0,
+        pdfDragDepthRef.current - 1,
+      )
+
+    if (pdfDragDepthRef.current === 0) {
+      setIsPdfDragActive(false)
+    }
+  }
+
+  const handlePdfDrop = (
+    event: DragEvent<HTMLElement>,
+  ) => {
+    if (!hasDraggedFiles(event)) {
+      return
+    }
+
+    event.preventDefault()
+
+    pdfDragDepthRef.current = 0
+    setIsPdfDragActive(false)
+
+    if (!canUsePdfDrop) {
+      return
+    }
+
+    const pdfFiles =
+      filterPdfFiles(
+        Array.from(
+          event.dataTransfer.files,
+        ),
+      )
+
+    if (pdfFiles.length === 0) {
+      return
+    }
+
+    void importPdfs(pdfFiles)
+  }
+
   const gridOptionalProps = {
     ...(openingBookId !== null
       ? {
@@ -673,9 +814,33 @@ export function LibraryPage() {
 
   return (
     <section
-      className="library-page"
+      className={
+        isPdfDragActive
+          ? 'library-page library-page--drop-active'
+          : 'library-page'
+      }
       aria-label="Biblioteca de documentos"
+      onDragEnter={handlePdfDragEnter}
+      onDragOver={handlePdfDragOver}
+      onDragLeave={handlePdfDragLeave}
+      onDrop={handlePdfDrop}
     >
+      {isPdfDragActive && (
+        <div
+          className="library-page__drop-overlay"
+          aria-hidden="true"
+        >
+          <div className="library-page__drop-card">
+            <span className="library-page__drop-title">
+              Solte seus PDFs aqui
+            </span>
+
+            <span className="library-page__drop-description">
+              Você pode importar um ou vários arquivos de uma vez.
+            </span>
+          </div>
+        </div>
+      )}
       <div className="library-page__feedback">
         {hasBackupRestoreSucceeded && (
           <FeedbackMessage
@@ -858,6 +1023,9 @@ export function LibraryPage() {
                 readingFilter={
                   readingFilter
                 }
+                viewMode={
+                  libraryViewMode
+                }
                 sortMode={
                   librarySortMode
                 }
@@ -878,6 +1046,9 @@ export function LibraryPage() {
                 }
                 onReadingFilterChange={
                   setReadingFilter
+                }
+                onViewModeChange={
+                  handleLibraryViewModeChange
                 }
                 onSortModeChange={
                   setLibrarySortMode
@@ -945,6 +1116,9 @@ export function LibraryPage() {
                 .length > 0 && (
                 <LibraryGrid
                   {...gridOptionalProps}
+                  viewMode={
+                    libraryViewMode
+                  }
                   items={
                     filteredLibraryItems
                   }

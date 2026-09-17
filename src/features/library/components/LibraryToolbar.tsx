@@ -15,6 +15,10 @@ import {
   LibrarySortMode,
   type LibrarySortMode as LibrarySortModeValue,
 } from '@/models/enums/LibrarySortMode'
+import {
+  LibraryViewMode,
+  type LibraryViewMode as LibraryViewModeValue,
+} from '@/models/enums/LibraryViewMode'
 
 import '@/styles/components/library-toolbar.css'
 
@@ -27,6 +31,9 @@ export interface LibraryToolbarProps
 
   readonly readingFilter:
     LibraryReadingFilterValue
+
+  readonly viewMode:
+    LibraryViewModeValue
 
   readonly searchQuery:
     string
@@ -46,6 +53,10 @@ export interface LibraryToolbarProps
   readonly onReadingFilterChange: (
     readingFilter:
       LibraryReadingFilterValue,
+  ) => void
+
+  readonly onViewModeChange: (
+    viewMode: LibraryViewModeValue,
   ) => void
 
   readonly onSortModeChange: (
@@ -79,6 +90,30 @@ function createLibraryToolbarClassName(
   return classNames.join(' ')
 }
 
+function GridIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <rect x="4" y="4" width="6" height="6" rx="1" />
+      <rect x="14" y="4" width="6" height="6" rx="1" />
+      <rect x="4" y="14" width="6" height="6" rx="1" />
+      <rect x="14" y="14" width="6" height="6" rx="1" />
+    </svg>
+  )
+}
+
+function ListIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+      <path d="M9 6h11" />
+      <path d="M9 12h11" />
+      <path d="M9 18h11" />
+      <path d="M4 6h.01" />
+      <path d="M4 12h.01" />
+      <path d="M4 18h.01" />
+    </svg>
+  )
+}
+
 function formatBookCount(
   totalBooks: number,
 ): string {
@@ -97,6 +132,7 @@ export function LibraryToolbar({
   totalBooks,
   sortMode,
   readingFilter,
+  viewMode,
   searchQuery,
   disabled = false,
   backupExporting = false,
@@ -104,6 +140,7 @@ export function LibraryToolbar({
   primaryAction,
   onSearchQueryChange,
   onReadingFilterChange,
+  onViewModeChange,
   onSortModeChange,
   onExportBackup,
   onBackupFileSelected,
@@ -361,6 +398,52 @@ export function LibraryToolbar({
             ? 'Exportando...'
             : 'Exportar backup'}
         </button>
+
+        <div
+          className="library-toolbar__view-toggle"
+          role="group"
+          aria-label="Modo de visualização da biblioteca"
+        >
+          <button
+            type="button"
+            className={
+              viewMode === LibraryViewMode.GRID
+                ? 'library-toolbar__view-button library-toolbar__view-button--active'
+                : 'library-toolbar__view-button'
+            }
+            disabled={disabled || backupOperationRunning}
+            aria-pressed={viewMode === LibraryViewMode.GRID}
+            aria-label="Visualizar em grade"
+            title="Visualizar em grade"
+            onClick={() => {
+              onViewModeChange(
+                LibraryViewMode.GRID,
+              )
+            }}
+          >
+            <GridIcon />
+          </button>
+
+          <button
+            type="button"
+            className={
+              viewMode === LibraryViewMode.LIST
+                ? 'library-toolbar__view-button library-toolbar__view-button--active'
+                : 'library-toolbar__view-button'
+            }
+            disabled={disabled || backupOperationRunning}
+            aria-pressed={viewMode === LibraryViewMode.LIST}
+            aria-label="Visualizar em lista"
+            title="Visualizar em lista"
+            onClick={() => {
+              onViewModeChange(
+                LibraryViewMode.LIST,
+              )
+            }}
+          >
+            <ListIcon />
+          </button>
+        </div>
 
         <div className="library-toolbar__field">
           <label

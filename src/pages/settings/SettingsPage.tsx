@@ -1,5 +1,7 @@
 import {
+  useEffect,
   useState,
+  useSyncExternalStore,
   type ChangeEvent,
 } from 'react'
 
@@ -39,6 +41,15 @@ import {
 import {
   AsyncStatus,
 } from '@/models/enums/AsyncStatus'
+import {
+  AppInstallationResult,
+  appInstallationService,
+} from '@/services/offline/AppInstallationService'
+import {
+  StoragePersistenceRequestResult,
+  StoragePersistenceStatus,
+  storagePersistenceService,
+} from '@/services/storage/StoragePersistenceService'
 import {
   ZoomMode,
   type ZoomMode as ZoomModeValue,
@@ -156,6 +167,425 @@ function formatZoomMode(
         customZoomScale * 100,
       )}%`
   }
+}
+
+function InstallationIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 3v12" />
+      <path d="m7.5 10.5 4.5 4.5 4.5-4.5" />
+      <path d="M5 20h14" />
+    </svg>
+  )
+}
+
+function formatStorageSize(
+  bytes: number | null,
+): string {
+  if (bytes === null) {
+    return 'Indisponível'
+  }
+
+  const units = [
+    'B',
+    'KB',
+    'MB',
+    'GB',
+    'TB',
+  ]
+
+  if (bytes === 0) {
+    return '0 B'
+  }
+
+  const unitIndex =
+    Math.min(
+      Math.floor(
+        Math.log(bytes) /
+        Math.log(1024),
+      ),
+      units.length - 1,
+    )
+
+  const value =
+    bytes /
+    1024 ** unitIndex
+
+  const digits =
+    value >= 100 ||
+    unitIndex === 0
+      ? 0
+      : value >= 10
+        ? 1
+        : 2
+
+  return `${value.toFixed(digits)} ${units[unitIndex]}`
+}
+
+function StorageProtectionIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 3 5.5 5.7v5.5c0 4.1 2.6 7.8 6.5 9.8 3.9-2 6.5-5.7 6.5-9.8V5.7L12 3Z" />
+      <path d="m9.2 12 1.8 1.8 3.8-4" />
+    </svg>
+  )
+}
+
+function StorageProtectionSection() {
+  const storageState =
+    useSyncExternalStore(
+      storagePersistenceService.subscribe,
+      storagePersistenceService.getSnapshot,
+      storagePersistenceService.getSnapshot,
+    )
+
+  const [
+    requestMessage,
+    setRequestMessage,
+  ] = useState<string | null>(null)
+
+  useEffect(() => {
+    storagePersistenceService.initialize()
+  }, [])
+
+  const isLoading =
+    storageState.status ===
+    StoragePersistenceStatus.LOADING
+
+  const handleProtectStorage =
+    async () => {
+      if (
+        isLoading ||
+        !storageState.isSupported ||
+        storageState.isPersistent
+      ) {
+        return
+      }
+
+      setRequestMessage(null)
+
+      const result =
+        await storagePersistenceService.requestPersistence()
+
+      switch (result) {
+        case StoragePersistenceRequestResult.GRANTED:
+          setRequestMessage(
+            'Proteção concedida pelo navegador. Os dados locais ficam menos sujeitos à remoção automática por pressão de armazenamento.',
+          )
+          break
+
+        case StoragePersistenceRequestResult.DENIED:
+          setRequestMessage(
+            'O navegador não concedeu armazenamento persistente. Sua biblioteca continua local e utilizável normalmente.',
+          )
+          break
+
+        case StoragePersistenceRequestResult.ALREADY_PERSISTENT:
+          setRequestMessage(
+            'O armazenamento deste aplicativo já está protegido.',
+          )
+          break
+
+        case StoragePersistenceRequestResult.UNSUPPORTED:
+          setRequestMessage(
+            'Este navegador não oferece a solicitação de armazenamento persistente.',
+          )
+          break
+
+        case StoragePersistenceRequestResult.ERROR:
+          setRequestMessage(
+            'Não foi possível consultar a proteção de armazenamento agora.',
+          )
+          break
+      }
+    }
+
+  const statusLabel =
+    !storageState.isSupported
+      ? 'Não suportado'
+      : isLoading
+        ? 'Verificando...'
+        : storageState.isPersistent
+          ? 'Protegido'
+          : storageState.status ===
+              StoragePersistenceStatus.ERROR
+            ? 'Não foi possível verificar'
+            : 'Proteção padrão'
+
+  const description =
+    storageState.isPersistent
+      ? 'O navegador concedeu armazenamento persistente a este aplicativo. Isso reduz o risco de remoção automática dos dados locais quando o dispositivo estiver sob pressão de espaço.'
+      : 'Se o navegador permitir, você pode solicitar armazenamento persistente para proteger melhor PDFs, progresso, notas e demais dados locais contra remoções automáticas.'
+
+  const usageLabel =
+    storageState.quotaBytes !== null
+      ? `${formatStorageSize(
+          storageState.usageBytes,
+        )} usados de ${formatStorageSize(
+          storageState.quotaBytes,
+        )}`
+      : `${formatStorageSize(
+          storageState.usageBytes,
+        )} usados`
+
+  return (
+    <section className="settings-page__section">
+      <header className="settings-page__section-header">
+        <div className="settings-page__section-heading">
+          <span className="settings-page__section-icon">
+            <StorageProtectionIcon />
+          </span>
+
+          <div>
+            <h2 className="settings-page__section-title">
+              Armazenamento local
+            </h2>
+
+            <p className="settings-page__section-description">
+              Acompanhe o espaço utilizado e
+              proteja melhor os dados mantidos
+              somente neste dispositivo.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <div className="settings-page__fields">
+        <div className="settings-page__field">
+          <div className="settings-page__field-information">
+            <span className="settings-page__field-label">
+              Proteção do armazenamento
+            </span>
+
+            <p className="settings-page__field-description">
+              {description}
+            </p>
+
+            {storageState.isSupported && (
+              <p className="settings-page__storage-usage">
+                {usageLabel}
+              </p>
+            )}
+
+            {requestMessage !== null && (
+              <p
+                className="settings-page__installation-message"
+                aria-live="polite"
+              >
+                {requestMessage}
+              </p>
+            )}
+          </div>
+
+          <div className="settings-page__installation-control">
+            <span
+              className={
+                storageState.isPersistent
+                  ? 'settings-page__installation-status settings-page__installation-status--installed'
+                  : 'settings-page__installation-status'
+              }
+            >
+              {statusLabel}
+            </span>
+
+            {storageState.isSupported &&
+              !storageState.isPersistent && (
+                <Button
+                  variant={ButtonVariant.SECONDARY}
+                  disabled={isLoading}
+                  aria-busy={isLoading}
+                  onClick={handleProtectStorage}
+                >
+                  {isLoading
+                    ? 'Verificando...'
+                    : 'Proteger armazenamento'}
+                </Button>
+              )}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function AppInstallationSection() {
+  const installationState =
+    useSyncExternalStore(
+      appInstallationService
+        .subscribe,
+      appInstallationService
+        .getSnapshot,
+      appInstallationService
+        .getSnapshot,
+    )
+
+  const [
+    isInstalling,
+    setIsInstalling,
+  ] = useState(false)
+
+  const [
+    installationMessage,
+    setInstallationMessage,
+  ] = useState<string | null>(
+    null,
+  )
+
+  const handleInstall = async () => {
+    if (
+      isInstalling ||
+      !installationState
+        .canInstall
+    ) {
+      return
+    }
+
+    setIsInstalling(true)
+    setInstallationMessage(null)
+
+    try {
+      const result =
+        await appInstallationService
+          .requestInstallation()
+
+      switch (result) {
+        case AppInstallationResult.ACCEPTED:
+          setInstallationMessage(
+            'Aplicativo instalado. Você pode abri-lo como um programa independente.',
+          )
+          break
+
+        case AppInstallationResult.DISMISSED:
+          setInstallationMessage(
+            'A instalação foi cancelada. O modo offline continua disponível no navegador.',
+          )
+          break
+
+        case AppInstallationResult.UNAVAILABLE:
+          setInstallationMessage(
+            'A instalação direta não está disponível neste navegador neste momento.',
+          )
+          break
+
+        case AppInstallationResult.ERROR:
+          setInstallationMessage(
+            'Não foi possível abrir a instalação agora. O leitor continua funcionando normalmente.',
+          )
+          break
+      }
+    } finally {
+      setIsInstalling(false)
+    }
+  }
+
+  const statusLabel =
+    installationState.isInstalled
+      ? 'Instalado'
+      : installationState.canInstall
+        ? 'Pronto para instalar'
+        : 'Disponível offline'
+
+  const description =
+    installationState.isInstalled
+      ? 'O Leitor Imersivo está instalado neste dispositivo e pode ser aberto em uma janela própria.'
+      : installationState.canInstall
+        ? 'Instale o leitor neste dispositivo para abri-lo como um aplicativo, mantendo sua biblioteca e o funcionamento offline.'
+        : 'O leitor já funciona offline após o primeiro carregamento. A instalação como aplicativo depende do suporte e das regras do navegador.'
+
+  return (
+    <section className="settings-page__section">
+      <header className="settings-page__section-header">
+        <div className="settings-page__section-heading">
+          <span className="settings-page__section-icon">
+            <InstallationIcon />
+          </span>
+
+          <div>
+            <h2 className="settings-page__section-title">
+              Aplicativo offline
+            </h2>
+
+            <p className="settings-page__section-description">
+              Use o leitor mesmo sem conexão e,
+              quando disponível, instale-o no
+              dispositivo.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <div className="settings-page__fields">
+        <div className="settings-page__field">
+          <div className="settings-page__field-information">
+            <span className="settings-page__field-label">
+              Instalação
+            </span>
+
+            <p className="settings-page__field-description">
+              {description}
+            </p>
+
+            {installationMessage !== null && (
+              <p
+                className="settings-page__installation-message"
+                aria-live="polite"
+              >
+                {installationMessage}
+              </p>
+            )}
+          </div>
+
+          <div className="settings-page__installation-control">
+            <span
+              className={
+                installationState.isInstalled
+                  ? 'settings-page__installation-status settings-page__installation-status--installed'
+                  : 'settings-page__installation-status'
+              }
+            >
+              {statusLabel}
+            </span>
+
+            {!installationState.isInstalled && (
+              <Button
+                variant={
+                  installationState.canInstall
+                    ? ButtonVariant.PRIMARY
+                    : ButtonVariant.SECONDARY
+                }
+                disabled={
+                  !installationState.canInstall ||
+                  isInstalling
+                }
+                aria-busy={isInstalling}
+                onClick={handleInstall}
+              >
+                {isInstalling
+                  ? 'Instalando...'
+                  : 'Instalar aplicativo'}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
 }
 
 function resolveInitialPageDisplayMode(
@@ -752,6 +1182,10 @@ function ReaderSettingsForm({
             </div>
           </div>
         </section>
+
+        <StorageProtectionSection />
+
+        <AppInstallationSection />
 
         <div className="settings-page__actions">
           <Button
