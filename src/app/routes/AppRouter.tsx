@@ -1,30 +1,106 @@
 import {
+  lazy,
+  Suspense,
+  type ReactNode,
+} from 'react'
+
+import {
   AppRoute,
 } from '@/app/routes/AppRoute'
 import {
   useAppRoute,
 } from '@/app/routes/useAppRoute'
 import {
-  LibraryPage,
-} from '@/pages/library/LibraryPage'
-import {
-  ReaderPage,
-} from '@/pages/reader/ReaderPage'
-import {
-  SettingsPage,
-} from '@/pages/settings/SettingsPage'
+  LoadingIndicator,
+  LoadingIndicatorSize,
+} from '@/components/feedback/LoadingIndicator'
 
-export function AppRouter() {
-  const currentRoute = useAppRoute()
+const LazyLibraryPage =
+  lazy(
+    async () => {
+      const module =
+        await import(
+          '@/pages/library/LibraryPage'
+        )
 
+      return {
+        default:
+          module.LibraryPage,
+      }
+    },
+  )
+
+const LazyReaderPage =
+  lazy(
+    async () => {
+      const module =
+        await import(
+          '@/pages/reader/ReaderPage'
+        )
+
+      return {
+        default:
+          module.ReaderPage,
+      }
+    },
+  )
+
+const LazySettingsPage =
+  lazy(
+    async () => {
+      const module =
+        await import(
+          '@/pages/settings/SettingsPage'
+        )
+
+      return {
+        default:
+          module.SettingsPage,
+      }
+    },
+  )
+
+function RouteLoadingFallback() {
+  return (
+    <LoadingIndicator
+      size={
+        LoadingIndicatorSize.LARGE
+      }
+      label="Carregando..."
+      vertical
+      fullArea
+    />
+  )
+}
+
+function resolveRouteContent(
+  currentRoute: AppRoute,
+): ReactNode {
   switch (currentRoute) {
     case AppRoute.LIBRARY:
-      return <LibraryPage />
+      return <LazyLibraryPage />
 
     case AppRoute.READER:
-      return <ReaderPage />
+      return <LazyReaderPage />
 
     case AppRoute.SETTINGS:
-      return <SettingsPage />
+      return <LazySettingsPage />
   }
+}
+
+export function AppRouter() {
+  const currentRoute =
+    useAppRoute()
+
+  return (
+    <Suspense
+      fallback={
+        <RouteLoadingFallback />
+      }
+    >
+      {resolveRouteContent(
+        currentRoute,
+      )}
+    </Suspense>
+  )
 }

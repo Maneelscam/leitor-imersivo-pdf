@@ -5,38 +5,66 @@ import {
   it,
 } from 'vitest'
 
-import { GlobalWorkerOptions } from 'pdfjs-dist'
+import {
+  GlobalWorkerOptions,
+} from 'pdfjs-dist'
 
-import { PdfWorkerService } from '@/services/pdf/PdfWorkerService'
+import {
+  PdfWorkerService,
+} from '@/services/pdf/PdfWorkerService'
 
-describe('PdfWorkerService', () => {
-  const originalWorkerSrc = GlobalWorkerOptions.workerSrc
+describe(
+  'PdfWorkerService',
+  () => {
+    const originalWorkerSrc =
+      GlobalWorkerOptions.workerSrc
 
-  afterEach(() => {
-    GlobalWorkerOptions.workerSrc = originalWorkerSrc
-  })
+    afterEach(() => {
+      GlobalWorkerOptions.workerSrc =
+        originalWorkerSrc
+    })
 
-  it('configura o worker uma única vez e marca o serviço como configurado', () => {
-    const service = new PdfWorkerService()
+    it(
+      'configura o worker uma única vez e marca o serviço como configurado',
+      async () => {
+        const service =
+          new PdfWorkerService()
 
-    expect(service.isConfigured()).toBe(false)
+        expect(
+          service.isConfigured(),
+        ).toBe(false)
 
-    service.configure()
+        await service.configure()
 
-    const configuredWorkerSrc = GlobalWorkerOptions.workerSrc
+        const configuredWorkerSrc =
+          GlobalWorkerOptions.workerSrc
 
-    expect(configuredWorkerSrc).not.toBe('')
-    expect(service.isConfigured()).toBe(true)
+        expect(
+          configuredWorkerSrc,
+        ).not.toBe('')
 
-    GlobalWorkerOptions.workerSrc = 'worker-personalizado.mjs'
+        expect(
+          service.isConfigured(),
+        ).toBe(true)
 
-    service.configure()
+        GlobalWorkerOptions.workerSrc =
+          'worker-personalizado.mjs'
 
-    expect(GlobalWorkerOptions.workerSrc).toBe(
-      'worker-personalizado.mjs',
+        await service.configure()
+
+        expect(
+          GlobalWorkerOptions.workerSrc,
+        ).toBe(
+          'worker-personalizado.mjs',
+        )
+
+        expect(
+          service.isConfigured(),
+        ).toBe(true)
+
+        GlobalWorkerOptions.workerSrc =
+          configuredWorkerSrc
+      },
     )
-    expect(service.isConfigured()).toBe(true)
-
-    GlobalWorkerOptions.workerSrc = configuredWorkerSrc
-  })
-})
+  },
+)

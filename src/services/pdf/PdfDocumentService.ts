@@ -1,11 +1,14 @@
-import {
-  getDocument,
-  PasswordResponses,
-  type PDFDocumentLoadingTask,
-  type PDFDocumentProxy,
+import type {
+  PDFDocumentLoadingTask,
+  PDFDocumentProxy,
 } from 'pdfjs-dist'
 
-import { PdfWorkerService } from '@/services/pdf/PdfWorkerService'
+import {
+  loadPdfJsRuntime,
+} from '@/services/pdf/loadPdfJsRuntime'
+import {
+  PdfWorkerService,
+} from '@/services/pdf/PdfWorkerService'
 import {
   PdfDocumentError,
   PdfDocumentErrorCode,
@@ -94,6 +97,8 @@ function getErrorCode(
 
 function normalizePdfDocumentError(
   error: unknown,
+  incorrectPasswordCode:
+    number | null,
 ): PdfDocumentError {
   if (error instanceof PdfDocumentError) {
     return error
@@ -104,8 +109,9 @@ function normalizePdfDocumentError(
 
   if (errorName === 'PasswordException') {
     if (
+      incorrectPasswordCode !== null &&
       errorCode ===
-      PasswordResponses.INCORRECT_PASSWORD
+        incorrectPasswordCode
     ) {
       return new PdfDocumentError(
         PdfDocumentErrorCode.INVALID_PASSWORD,
@@ -175,12 +181,23 @@ export class PdfDocumentService {
     file: Blob,
     options: OpenPdfDocumentOptions = {},
   ): Promise<LoadedPdfDocument> {
-    this.workerService.configure()
-
     let loadingTask:
       PDFDocumentLoadingTask | null = null
 
+    let incorrectPasswordCode:
+      number | null = null
+
     try {
+      await this.workerService.configure()
+
+      const {
+        getDocument,
+        PasswordResponses,
+      } = await loadPdfJsRuntime()
+
+      incorrectPasswordCode =
+        PasswordResponses.INCORRECT_PASSWORD
+
       const fileBuffer =
         await file.arrayBuffer()
 
@@ -198,7 +215,8 @@ export class PdfDocumentService {
           : {}),
       }
 
-      loadingTask = getDocument(parameters)
+      loadingTask =
+        getDocument(parameters)
 
       const document =
         await loadingTask.promise
@@ -212,7 +230,10 @@ export class PdfDocumentService {
         loadingTask,
       )
 
-      throw normalizePdfDocumentError(error)
+      throw normalizePdfDocumentError(
+        error,
+        incorrectPasswordCode,
+      )
     }
   }
 }
