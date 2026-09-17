@@ -1,5 +1,7 @@
 import {
+  useEffect,
   useId,
+  useRef,
   type HTMLAttributes,
 } from 'react'
 
@@ -213,6 +215,51 @@ export function ReaderThumbnails({
   const hasPages =
     pages.length > 0
 
+  const hasCurrentPageThumbnail =
+    pages.some(
+      (page) =>
+        page.pageNumber ===
+        normalizedCurrentPage,
+    )
+
+  const currentPageButtonRef =
+    useRef<HTMLButtonElement>(
+      null,
+    )
+
+  const lastScrolledPageRef =
+    useRef<number | null>(
+      null,
+    )
+
+  useEffect(() => {
+    if (
+      !hasCurrentPageThumbnail ||
+      lastScrolledPageRef.current ===
+        normalizedCurrentPage
+    ) {
+      return
+    }
+
+    const currentPageButton =
+      currentPageButtonRef.current
+
+    if (currentPageButton === null) {
+      return
+    }
+
+    currentPageButton.scrollIntoView({
+      block: 'nearest',
+      inline: 'nearest',
+    })
+
+    lastScrolledPageRef.current =
+      normalizedCurrentPage
+  }, [
+    hasCurrentPageThumbnail,
+    normalizedCurrentPage,
+  ])
+
   return (
     <section
       {...sectionProps}
@@ -369,6 +416,11 @@ export function ReaderThumbnails({
                     className="reader-thumbnails__item"
                   >
                     <button
+                      ref={
+                        isCurrentPage
+                          ? currentPageButtonRef
+                          : undefined
+                      }
                       type="button"
                       className={
                         [

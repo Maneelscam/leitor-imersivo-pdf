@@ -63,6 +63,9 @@ import {
 import {
   useReaderKeyboardShortcuts,
 } from '@/features/reader/hooks/useReaderKeyboardShortcuts'
+import {
+  useReaderProgressAutosave,
+} from '@/features/reader/hooks/useReaderProgressAutosave'
 import type {
   PdfOutlineItem,
 } from '@/models/dtos/PdfOutlineItem'
@@ -584,6 +587,8 @@ export function ReaderPage() {
     immersiveMode,
   } = useAppShell()
 
+  useReaderProgressAutosave()
+
   const openedBook = useAppStore(
     selectOpenedBook,
   )
@@ -911,6 +916,11 @@ export function ReaderPage() {
       null,
     )
 
+  const thumbnailSyncPageRef =
+    useRef<number | null>(
+      null,
+    )
+
   const [
     panelOpen,
     setPanelOpen,
@@ -926,14 +936,56 @@ export function ReaderPage() {
   useEffect(() => {
     if (
       !panelOpen ||
-      activePanelSection !== ReaderPanelSection.THUMBNAILS ||
+      activePanelSection !==
+        ReaderPanelSection.THUMBNAILS ||
       openedBook === null ||
-      loadedPdfDocument === null ||
-      loadedThumbnailPdfPages.length > 0 ||
-      thumbnailPagesLoadStatus !== AsyncStatus.IDLE
+      loadedPdfDocument === null
+    ) {
+      thumbnailSyncPageRef.current =
+        null
+
+      return
+    }
+
+    const thumbnailState =
+      useAppStore.getState()
+
+    const hasCurrentPageThumbnail =
+      thumbnailState
+        .loadedThumbnailPdfPages
+        .some(
+          (page) =>
+            page.pageNumber ===
+            currentPage,
+        )
+
+    if (hasCurrentPageThumbnail) {
+      thumbnailSyncPageRef.current =
+        currentPage
+
+      return
+    }
+
+    if (
+      thumbnailState
+        .thumbnailPagesLoadStatus ===
+        AsyncStatus.LOADING ||
+      thumbnailState
+        .thumbnailPagesLoadStatus ===
+        AsyncStatus.ERROR
     ) {
       return
     }
+
+    if (
+      thumbnailSyncPageRef.current ===
+      currentPage
+    ) {
+      return
+    }
+
+    thumbnailSyncPageRef.current =
+      currentPage
 
     void loadInitialThumbnailPdfPages()
   }, [
@@ -941,7 +993,7 @@ export function ReaderPage() {
     activePanelSection,
     openedBook,
     loadedPdfDocument,
-    loadedThumbnailPdfPages.length,
+    currentPage,
     thumbnailPagesLoadStatus,
     loadInitialThumbnailPdfPages,
   ])

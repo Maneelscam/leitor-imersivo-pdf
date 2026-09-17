@@ -20,6 +20,9 @@ export interface LibraryToolbarProps
   readonly sortMode:
     LibrarySortModeValue
 
+  readonly searchQuery:
+    string
+
   readonly disabled?: boolean
 
   readonly backupExporting?: boolean
@@ -27,6 +30,10 @@ export interface LibraryToolbarProps
   readonly backupRestoring?: boolean
 
   readonly primaryAction?: ReactNode
+
+  readonly onSearchQueryChange: (
+    searchQuery: string,
+  ) => void
 
   readonly onSortModeChange: (
     sortMode: LibrarySortModeValue,
@@ -76,16 +83,19 @@ function formatBookCount(
 export function LibraryToolbar({
   totalBooks,
   sortMode,
+  searchQuery,
   disabled = false,
   backupExporting = false,
   backupRestoring = false,
   primaryAction,
+  onSearchQueryChange,
   onSortModeChange,
   onExportBackup,
   onBackupFileSelected,
   className,
   ...containerProps
 }: LibraryToolbarProps) {
+  const searchInputId = useId()
   const sortSelectId = useId()
   const backupFileInputId = useId()
 
@@ -118,6 +128,15 @@ export function LibraryToolbar({
     disabled ||
     backupOperationRunning ||
     onBackupFileSelected === undefined
+
+  const handleSearchQueryChange = (
+    event:
+      ChangeEvent<HTMLInputElement>,
+  ) => {
+    onSearchQueryChange(
+      event.currentTarget.value,
+    )
+  }
 
   const handleSortModeChange = (
     event:
@@ -209,6 +228,49 @@ export function LibraryToolbar({
       </div>
 
       <div className="library-toolbar__controls">
+        <div className="library-toolbar__search">
+          <label
+            className="library-toolbar__search-label"
+            htmlFor={searchInputId}
+          >
+            Buscar
+          </label>
+
+          <div className="library-toolbar__search-field">
+            <svg
+              className="library-toolbar__search-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="7"
+              />
+              <path d="m20 20-4-4" />
+            </svg>
+
+            <input
+              id={searchInputId}
+              className="library-toolbar__search-input"
+              type="search"
+              value={searchQuery}
+              disabled={disabled}
+              placeholder="Título, autor ou arquivo"
+              autoComplete="off"
+              aria-label="Buscar na biblioteca"
+              onChange={
+                handleSearchQueryChange
+              }
+            />
+          </div>
+        </div>
+
         {primaryAction}
 
         <input

@@ -1,4 +1,7 @@
-import { useState } from 'react'
+import {
+  useMemo,
+  useState,
+} from 'react'
 
 import {
   AppRoute,
@@ -34,6 +37,9 @@ import {
 import {
   LibraryToolbar,
 } from '@/features/library/components/LibraryToolbar'
+import {
+  filterLibraryItems,
+} from '@/features/library/utils/filterLibraryItems'
 import type {
   LibraryBookItem,
 } from '@/models/dtos/LibraryBookItem'
@@ -274,6 +280,30 @@ export function LibraryPage() {
     backupFilePendingRestore,
     setBackupFilePendingRestore,
   ] = useState<File | null>(null)
+
+  const [
+    searchQuery,
+    setSearchQuery,
+  ] = useState('')
+
+  const filteredLibraryItems =
+    useMemo(
+      () =>
+        filterLibraryItems(
+          libraryItems,
+          searchQuery,
+        ),
+      [
+        libraryItems,
+        searchQuery,
+      ],
+    )
+
+  const normalizedSearchQuery =
+    searchQuery.trim()
+
+  const hasActiveSearch =
+    normalizedSearchQuery.length > 0
 
   const isInitialLoading =
     libraryItems.length === 0 &&
@@ -677,6 +707,9 @@ export function LibraryPage() {
                 totalBooks={
                   libraryItems.length
                 }
+                searchQuery={
+                  searchQuery
+                }
                 sortMode={
                   librarySortMode
                 }
@@ -690,6 +723,9 @@ export function LibraryPage() {
                 }
                 backupRestoring={
                   isBackupRestoring
+                }
+                onSearchQueryChange={
+                  setSearchQuery
                 }
                 onSortModeChange={
                   setLibrarySortMode
@@ -719,11 +755,41 @@ export function LibraryPage() {
               )}
 
               {libraryItems.length >
-                0 && (
+                0 &&
+                filteredLibraryItems
+                  .length === 0 &&
+                hasActiveSearch && (
+                <div className="library-page__empty">
+                  <EmptyState
+                    title="Nenhum documento encontrado"
+                    description={
+                      `Nenhum PDF corresponde à busca “${normalizedSearchQuery}”. Tente outro título, autor ou nome de arquivo.`
+                    }
+                    icon={
+                      <LibraryIcon />
+                    }
+                    actions={
+                      <Button
+                        variant={
+                          ButtonVariant.GHOST
+                        }
+                        onClick={() => {
+                          setSearchQuery('')
+                        }}
+                      >
+                        Limpar busca
+                      </Button>
+                    }
+                  />
+                </div>
+              )}
+
+              {filteredLibraryItems
+                .length > 0 && (
                 <LibraryGrid
                   {...gridOptionalProps}
                   items={
-                    libraryItems
+                    filteredLibraryItems
                   }
                   onOpenBook={
                     handleOpenBook

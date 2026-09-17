@@ -28,6 +28,8 @@ const CONTINUOUS_PAGE_BATCH_SIZE = 4
 const MAX_CONTINUOUS_PAGES_IN_MEMORY =
   CONTINUOUS_PAGE_BATCH_SIZE * 3
 const THUMBNAIL_PAGE_BATCH_SIZE = 8
+const MAX_THUMBNAIL_PAGES_IN_MEMORY =
+  THUMBNAIL_PAGE_BATCH_SIZE * 4
 
 interface ReadingPosition {
   readonly currentPage: number
@@ -1775,6 +1777,9 @@ export const createReaderSlice:
                 latestState
                   .loadedThumbnailPdfPages,
                 result.pages,
+              ).slice(
+                0,
+                MAX_THUMBNAIL_PAGES_IN_MEMORY,
               )
 
             set({
@@ -2119,6 +2124,8 @@ export const createReaderSlice:
                 latestState
                   .loadedThumbnailPdfPages,
                 result.pages,
+              ).slice(
+                -MAX_THUMBNAIL_PAGES_IN_MEMORY,
               )
 
             set({
