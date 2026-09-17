@@ -1390,11 +1390,23 @@ export function ReaderPage() {
         return
       }
 
+      preserveContinuousReadingPosition()
+
       await loadNextContinuousPdfPages()
+
+      if (
+        useAppStore.getState()
+          .continuousPagesLoadStatus ===
+        AsyncStatus.ERROR
+      ) {
+        pendingContinuousScrollTargetRef.current =
+          null
+      }
     }, [
       isContinuousMode,
       isContinuousPagesLoading,
       continuousHasNextPages,
+      preserveContinuousReadingPosition,
       loadNextContinuousPdfPages,
     ])
 

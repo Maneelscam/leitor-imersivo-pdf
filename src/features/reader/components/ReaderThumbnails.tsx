@@ -20,8 +20,8 @@ import {
   LoadingIndicator,
 } from '@/components/feedback/LoadingIndicator'
 import {
-  PdfPageCanvas,
-} from '@/features/reader/components/PdfPageCanvas'
+  ReaderThumbnailCanvas,
+} from '@/features/reader/components/ReaderThumbnailCanvas'
 
 import '@/styles/components/reader-thumbnails.css'
 
@@ -36,9 +36,11 @@ export interface ReaderThumbnailsProps
   readonly totalPages:
     number
 
-  readonly rotation?: number
+  readonly rotation?:
+    number
 
-  readonly isLoading?: boolean
+  readonly isLoading?:
+    boolean
 
   readonly hasPreviousPages:
     boolean
@@ -395,14 +397,13 @@ export function ReaderThumbnails({
                       }}
                     >
                       <span className="reader-thumbnails__preview">
-                        <PdfPageCanvas
-                          page={page}
-                          scale={0.25}
+                        <ReaderThumbnailCanvas
+                          page={
+                            page
+                          }
                           rotation={
                             rotation
                           }
-                          className="reader-thumbnails__canvas"
-                          aria-hidden="true"
                         />
                       </span>
 

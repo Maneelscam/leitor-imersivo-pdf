@@ -25,6 +25,8 @@ type ReaderSliceCreator = StateCreator<
 >
 
 const CONTINUOUS_PAGE_BATCH_SIZE = 4
+const MAX_CONTINUOUS_PAGES_IN_MEMORY =
+  CONTINUOUS_PAGE_BATCH_SIZE * 3
 const THUMBNAIL_PAGE_BATCH_SIZE = 8
 
 interface ReadingPosition {
@@ -886,24 +888,15 @@ export const createReaderSlice:
         })
 
         try {
-          const loadPdfPageController =
-            applicationContainer
+          const loadedPdfPage =
+            await applicationContainer
               .controllers
               .loadPdfPage
-
-          const loadedPdfPage =
-            prefetchPageNumber === undefined
-              ? await loadPdfPageController
-                  .execute(
-                    loadedPdfDocument.document,
-                    pageNumber,
-                  )
-              : await loadPdfPageController
-                  .execute(
-                    loadedPdfDocument.document,
-                    pageNumber,
-                    prefetchPageNumber,
-                  )
+              .execute(
+                loadedPdfDocument.document,
+                pageNumber,
+                prefetchPageNumber,
+              )
 
           if (
             operationId !==
@@ -1595,6 +1588,9 @@ export const createReaderSlice:
                 latestState
                   .loadedContinuousPdfPages,
                 result.pages,
+              ).slice(
+                0,
+                MAX_CONTINUOUS_PAGES_IN_MEMORY,
               )
 
             set({
@@ -1950,6 +1946,8 @@ export const createReaderSlice:
                 latestState
                   .loadedContinuousPdfPages,
                 result.pages,
+              ).slice(
+                -MAX_CONTINUOUS_PAGES_IN_MEMORY,
               )
 
             set({
