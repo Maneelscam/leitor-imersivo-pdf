@@ -270,6 +270,7 @@ describe(
             .loadedPdfDocument
             .document,
           7,
+          undefined,
         )
 
         const state =

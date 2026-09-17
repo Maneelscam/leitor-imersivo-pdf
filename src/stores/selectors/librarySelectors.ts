@@ -20,6 +20,10 @@ export const selectBookDeleteStatus = (
   state: AppStore,
 ) => state.bookDeleteStatus
 
+export const selectBookMetadataUpdateStatus = (
+  state: AppStore,
+) => state.bookMetadataUpdateStatus
+
 export const selectLibraryErrorMessage = (
   state: AppStore,
 ) => state.libraryErrorMessage
@@ -47,6 +51,10 @@ export const selectImportPdfs = (
 export const selectDeleteBook = (
   state: AppStore,
 ) => state.deleteBook
+
+export const selectUpdateBookMetadata = (
+  state: AppStore,
+) => state.updateBookMetadata
 
 export const selectClearLibraryError = (
   state: AppStore,

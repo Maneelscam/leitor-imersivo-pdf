@@ -70,6 +70,9 @@ export interface LibrarySlice {
   readonly bookDeleteStatus:
     AsyncStatus
 
+  readonly bookMetadataUpdateStatus:
+    AsyncStatus
+
   readonly libraryErrorMessage:
     string | null
 
@@ -95,6 +98,12 @@ export interface LibrarySlice {
 
   deleteBook(
     bookId: BookId,
+  ): Promise<void>
+
+  updateBookMetadata(
+    bookId: BookId,
+    title: string,
+    author: string | null,
   ): Promise<void>
 
   clearLibraryError(): void

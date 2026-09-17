@@ -35,6 +35,9 @@ import {
   LoadLibraryController,
 } from '@/controllers/library/LoadLibraryController'
 import {
+  UpdateBookMetadataController,
+} from '@/controllers/library/UpdateBookMetadataController'
+import {
   LoadPdfOutlineController,
 } from '@/controllers/reader/LoadPdfOutlineController'
 import {
@@ -239,6 +242,11 @@ const deleteBookController =
     libraryTransactionRepository,
   })
 
+const updateBookMetadataController =
+  new UpdateBookMetadataController(
+    bookRepository,
+  )
+
 const exportLibraryBackupController =
   new ExportLibraryBackupController(
     libraryBackupRepository,
@@ -346,6 +354,9 @@ export const applicationContainer = {
     importPdf: importPdfController,
     loadLibrary: loadLibraryController,
     deleteBook: deleteBookController,
+
+    updateBookMetadata:
+      updateBookMetadataController,
 
     exportLibraryBackup:
       exportLibraryBackupController,

@@ -37,6 +37,8 @@ export const createLibrarySlice: LibrarySliceCreator = (
   libraryLoadStatus: AsyncStatus.IDLE,
   pdfImportStatus: AsyncStatus.IDLE,
   bookDeleteStatus: AsyncStatus.IDLE,
+  bookMetadataUpdateStatus:
+    AsyncStatus.IDLE,
 
   libraryErrorMessage: null,
   lastImportWarnings: [],
@@ -272,6 +274,95 @@ export const createLibrarySlice: LibrarySliceCreator = (
             error,
             'Não foi possível excluir o livro.',
           ),
+      })
+    }
+  },
+
+  updateBookMetadata: async (
+    bookId,
+    title,
+    author,
+  ) => {
+    set({
+      bookMetadataUpdateStatus:
+        AsyncStatus.LOADING,
+      libraryErrorMessage: null,
+    })
+
+    let updatedBook
+
+    try {
+      updatedBook =
+        await applicationContainer
+          .controllers
+          .updateBookMetadata
+          .execute({
+            bookId,
+            title,
+            author,
+          })
+    } catch (error) {
+      set({
+        bookMetadataUpdateStatus:
+          AsyncStatus.ERROR,
+        libraryErrorMessage:
+          getErrorMessage(
+            error,
+            'Não foi possível atualizar as informações do livro.',
+          ),
+      })
+
+      return
+    }
+
+    const currentState = get()
+
+    const locallyUpdatedItems =
+      currentState.libraryItems.map(
+        (item) =>
+          item.book.id === bookId
+            ? {
+                ...item,
+                book: updatedBook,
+              }
+            : item,
+      )
+
+    const openedBook =
+      currentState.openedBook
+
+    set({
+      libraryItems:
+        locallyUpdatedItems,
+
+      ...(openedBook?.book.id ===
+      bookId
+        ? {
+            openedBook: {
+              ...openedBook,
+              book: updatedBook,
+            },
+          }
+        : {}),
+
+      bookMetadataUpdateStatus:
+        AsyncStatus.SUCCESS,
+    })
+
+    try {
+      const sortedLibraryItems =
+        await loadSortedLibraryItems(
+          get().librarySortMode,
+        )
+
+      set({
+        libraryItems:
+          sortedLibraryItems,
+      })
+    } catch {
+      set({
+        libraryErrorMessage:
+          'As informações foram salvas, mas não foi possível atualizar a ordenação da biblioteca agora.',
       })
     }
   },

@@ -32,6 +32,9 @@ import {
   PdfImportButton,
 } from '@/features/import-pdf/components/PdfImportButton'
 import {
+  EditBookMetadataDialog,
+} from '@/features/library/components/EditBookMetadataDialog'
+import {
   LibraryGrid,
 } from '@/features/library/components/LibraryGrid'
 import {
@@ -64,6 +67,7 @@ import {
 } from '@/stores/selectors/libraryBackupSelectors'
 import {
   selectBookDeleteStatus,
+  selectBookMetadataUpdateStatus,
   selectClearImportWarnings,
   selectClearLibraryError,
   selectDeleteBook,
@@ -74,6 +78,7 @@ import {
   selectLibrarySortMode,
   selectLoadLibrary,
   selectSetLibrarySortMode,
+  selectUpdateBookMetadata,
 } from '@/stores/selectors/librarySelectors'
 import {
   selectOpenBook,
@@ -201,6 +206,11 @@ export function LibraryPage() {
     selectBookDeleteStatus,
   )
 
+  const bookMetadataUpdateStatus =
+    useAppStore(
+      selectBookMetadataUpdateStatus,
+    )
+
   const libraryErrorMessage = useAppStore(
     selectLibraryErrorMessage,
   )
@@ -235,6 +245,10 @@ export function LibraryPage() {
 
   const deleteBook = useAppStore(
     selectDeleteBook,
+  )
+
+  const updateBookMetadata = useAppStore(
+    selectUpdateBookMetadata,
   )
 
   const exportLibraryBackup = useAppStore(
@@ -274,6 +288,11 @@ export function LibraryPage() {
   const [
     bookPendingDeletion,
     setBookPendingDeletion,
+  ] = useState<LibraryBookItem | null>(null)
+
+  const [
+    bookPendingMetadataEdit,
+    setBookPendingMetadataEdit,
   ] = useState<LibraryBookItem | null>(null)
 
   const [
@@ -319,6 +338,15 @@ export function LibraryPage() {
   const isDeleting =
     bookDeleteStatus === AsyncStatus.LOADING
 
+  const isUpdatingBookMetadata =
+    bookMetadataUpdateStatus ===
+    AsyncStatus.LOADING
+
+  const hasBookMetadataUpdateError =
+    bookMetadataUpdateStatus ===
+      AsyncStatus.ERROR &&
+    bookPendingMetadataEdit !== null
+
   const isBackupExporting =
     libraryBackupExportStatus ===
     AsyncStatus.LOADING
@@ -341,6 +369,7 @@ export function LibraryPage() {
     if (
       openingBookId !== null ||
       isDeleting ||
+      isUpdatingBookMetadata ||
       isBackupRestoring
     ) {
       return
@@ -369,9 +398,82 @@ export function LibraryPage() {
     }
   }
 
+  const requestBookMetadataEdit = (
+    bookId: BookId,
+  ) => {
+    if (isUpdatingBookMetadata) {
+      return
+    }
+
+    const selectedItem =
+      libraryItems.find(
+        (item) =>
+          item.book.id === bookId,
+      )
+
+    if (
+      selectedItem === undefined
+    ) {
+      return
+    }
+
+    clearLibraryError()
+
+    setBookPendingMetadataEdit(
+      selectedItem,
+    )
+  }
+
+  const cancelBookMetadataEdit = () => {
+    if (isUpdatingBookMetadata) {
+      return
+    }
+
+    setBookPendingMetadataEdit(null)
+    clearLibraryError()
+  }
+
+  const saveBookMetadata =
+    async (
+      title: string,
+      author: string | null,
+    ) => {
+      if (
+        bookPendingMetadataEdit ===
+          null ||
+        isUpdatingBookMetadata
+      ) {
+        return
+      }
+
+      await updateBookMetadata(
+        bookPendingMetadataEdit
+          .book.id,
+        title,
+        author,
+      )
+
+      const currentState =
+        useAppStore.getState()
+
+      if (
+        currentState
+          .bookMetadataUpdateStatus ===
+        AsyncStatus.SUCCESS
+      ) {
+        setBookPendingMetadataEdit(
+          null,
+        )
+      }
+    }
+
   const requestBookDeletion = (
     bookId: BookId,
   ) => {
+    if (isUpdatingBookMetadata) {
+      return
+    }
+
     const selectedItem =
       libraryItems.find(
         (item) =>
@@ -518,6 +620,15 @@ export function LibraryPage() {
           deletingBookId,
         }
       : {}),
+    ...(bookPendingMetadataEdit !==
+      null &&
+    isUpdatingBookMetadata
+      ? {
+          editingBookId:
+            bookPendingMetadataEdit
+              .book.id,
+        }
+      : {}),
   }
 
   const showBackupErrorOutsideDialog =
@@ -588,7 +699,8 @@ export function LibraryPage() {
         )}
 
         {libraryErrorMessage !== null &&
-          !hasInitialLoadError && (
+          !hasInitialLoadError &&
+          !hasBookMetadataUpdateError && (
             <FeedbackMessage
               variant={
                 FeedbackMessageVariant.ERROR
@@ -716,7 +828,8 @@ export function LibraryPage() {
                 disabled={
                   libraryLoadStatus ===
                     AsyncStatus.LOADING ||
-                  isDeleting
+                  isDeleting ||
+                  isUpdatingBookMetadata
                 }
                 backupExporting={
                   isBackupExporting
@@ -797,11 +910,37 @@ export function LibraryPage() {
                   onDeleteBook={
                     requestBookDeletion
                   }
+                  onEditBook={
+                    requestBookMetadataEdit
+                  }
                 />
               )}
             </>
           )}
       </div>
+
+      {bookPendingMetadataEdit !==
+        null && (
+        <EditBookMetadataDialog
+          item={
+            bookPendingMetadataEdit
+          }
+          isSaving={
+            isUpdatingBookMetadata
+          }
+          errorMessage={
+            hasBookMetadataUpdateError
+              ? libraryErrorMessage
+              : null
+          }
+          onSave={
+            saveBookMetadata
+          }
+          onCancel={
+            cancelBookMetadataEdit
+          }
+        />
+      )}
 
       <ConfirmDialog
         open={

@@ -14,6 +14,7 @@ export interface LibraryGridProps
 
   readonly openingBookId?: BookId
   readonly deletingBookId?: BookId
+  readonly editingBookId?: BookId
 
   readonly onOpenBook: (
     bookId: BookId,
@@ -22,6 +23,10 @@ export interface LibraryGridProps
   readonly onDeleteBook: (
     bookId: BookId,
   ) => void | Promise<void>
+
+  readonly onEditBook: (
+    bookId: BookId,
+  ) => void
 }
 
 function createLibraryGridClassName(
@@ -43,8 +48,10 @@ export function LibraryGrid({
   items,
   openingBookId,
   deletingBookId,
+  editingBookId,
   onOpenBook,
   onDeleteBook,
+  onEditBook,
   className,
   ...listProps
 }: LibraryGridProps) {
@@ -73,8 +80,12 @@ export function LibraryGrid({
               isDeleting={
                 deletingBookId === bookId
               }
+              isEditing={
+                editingBookId === bookId
+              }
               onOpen={onOpenBook}
               onDelete={onDeleteBook}
+              onEdit={onEditBook}
             />
           </li>
         )

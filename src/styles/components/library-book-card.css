@@ -329,6 +329,7 @@
   gap: var(--space-1);
 }
 
+.library-book-card__edit-button,
 .library-book-card__delete-button {
   opacity: 0;
 
@@ -339,13 +340,18 @@
 }
 
 .library-book-card:hover
+  .library-book-card__edit-button,
+.library-book-card:hover
   .library-book-card__delete-button,
+.library-book-card:focus-within
+  .library-book-card__edit-button,
 .library-book-card:focus-within
   .library-book-card__delete-button {
   opacity: 1;
 }
 
 @media (hover: none) {
+  .library-book-card__edit-button,
   .library-book-card__delete-button {
     opacity: 1;
   }

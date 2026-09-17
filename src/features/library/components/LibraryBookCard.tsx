@@ -26,6 +26,7 @@ export interface LibraryBookCardProps
 
   readonly isOpening?: boolean
   readonly isDeleting?: boolean
+  readonly isEditing?: boolean
 
   readonly onOpen: (
     bookId: BookId,
@@ -34,6 +35,10 @@ export interface LibraryBookCardProps
   readonly onDelete: (
     bookId: BookId,
   ) => void | Promise<void>
+
+  readonly onEdit: (
+    bookId: BookId,
+  ) => void
 }
 
 interface ReadingProgressStyle
@@ -56,6 +61,23 @@ function DocumentIcon() {
       <path d="M14 2.5v5h4" />
       <path d="M9 12h6" />
       <path d="M9 15.5h6" />
+    </svg>
+  )
+}
+
+function EditIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 20h4l11-11-4-4L4 16z" />
+      <path d="m13.5 6.5 4 4" />
     </svg>
   )
 }
@@ -111,8 +133,10 @@ export function LibraryBookCard({
   item,
   isOpening = false,
   isDeleting = false,
+  isEditing = false,
   onOpen,
   onDelete,
+  onEdit,
   className,
   ...articleProps
 }: LibraryBookCardProps) {
@@ -155,7 +179,8 @@ export function LibraryBookCard({
 
   const isBusy =
     isOpening ||
-    isDeleting
+    isDeleting ||
+    isEditing
 
   const authorLabel =
     book.author ??
@@ -174,6 +199,16 @@ export function LibraryBookCard({
     }
 
     void onOpen(
+      book.id,
+    )
+  }
+
+  const handleEdit = () => {
+    if (isBusy) {
+      return
+    }
+
+    onEdit(
       book.id,
     )
   }
@@ -304,6 +339,25 @@ export function LibraryBookCard({
           </span>
 
           <div className="library-book-card__actions">
+            <Button
+              className="library-book-card__edit-button"
+              variant={
+                ButtonVariant.GHOST
+              }
+              size={
+                ButtonSize.SMALL
+              }
+              iconOnly
+              disabled={isBusy}
+              aria-label={`Editar informações de ${book.title}`}
+              title={`Editar informações de ${book.title}`}
+              onClick={
+                handleEdit
+              }
+            >
+              <EditIcon />
+            </Button>
+
             <Button
               className="library-book-card__delete-button"
               variant={
