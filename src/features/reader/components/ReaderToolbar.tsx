@@ -1,6 +1,7 @@
-import type {
-  HTMLAttributes,
-  ReactNode,
+import {
+  useState,
+  type HTMLAttributes,
+  type ReactNode,
 } from 'react'
 
 import {
@@ -11,6 +12,8 @@ import {
 import {
   useAppShell,
 } from '@/components/layout/AppShellContext'
+
+import '@/styles/components/reader-shortcuts-dialog.css'
 
 export interface ReaderToolbarProps
   extends HTMLAttributes<HTMLDivElement> {
@@ -100,6 +103,28 @@ function PanelIcon() {
       />
 
       <path d="M15 4v16" />
+    </svg>
+  )
+}
+
+function HelpIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+      />
+      <path d="M9.75 9a2.5 2.5 0 1 1 3.4 2.34c-.72.32-1.15.88-1.15 1.66" />
+      <path d="M12 17h.01" />
     </svg>
   )
 }
@@ -203,6 +228,11 @@ export function ReaderToolbar({
     immersiveMode,
     toggleImmersiveMode,
   } = useAppShell()
+
+  const [
+    shortcutsHelpOpen,
+    setShortcutsHelpOpen,
+  ] = useState(false)
 
   const normalizedTotalPages =
     Math.max(
@@ -332,6 +362,19 @@ export function ReaderToolbar({
           </Button>
 
           <Button
+            variant={ButtonVariant.GHOST}
+            size={ButtonSize.SMALL}
+            iconOnly
+            aria-label="Ver atalhos do teclado"
+            title="Atalhos do teclado"
+            onClick={() => {
+              setShortcutsHelpOpen(true)
+            }}
+          >
+            <HelpIcon />
+          </Button>
+
+          <Button
             variant={
               immersiveMode
                 ? ButtonVariant.SECONDARY
@@ -403,6 +446,123 @@ export function ReaderToolbar({
           <NextPageIcon />
         </Button>
       </div>
+      {shortcutsHelpOpen && (
+        <div
+          className="reader-shortcuts-dialog__overlay"
+          role="presentation"
+          onClick={(event) => {
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
+              setShortcutsHelpOpen(false)
+            }
+          }}
+        >
+          <section
+            className="reader-shortcuts-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reader-shortcuts-dialog-title"
+            onKeyDown={(event) => {
+              event.stopPropagation()
+
+              if (
+                event.key === 'Escape'
+              ) {
+                event.preventDefault()
+                setShortcutsHelpOpen(false)
+              }
+            }}
+          >
+            <div className="reader-shortcuts-dialog__header">
+              <div>
+                <p className="reader-shortcuts-dialog__eyebrow">
+                  Leitor
+                </p>
+
+                <h2
+                  id="reader-shortcuts-dialog-title"
+                  className="reader-shortcuts-dialog__title"
+                >
+                  Atalhos do teclado
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                className="reader-shortcuts-dialog__close"
+                aria-label="Fechar atalhos"
+                autoFocus
+                onClick={() => {
+                  setShortcutsHelpOpen(false)
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="reader-shortcuts-dialog__grid">
+              <div className="reader-shortcuts-dialog__item">
+                <span>Página anterior</span>
+                <kbd>←</kbd>
+                <kbd>Page Up</kbd>
+              </div>
+
+              <div className="reader-shortcuts-dialog__item">
+                <span>Próxima página</span>
+                <kbd>→</kbd>
+                <kbd>Page Down</kbd>
+              </div>
+
+              <div className="reader-shortcuts-dialog__item">
+                <span>Aumentar zoom</span>
+                <kbd>+</kbd>
+              </div>
+
+              <div className="reader-shortcuts-dialog__item">
+                <span>Diminuir zoom</span>
+                <kbd>-</kbd>
+              </div>
+
+              <div className="reader-shortcuts-dialog__item">
+                <span>Restaurar zoom</span>
+                <kbd>0</kbd>
+              </div>
+
+              <div className="reader-shortcuts-dialog__item">
+                <span>Ajustar à largura</span>
+                <kbd>F</kbd>
+              </div>
+
+              <div className="reader-shortcuts-dialog__item">
+                <span>Girar para a direita</span>
+                <kbd>R</kbd>
+              </div>
+
+              <div className="reader-shortcuts-dialog__item">
+                <span>Girar para a esquerda</span>
+                <kbd>Shift + R</kbd>
+              </div>
+
+              <div className="reader-shortcuts-dialog__item">
+                <span>Abrir ou fechar painel</span>
+                <kbd>P</kbd>
+              </div>
+
+              <div className="reader-shortcuts-dialog__item">
+                <span>Buscar no PDF</span>
+                <kbd>Ctrl + F</kbd>
+              </div>
+            </div>
+
+            <p className="reader-shortcuts-dialog__hint">
+              Os atalhos respeitam a opção de teclado configurada no leitor.
+            </p>
+          </section>
+        </div>
+      )}
+
     </div>
   )
 }

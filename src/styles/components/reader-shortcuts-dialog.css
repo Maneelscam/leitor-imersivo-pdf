@@ -1,0 +1,160 @@
+.reader-shortcuts-dialog__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+
+  background: rgb(0 0 0 / 0.58);
+  backdrop-filter: blur(0.25rem);
+}
+
+.reader-shortcuts-dialog {
+  width: min(100%, 42rem);
+  max-height: min(80dvh, 46rem);
+  overflow: auto;
+  padding: var(--space-5);
+
+  background: var(--color-background-elevated);
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 1.5rem 4rem
+    rgb(0 0 0 / 0.3);
+}
+
+.reader-shortcuts-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.reader-shortcuts-dialog__eyebrow {
+  margin: 0 0 var(--space-1);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reader-shortcuts-dialog__title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-tight);
+}
+
+.reader-shortcuts-dialog__close {
+  display: grid;
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: 1.5rem;
+  line-height: 1;
+
+  cursor: pointer;
+  background: transparent;
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.reader-shortcuts-dialog__close:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+.reader-shortcuts-dialog__close:focus-visible {
+  outline:
+    2px
+    solid
+    var(--color-accent);
+  outline-offset: 2px;
+}
+
+.reader-shortcuts-dialog__grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.reader-shortcuts-dialog__item {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: var(--space-2);
+  padding: var(--space-3);
+
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+
+  background: var(--color-surface);
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.reader-shortcuts-dialog__item > span {
+  flex: 1;
+  min-width: 0;
+}
+
+.reader-shortcuts-dialog__item kbd {
+  flex: 0 0 auto;
+  padding:
+    0.2rem
+    0.45rem;
+
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+
+  background: var(--color-background);
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.reader-shortcuts-dialog__hint {
+  margin:
+    var(--space-4)
+    0
+    0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
+}
+
+@media (max-width: 40rem) {
+  .reader-shortcuts-dialog__overlay {
+    padding: var(--space-3);
+  }
+
+  .reader-shortcuts-dialog {
+    padding: var(--space-4);
+  }
+
+  .reader-shortcuts-dialog__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

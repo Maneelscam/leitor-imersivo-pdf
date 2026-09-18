@@ -11,6 +11,9 @@ import {
   useAppRoute,
 } from '@/app/routes/useAppRoute'
 import {
+  AppErrorBoundary,
+} from '@/components/feedback/AppErrorBoundary'
+import {
   AppUpdateNotice,
 } from '@/components/feedback/AppUpdateNotice'
 import {
@@ -45,8 +48,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AppBootstrapProvider>
-      <AppContent />
-    </AppBootstrapProvider>
+    <AppErrorBoundary>
+      <AppBootstrapProvider>
+        <AppContent />
+      </AppBootstrapProvider>
+    </AppErrorBoundary>
   )
 }
