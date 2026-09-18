@@ -4,6 +4,9 @@ import {
   type LibrarySortMode as LibrarySortModeValue,
 } from '@/models/enums/LibrarySortMode'
 import type { LibraryQueryRepository } from '@/repositories/contracts/LibraryQueryRepository'
+import {
+  calculateReadingProgressRatio,
+} from '@/utils/formatters/formatReadingProgress'
 
 export interface LoadLibraryCommand {
   readonly sortMode?: LibrarySortModeValue
@@ -75,6 +78,35 @@ function compareRecentlyOpened(
   return compareTitles(firstItem, secondItem)
 }
 
+function compareReadingProgress(
+  firstItem: LibraryBookItem,
+  secondItem: LibraryBookItem,
+): number {
+  const firstProgress =
+    calculateReadingProgressRatio(
+      firstItem.readingProgress,
+      firstItem.book.totalPages,
+    )
+
+  const secondProgress =
+    calculateReadingProgressRatio(
+      secondItem.readingProgress,
+      secondItem.book.totalPages,
+    )
+
+  const progressComparison =
+    firstProgress - secondProgress
+
+  if (progressComparison !== 0) {
+    return progressComparison
+  }
+
+  return compareTitles(
+    firstItem,
+    secondItem,
+  )
+}
+
 function sortLibraryItems(
   items: readonly LibraryBookItem[],
   sortMode: LibrarySortModeValue,
@@ -107,6 +139,20 @@ function sortLibraryItems(
       return sortedItems.sort(
         (firstItem, secondItem) =>
           compareTitles(secondItem, firstItem),
+      )
+
+    case LibrarySortMode.PROGRESS_ASCENDING:
+      return sortedItems.sort(
+        compareReadingProgress,
+      )
+
+    case LibrarySortMode.PROGRESS_DESCENDING:
+      return sortedItems.sort(
+        (firstItem, secondItem) =>
+          compareReadingProgress(
+            secondItem,
+            firstItem,
+          ),
       )
   }
 }

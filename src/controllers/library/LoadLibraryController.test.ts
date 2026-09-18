@@ -32,11 +32,15 @@ function createBookItem({
   title,
   importedAt,
   lastOpenedAt = null,
+  currentPage = null,
+  pageOffsetRatio = 0,
 }: {
   readonly id: string
   readonly title: string
   readonly importedAt: string
   readonly lastOpenedAt?: string | null
+  readonly currentPage?: number | null
+  readonly pageOffsetRatio?: number
 }): LibraryBookItem {
   const importedAtValue =
     importedAt as IsoDateTime
@@ -61,7 +65,17 @@ function createBookItem({
   return {
     book,
     cover: null,
-    readingProgress: null,
+    readingProgress:
+      currentPage === null
+        ? null
+        : {
+            bookId:
+              id as BookId,
+            currentPage,
+            pageOffsetRatio,
+            updatedAt:
+              importedAtValue,
+          },
   }
 }
 
@@ -407,6 +421,116 @@ describe(
           'gama',
           'beta',
           'alfa',
+        ])
+      },
+    )
+
+    it(
+      'ordena pelo maior progresso de leitura',
+      async () => {
+        const notStarted =
+          createBookItem({
+            id: 'not-started',
+            title: 'Não iniciado',
+            importedAt:
+              '2026-01-01T10:00:00.000Z',
+          })
+
+        const halfway =
+          createBookItem({
+            id: 'halfway',
+            title: 'Metade',
+            importedAt:
+              '2026-01-01T10:00:00.000Z',
+            currentPage: 51,
+          })
+
+        const completed =
+          createBookItem({
+            id: 'completed',
+            title: 'Concluído',
+            importedAt:
+              '2026-01-01T10:00:00.000Z',
+            currentPage: 100,
+            pageOffsetRatio: 1,
+          })
+
+        const controller =
+          new LoadLibraryController(
+            createRepository([
+              notStarted,
+              halfway,
+              completed,
+            ]),
+          )
+
+        const result =
+          await controller.execute({
+            sortMode:
+              LibrarySortMode.PROGRESS_DESCENDING,
+          })
+
+        expect(
+          getBookIds(result),
+        ).toEqual([
+          'completed',
+          'halfway',
+          'not-started',
+        ])
+      },
+    )
+
+    it(
+      'ordena pelo menor progresso de leitura',
+      async () => {
+        const notStarted =
+          createBookItem({
+            id: 'not-started',
+            title: 'Não iniciado',
+            importedAt:
+              '2026-01-01T10:00:00.000Z',
+          })
+
+        const halfway =
+          createBookItem({
+            id: 'halfway',
+            title: 'Metade',
+            importedAt:
+              '2026-01-01T10:00:00.000Z',
+            currentPage: 51,
+          })
+
+        const completed =
+          createBookItem({
+            id: 'completed',
+            title: 'Concluído',
+            importedAt:
+              '2026-01-01T10:00:00.000Z',
+            currentPage: 100,
+            pageOffsetRatio: 1,
+          })
+
+        const controller =
+          new LoadLibraryController(
+            createRepository([
+              completed,
+              halfway,
+              notStarted,
+            ]),
+          )
+
+        const result =
+          await controller.execute({
+            sortMode:
+              LibrarySortMode.PROGRESS_ASCENDING,
+          })
+
+        expect(
+          getBookIds(result),
+        ).toEqual([
+          'not-started',
+          'halfway',
+          'completed',
         ])
       },
     )

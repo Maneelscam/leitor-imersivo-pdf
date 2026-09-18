@@ -10,6 +10,9 @@ import {
 import {
   OfflineServiceWorkerService,
 } from '@/services/offline/OfflineServiceWorkerService'
+import {
+  appUpdateService,
+} from '@/services/offline/AppUpdateService'
 import { appThemeService } from '@/services/settings/AppThemeService'
 
 appThemeService.initializeFromCache()
@@ -47,6 +50,8 @@ const offlineServiceWorkerService =
 
 void offlineServiceWorkerService
   .register()
+
+appUpdateService.initialize()
 
 createRoot(
   document.getElementById('root')!,

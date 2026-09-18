@@ -11,6 +11,9 @@ import {
   useAppRoute,
 } from '@/app/routes/useAppRoute'
 import {
+  AppUpdateNotice,
+} from '@/components/feedback/AppUpdateNotice'
+import {
   AppShell,
 } from '@/components/layout/AppShell'
 import {
@@ -35,6 +38,7 @@ function AppContent() {
       }
     >
       <AppRouter />
+      <AppUpdateNotice />
     </AppShell>
   )
 }

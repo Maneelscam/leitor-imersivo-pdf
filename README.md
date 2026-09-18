@@ -1,247 +1,226 @@
 # Leitor Imersivo de PDF
 
-Aplicação web local para organização e leitura imersiva de documentos PDF.
+Leitor de PDF moderno, rápido, imersivo e totalmente local, desenvolvido com React, TypeScript, Vite, Zustand, PDF.js e IndexedDB.
 
-O projeto foi desenvolvido com foco em privacidade, funcionamento offline, boa experiência de leitura e uma arquitetura preparada para evolução. Os PDFs são processados diretamente no navegador e não são enviados para servidores externos.
+O projeto foi pensado para funcionar como uma biblioteca pessoal de leitura: o PDF original permanece imutável e todos os dados derivados — progresso, favoritos, notas, destaques, preferências e metadados editáveis — são armazenados separadamente.
 
-## Visão geral
+## Princípios do projeto
 
-O Leitor Imersivo de PDF permite:
+- processamento dos PDFs no próprio dispositivo;
+- nenhuma dependência de servidor para a biblioteca pessoal;
+- PDF original preservado;
+- funcionamento offline após o aplicativo ser carregado;
+- arquitetura separada por responsabilidades;
+- persistência local no IndexedDB;
+- interface responsiva para desktop, tablet e celular.
 
-- importar documentos PDF;
-- organizar uma biblioteca local;
-- gerar capas automaticamente;
-- abrir e renderizar documentos com PDF.js;
-- continuar a leitura de onde parou;
-- criar favoritos por página;
-- utilizar página única ou página dupla;
-- ler com rolagem contínua;
-- ajustar zoom e rotação;
-- personalizar o comportamento do leitor;
-- manter os dados armazenados localmente no navegador.
+## Funcionalidades
 
-O arquivo PDF original permanece preservado. Informações derivadas, como capa, progresso, favoritos e configurações, são armazenadas separadamente.
+### Biblioteca
 
----
+- importação de um ou vários PDFs;
+- importação por botão ou arrastar e soltar;
+- validação técnica dos arquivos;
+- prevenção de duplicidades;
+- geração automática de capas;
+- extração de metadados;
+- edição local de título e autor;
+- busca por título, autor ou nome do arquivo;
+- filtros por status de leitura;
+- ordenação da biblioteca;
+- visualização em grade ou lista;
+- persistência do modo de visualização escolhido;
+- progresso de leitura visível nos cards;
+- exclusão segura de documentos;
+- backup completo da biblioteca;
+- restauração de backup.
 
-## Principais funcionalidades
+### Leitor
 
-### Biblioteca local
-
-- Importação de arquivos PDF.
-- Validação técnica antes do armazenamento.
-- Identificação de documentos duplicados.
-- Extração de metadados.
-- Resolução automática do título.
-- Geração de capa baseada na primeira página.
-- Ordenação da biblioteca.
-- Exclusão segura de documentos.
-- Persistência no IndexedDB.
-
-### Leitor de PDF
-
-- Renderização com PDF.js.
-- Navegação entre páginas.
-- Página única.
-- Página dupla.
-- Rolagem contínua progressiva.
-- Carregamento de páginas em pequenos lotes.
-- Zoom manual.
-- Ajuste à largura.
-- Ajuste à página.
-- Rotação em intervalos de 90 graus.
-- Atalhos de teclado.
-- Ocultação automática dos controles.
-- Painel lateral de leitura.
+- renderização com PDF.js;
+- página única;
+- página dupla;
+- rolagem contínua;
+- navegação entre páginas;
+- miniaturas;
+- sumário/outline do documento;
+- busca textual dentro do PDF;
+- destaque dos resultados de busca;
+- zoom manual;
+- ajuste à largura;
+- ajuste à página;
+- rotação;
+- modo imersivo;
+- atalhos de teclado;
+- ocultação automática dos controles;
+- carregamento progressivo de páginas;
+- cache LRU de páginas;
+- pré-carregamento adaptativo conforme a direção de leitura.
 
 ### Progresso de leitura
 
-- Salvamento da página atual.
-- Salvamento da posição dentro da página.
-- Restauração automática ao reabrir o documento.
-- Atualização de progresso durante a rolagem contínua.
-- Salvamento antes de fechar ou trocar de documento.
+- salvamento automático da página atual;
+- salvamento da posição dentro da página;
+- restauração automática ao reabrir o documento;
+- atualização durante a rolagem contínua;
+- gravação protegida contra operações desnecessárias.
 
-### Favoritos
+### Favoritos, notas e destaques
 
-- Criação de favorito na posição atual.
-- Listagem dos favoritos do documento.
-- Navegação direta até o favorito.
-- Exclusão de favoritos.
-- Persistência separada por livro.
+- favoritos por página;
+- navegação direta para favoritos;
+- notas vinculadas ao documento;
+- destaques de texto;
+- exclusão de anotações e favoritos;
+- persistência independente do PDF original.
 
-### Configurações
+### Offline e instalação
 
-- Modo de exibição:
-  - página única;
-  - página dupla.
+O projeto possui suporte a PWA.
 
-- Fluxo de leitura:
-  - paginado;
-  - rolagem contínua.
+O build de produção gera um Service Worker versionado que mantém o shell do aplicativo disponível offline.
 
-- Zoom inicial:
-  - personalizado;
-  - ajustar à largura;
-  - ajustar à página.
+Quando o navegador oferecer suporte, o aplicativo também pode ser instalado como PWA e aberto em uma janela própria.
 
-- Atalhos de teclado.
-- Ocultação automática dos controles.
-- Persistência das preferências no IndexedDB.
-- Restauração das configurações padrão.
+A instalação PWA continua sendo gerenciada pelo navegador. Ela não equivale a um instalador nativo de Windows como um arquivo `.exe`.
 
----
+### Proteção do armazenamento local
 
-## Privacidade e armazenamento
+A tela de Configurações consulta as APIs de armazenamento do navegador para:
 
-Todo o processamento principal ocorre localmente no navegador.
+- exibir o espaço local utilizado;
+- exibir a quota estimada disponível;
+- informar se o armazenamento persistente foi concedido;
+- permitir solicitar armazenamento persistente quando suportado.
 
-A aplicação não necessita de:
+Armazenamento persistente reduz o risco de remoção automática por pressão de espaço, mas não impede que o próprio usuário limpe os dados do navegador.
 
-- cadastro de usuário;
-- autenticação;
-- servidor externo;
-- banco de dados remoto;
-- envio de documentos para terceiros;
-- conexão permanente com a internet.
+## Privacidade
 
-Os dados são armazenados no IndexedDB do navegador, incluindo:
+Os PDFs e os dados pessoais da biblioteca permanecem no dispositivo.
 
-- arquivo PDF original;
-- informações do livro;
+O aplicativo não precisa enviar os documentos para um servidor externo para realizar leitura, busca, geração de capa, progresso ou anotações.
+
+Os dados locais podem incluir:
+
+- PDF original;
+- metadados do livro;
 - capa gerada;
 - progresso de leitura;
 - favoritos;
-- configurações do leitor.
+- notas;
+- destaques;
+- preferências do leitor.
 
-### Atenção
+## Onde os dados ficam
 
-Os dados pertencem ao navegador e ao perfil utilizado.
+A biblioteca é armazenada no IndexedDB do navegador utilizado.
 
-Eles podem ser removidos caso o usuário:
+Isso significa que os dados ficam vinculados ao navegador, ao perfil e à origem do aplicativo.
 
-- limpe os dados do navegador;
-- apague o armazenamento do site;
-- utilize navegação anônima;
-- troque de navegador;
-- troque de perfil do navegador;
-- desinstale o navegador sem preservar os dados.
+Eles podem ser perdidos caso o usuário, por exemplo:
 
----
+- limpe os dados do site;
+- remova manualmente o armazenamento do navegador;
+- use navegação anônima;
+- troque de navegador ou perfil sem restaurar um backup;
+- remova o perfil do navegador.
+
+Por isso, o recurso de backup deve ser usado para cópias de segurança importantes.
 
 ## Tecnologias
-
-### Interface
 
 - React 19.2.7
 - TypeScript 5.9.3
 - Vite 7.3.6
-
-### Estado
-
 - Zustand 5.0.14
-
-### PDF
-
-- PDF.js
 - pdfjs-dist 5.4.624
+- IndexedDB
+- Vitest 4.1.10
+- ESLint 9.39.1
+- fflate 0.8.3
 
-### Persistência
+## Requisitos de desenvolvimento
 
-- IndexedDB nativo do navegador
-
-### Qualidade
-
-- ESLint
-- TypeScript Build Mode
-- Vite Build
-
----
-
-## Requisitos
-
-Ambiente utilizado durante o desenvolvimento:
+O projeto está configurado para:
 
 - Node.js 24.18.0
 - npm 11.16.0
 
-Recomenda-se utilizar essas versões ou versões compatíveis.
+## Instalação do projeto
 
-Também é necessário um navegador moderno com suporte a:
-
-- IndexedDB;
-- Canvas;
-- Web Workers;
-- ResizeObserver;
-- IntersectionObserver;
-- APIs modernas do DOM.
-
----
-
-## Instalação
-
-Clone ou copie o projeto para sua máquina.
-
-No terminal, acesse a pasta do projeto:
+Na raiz do projeto:
 
 ```powershell
-cd caminho\para\LeitorImersivoPDF
-src/
-├── app/
-│   ├── config/
-│   ├── providers/
-│   └── routes/
-│
-├── components/
-│   ├── buttons/
-│   ├── feedback/
-│   ├── forms/
-│   └── layout/
-│
-├── controllers/
-│   ├── bookmarks/
-│   ├── library/
-│   ├── reader/
-│   └── settings/
-│
-├── errors/
-│   ├── library/
-│   └── reader/
-│
-├── features/
-│   ├── library/
-│   ├── reader/
-│   └── settings/
-│
-├── models/
-│   ├── dtos/
-│   ├── entities/
-│   ├── enums/
-│   └── value-objects/
-│
-├── pages/
-│   ├── library/
-│   ├── reader/
-│   └── settings/
-│
-├── repositories/
-│   └── indexed-db/
-│
-├── services/
-│   ├── cover/
-│   ├── database/
-│   ├── file/
-│   ├── metadata/
-│   ├── pdf/
-│   └── settings/
-│
-├── stores/
-│   ├── selectors/
-│   └── slices/
-│
-├── styles/
-│   ├── components/
-│   ├── foundations/
-│   └── global/
-│
-└── utils/
+npm install
+```
+
+Para iniciar o ambiente de desenvolvimento:
+
+```powershell
+npm run dev
+```
+
+## Validação
+
+As validações principais do projeto são:
+
+```powershell
+npm run typecheck
+npm run lint
+npm run build
+```
+
+Para executar a suíte completa de testes:
+
+```powershell
+npm run test -- --run
+```
+
+## Build de produção
+
+```powershell
+npm run build
+```
+
+Além do build do Vite, esse comando gera o Service Worker offline versionado.
+
+Para testar a versão de produção localmente:
+
+```powershell
+npm run preview
+```
+
+Abra o endereço exibido pelo Vite no terminal.
+
+O teste de PWA, instalação e funcionamento offline deve ser feito usando o build de produção/preview, não apenas o servidor de desenvolvimento.
+
+## Arquitetura
+
+A aplicação é organizada por responsabilidade, com áreas dedicadas a:
+
+- `app`: configuração, rotas e composição da aplicação;
+- `components`: componentes reutilizáveis;
+- `controllers`: casos de uso e coordenação de operações;
+- `features`: funcionalidades de biblioteca, importação e leitura;
+- `models`: entidades, DTOs, enums e value objects;
+- `pages`: composição das telas;
+- `repositories`: persistência e acesso aos dados;
+- `services`: PDF, arquivos, metadados, backup, offline e armazenamento;
+- `stores`: estado global Zustand, slices e seletores;
+- `styles`: estilos e fundamentos visuais;
+- `utils`: utilitários independentes.
+
+## Filosofia de dados
+
+O PDF é tratado como documento original e imutável.
+
+Alterações feitas dentro do leitor não modificam os bytes do PDF. Progresso, notas, destaques, favoritos, capas e outras informações derivadas são mantidos separadamente.
+
+Essa separação permite evoluir o leitor sem comprometer o documento original.
+
+## Estado atual
+
+O projeto já possui biblioteca local, leitura de PDF, busca, miniaturas, sumário, progresso automático, favoritos, notas, destaques, backup, funcionamento offline, instalação PWA, proteção de armazenamento e otimizações de memória/carregamento.
+
+O desenvolvimento continua orientado a estabilidade, desempenho, privacidade e experiência de leitura.

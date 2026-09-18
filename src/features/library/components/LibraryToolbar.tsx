@@ -556,6 +556,22 @@ export function LibraryToolbar({
             >
               Título de Z a A
             </option>
+
+            <option
+              value={
+                LibrarySortMode.PROGRESS_DESCENDING
+              }
+            >
+              Maior progresso
+            </option>
+
+            <option
+              value={
+                LibrarySortMode.PROGRESS_ASCENDING
+              }
+            >
+              Menor progresso
+            </option>
           </select>
         </div>
       </div>

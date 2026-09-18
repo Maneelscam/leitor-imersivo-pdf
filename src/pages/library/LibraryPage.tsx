@@ -51,6 +51,12 @@ import {
 import {
   filterLibraryItemsByReadingStatus,
 } from '@/features/library/utils/filterLibraryItemsByReadingStatus'
+import {
+  getContinueReadingItems,
+} from '@/features/library/utils/getContinueReadingItems'
+import {
+  getLibraryReadingSummary,
+} from '@/features/library/utils/getLibraryReadingSummary'
 import type {
   LibraryBookItem,
 } from '@/models/dtos/LibraryBookItem'
@@ -380,6 +386,24 @@ export function LibraryPage() {
         searchQuery,
         readingFilter,
       ],
+    )
+
+  const continueReadingItems =
+    useMemo(
+      () =>
+        getContinueReadingItems(
+          libraryItems,
+        ),
+      [libraryItems],
+    )
+
+  const readingSummary =
+    useMemo(
+      () =>
+        getLibraryReadingSummary(
+          libraryItems,
+        ),
+      [libraryItems],
     )
 
   const normalizedSearchQuery =
@@ -1060,6 +1084,158 @@ export function LibraryPage() {
                   requestBackupRestore
                 }
               />
+
+              {libraryItems.length > 0 && (
+                <section
+                  className="library-page__reading-summary"
+                  aria-label="Resumo de leitura da biblioteca"
+                >
+                  <button
+                    type="button"
+                    className={
+                      readingFilter ===
+                      LibraryReadingFilter.ALL
+                        ? 'library-page__summary-card library-page__summary-card--active'
+                        : 'library-page__summary-card'
+                    }
+                    aria-pressed={
+                      readingFilter ===
+                      LibraryReadingFilter.ALL
+                    }
+                    onClick={() => {
+                      setReadingFilter(
+                        LibraryReadingFilter.ALL,
+                      )
+                    }}
+                  >
+                    <span className="library-page__summary-value">
+                      {readingSummary.total}
+                    </span>
+                    <span className="library-page__summary-label">
+                      Todos
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={
+                      readingFilter ===
+                      LibraryReadingFilter.NOT_STARTED
+                        ? 'library-page__summary-card library-page__summary-card--active'
+                        : 'library-page__summary-card'
+                    }
+                    aria-pressed={
+                      readingFilter ===
+                      LibraryReadingFilter.NOT_STARTED
+                    }
+                    onClick={() => {
+                      setReadingFilter(
+                        LibraryReadingFilter.NOT_STARTED,
+                      )
+                    }}
+                  >
+                    <span className="library-page__summary-value">
+                      {readingSummary.notStarted}
+                    </span>
+                    <span className="library-page__summary-label">
+                      Não iniciados
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={
+                      readingFilter ===
+                      LibraryReadingFilter.IN_PROGRESS
+                        ? 'library-page__summary-card library-page__summary-card--active'
+                        : 'library-page__summary-card'
+                    }
+                    aria-pressed={
+                      readingFilter ===
+                      LibraryReadingFilter.IN_PROGRESS
+                    }
+                    onClick={() => {
+                      setReadingFilter(
+                        LibraryReadingFilter.IN_PROGRESS,
+                      )
+                    }}
+                  >
+                    <span className="library-page__summary-value">
+                      {readingSummary.inProgress}
+                    </span>
+                    <span className="library-page__summary-label">
+                      Em andamento
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={
+                      readingFilter ===
+                      LibraryReadingFilter.COMPLETED
+                        ? 'library-page__summary-card library-page__summary-card--active'
+                        : 'library-page__summary-card'
+                    }
+                    aria-pressed={
+                      readingFilter ===
+                      LibraryReadingFilter.COMPLETED
+                    }
+                    onClick={() => {
+                      setReadingFilter(
+                        LibraryReadingFilter.COMPLETED,
+                      )
+                    }}
+                  >
+                    <span className="library-page__summary-value">
+                      {readingSummary.completed}
+                    </span>
+                    <span className="library-page__summary-label">
+                      Concluídos
+                    </span>
+                  </button>
+                </section>
+              )}
+
+              {!hasActiveLibraryFilter &&
+                continueReadingItems.length >
+                  0 && (
+                <section
+                  className="library-page__continue-reading"
+                  aria-labelledby="continue-reading-title"
+                >
+                  <div className="library-page__section-heading">
+                    <div>
+                      <h2
+                        id="continue-reading-title"
+                        className="library-page__section-title"
+                      >
+                        Continue lendo
+                      </h2>
+
+                      <p className="library-page__section-description">
+                        Retome rapidamente suas leituras mais recentes.
+                      </p>
+                    </div>
+                  </div>
+
+                  <LibraryGrid
+                    {...gridOptionalProps}
+                    className="library-page__continue-grid"
+                    items={
+                      continueReadingItems
+                    }
+                    onOpenBook={
+                      handleOpenBook
+                    }
+                    onDeleteBook={
+                      requestBookDeletion
+                    }
+                    onEditBook={
+                      requestBookMetadataEdit
+                    }
+                  />
+                </section>
+              )}
 
               {libraryItems.length ===
                 0 && (

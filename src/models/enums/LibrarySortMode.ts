@@ -3,6 +3,8 @@ export const LibrarySortMode = {
   RECENTLY_IMPORTED: 'recently-imported',
   TITLE_ASCENDING: 'title-ascending',
   TITLE_DESCENDING: 'title-descending',
+  PROGRESS_ASCENDING: 'progress-ascending',
+  PROGRESS_DESCENDING: 'progress-descending',
 } as const
 
 export type LibrarySortMode =
