@@ -114,6 +114,7 @@ import {
 } from '@/stores/useAppStore'
 
 import '@/styles/components/library-page.css'
+import '@/styles/components/library-premium-v11.css'
 
 function LibraryIcon() {
   return (
