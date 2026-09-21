@@ -2809,6 +2809,49 @@ export function ReaderPage() {
       ],
     )
 
+  const handleGoToPage =
+    useCallback(
+      (pageNumber: number) => {
+        if (
+          navigationDisabled ||
+          totalPages <= 0
+        ) {
+          return
+        }
+
+        const targetPage =
+          normalizePageNumber(
+            pageNumber,
+            totalPages,
+          )
+
+        revealReaderControls()
+
+        if (isContinuousMode) {
+          void navigateToContinuousPosition(
+            targetPage,
+            0,
+          )
+          return
+        }
+
+        void loadPdfPage(
+          targetPage,
+          targetPage +
+            pageNavigationStep,
+        )
+      },
+      [
+        navigationDisabled,
+        totalPages,
+        isContinuousMode,
+        navigateToContinuousPosition,
+        loadPdfPage,
+        pageNavigationStep,
+        revealReaderControls,
+      ],
+    )
+
   useReaderKeyboardShortcuts({
     disabled:
       openedBook === null ||
@@ -2981,6 +3024,9 @@ export function ReaderPage() {
         }
         onNextPage={
           handleNextPage
+        }
+        onGoToPage={
+          handleGoToPage
         }
         onTogglePanel={
           handleTogglePanel

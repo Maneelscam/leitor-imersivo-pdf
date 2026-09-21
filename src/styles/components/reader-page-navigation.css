@@ -1,0 +1,73 @@
+.reader-page__page-jump-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.reader-page__page-jump-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.reader-page__page-jump-input {
+  width: 3.75rem;
+  min-height: 2rem;
+  padding:
+    0
+    var(--space-2);
+
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+
+  background: var(--color-surface);
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.reader-page__page-jump-input:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+}
+
+.reader-page__page-jump-input:focus-visible {
+  outline:
+    2px
+    solid
+    var(--color-accent);
+  outline-offset: 2px;
+}
+
+.reader-page__page-jump-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.reader-page__page-jump-total {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 30rem) {
+  .reader-page__page-jump-input {
+    width: 3.25rem;
+  }
+
+  .reader-page__page-jump-total {
+    font-size: var(--font-size-xs);
+  }
+}

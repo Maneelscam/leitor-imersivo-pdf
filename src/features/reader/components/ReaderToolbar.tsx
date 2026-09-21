@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useState,
   type HTMLAttributes,
   type ReactNode,
@@ -14,6 +15,7 @@ import {
 } from '@/components/layout/AppShellContext'
 
 import '@/styles/components/reader-shortcuts-dialog.css'
+import '@/styles/components/reader-page-navigation.css'
 
 export interface ReaderToolbarProps
   extends HTMLAttributes<HTMLDivElement> {
@@ -32,6 +34,9 @@ export interface ReaderToolbarProps
   readonly onBack: () => void
   readonly onPreviousPage: () => void
   readonly onNextPage: () => void
+  readonly onGoToPage: (
+    pageNumber: number,
+  ) => void
   readonly onTogglePanel: () => void
 }
 
@@ -220,6 +225,7 @@ export function ReaderToolbar({
   onBack,
   onPreviousPage,
   onNextPage,
+  onGoToPage,
   onTogglePanel,
   className,
   ...containerProps
@@ -255,6 +261,60 @@ export function ReaderToolbar({
     originalFileName.trim().length > 0
       ? originalFileName.trim()
       : 'Arquivo PDF'
+
+  const [
+    pageInputValue,
+    setPageInputValue,
+  ] = useState(() =>
+    normalizedCurrentPage > 0
+      ? String(normalizedCurrentPage)
+      : '',
+  )
+
+  useEffect(() => {
+    setPageInputValue(
+      normalizedCurrentPage > 0
+        ? String(normalizedCurrentPage)
+        : '',
+    )
+  }, [normalizedCurrentPage])
+
+  const submitPageNumber = () => {
+    const parsedPageNumber =
+      Number.parseInt(
+        pageInputValue,
+        10,
+      )
+
+    if (
+      !Number.isFinite(parsedPageNumber) ||
+      normalizedTotalPages <= 0
+    ) {
+      setPageInputValue(
+        normalizedCurrentPage > 0
+          ? String(normalizedCurrentPage)
+          : '',
+      )
+      return
+    }
+
+    const targetPage =
+      normalizePageNumber(
+        parsedPageNumber,
+        normalizedTotalPages,
+      )
+
+    setPageInputValue(
+      String(targetPage),
+    )
+
+    if (
+      targetPage !==
+      normalizedCurrentPage
+    ) {
+      onGoToPage(targetPage)
+    }
+  }
 
   const previousPageDisabled =
     navigationDisabled ||
@@ -408,31 +468,68 @@ export function ReaderToolbar({
           <PreviousPageIcon />
         </Button>
 
-        <span
-          className="reader-page__page-indicator"
-          aria-live="polite"
-          aria-label={
-            normalizedTotalPages > 0
-              ? `Página ${normalizedCurrentPage} de ${normalizedTotalPages}`
-              : 'Página indisponível'
-          }
+        <form
+          className="reader-page__page-jump-form"
+          aria-label="Ir para página"
+          onSubmit={(event) => {
+            event.preventDefault()
+            submitPageNumber()
+          }}
         >
-          <span className="reader-page__page-indicator-current">
-            {normalizedTotalPages > 0
-              ? normalizedCurrentPage
-              : '—'}
-          </span>
+          <label
+            className="reader-page__page-jump-label"
+            htmlFor="reader-page-jump-input"
+          >
+            Página
+          </label>
 
-          <span className="reader-page__page-indicator-separator">
-            de
-          </span>
+          <input
+            id="reader-page-jump-input"
+            className="reader-page__page-jump-input"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={
+              normalizedTotalPages > 0
+                ? normalizedTotalPages
+                : 1
+            }
+            value={pageInputValue}
+            disabled={
+              navigationDisabled ||
+              normalizedTotalPages <= 0
+            }
+            aria-label={
+              normalizedTotalPages > 0
+                ? `Página atual. Digite um número de 1 a ${normalizedTotalPages} e pressione Enter.`
+                : 'Página indisponível'
+            }
+            onChange={(event) => {
+              setPageInputValue(
+                event.target.value,
+              )
+            }}
+            onBlur={() => {
+              setPageInputValue(
+                normalizedCurrentPage > 0
+                  ? String(
+                      normalizedCurrentPage,
+                    )
+                  : '',
+              )
+            }}
+          />
 
-          <span className="reader-page__page-indicator-total">
+          <span
+            className="reader-page__page-jump-total"
+            aria-hidden="true"
+          >
+            de{' '}
             {normalizedTotalPages > 0
               ? normalizedTotalPages
               : '—'}
           </span>
-        </span>
+        </form>
 
         <Button
           variant={ButtonVariant.GHOST}

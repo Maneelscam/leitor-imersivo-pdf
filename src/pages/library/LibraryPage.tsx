@@ -319,6 +319,11 @@ export function LibraryPage() {
     setIsPdfDragActive,
   ] = useState(false)
 
+  const [
+    droppedInvalidFileCount,
+    setDroppedInvalidFileCount,
+  ] = useState<number | null>(null)
+
   const pdfDragDepthRef =
     useRef(0)
 
@@ -793,12 +798,23 @@ export function LibraryPage() {
       return
     }
 
-    const pdfFiles =
-      filterPdfFiles(
-        Array.from(
-          event.dataTransfer.files,
-        ),
+    const droppedFiles =
+      Array.from(
+        event.dataTransfer.files,
       )
+
+    const pdfFiles =
+      filterPdfFiles(droppedFiles)
+
+    const invalidFileCount =
+      droppedFiles.length -
+      pdfFiles.length
+
+    setDroppedInvalidFileCount(
+      invalidFileCount > 0
+        ? invalidFileCount
+        : null,
+    )
 
     if (pdfFiles.length === 0) {
       return
@@ -947,6 +963,36 @@ export function LibraryPage() {
               }
             />
           )}
+
+        {droppedInvalidFileCount !== null && (
+          <FeedbackMessage
+            variant={
+              FeedbackMessageVariant.WARNING
+            }
+            title="Arquivos ignorados"
+            description={
+              droppedInvalidFileCount === 1
+                ? '1 arquivo não era um PDF válido para importação e foi ignorado.'
+                : `${droppedInvalidFileCount} arquivos não eram PDFs válidos para importação e foram ignorados.`
+            }
+            icon={<WarningIcon />}
+            action={
+              <Button
+                variant={
+                  ButtonVariant.GHOST
+                }
+                size={ButtonSize.SMALL}
+                onClick={() => {
+                  setDroppedInvalidFileCount(
+                    null,
+                  )
+                }}
+              >
+                Entendi
+              </Button>
+            }
+          />
+        )}
 
         {importWarnings.length > 0 && (
           <FeedbackMessage
