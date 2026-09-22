@@ -12,6 +12,9 @@ import type {
   SaveReaderSettingsCommand,
 } from '@/controllers/settings/SaveReaderSettingsController'
 import type {
+  CollectionSummary,
+} from '@/models/dtos/CollectionSummary'
+import type {
   LibraryBookItem,
 } from '@/models/dtos/LibraryBookItem'
 import type {
@@ -33,6 +36,9 @@ import type {
   Bookmark,
 } from '@/models/entities/Bookmark'
 import type {
+  Collection,
+} from '@/models/entities/Collection'
+import type {
   ReaderSettings,
 } from '@/models/entities/ReaderSettings'
 import type {
@@ -50,6 +56,9 @@ import type {
 import type {
   BookId,
 } from '@/models/value-objects/BookId'
+import type {
+  CollectionId,
+} from '@/models/value-objects/CollectionId'
 import type {
   LoadedPdfDocument,
 } from '@/services/pdf/PdfDocumentService'
@@ -109,6 +118,57 @@ export interface LibrarySlice {
   clearLibraryError(): void
 
   clearImportWarnings(): void
+}
+
+export interface CollectionSlice {
+  readonly collectionSummaries:
+    readonly CollectionSummary[]
+
+  readonly collectionsLoadStatus:
+    AsyncStatus
+
+  readonly collectionMutationStatus:
+    AsyncStatus
+
+  readonly collectionErrorMessage:
+    string | null
+
+  loadCollections(): Promise<void>
+
+  createCollection(
+    name: string,
+    description: string | null,
+  ): Promise<void>
+
+  updateCollection(
+    collectionId: CollectionId,
+    name: string,
+    description: string | null,
+  ): Promise<void>
+
+  deleteCollection(
+    collectionId: CollectionId,
+  ): Promise<void>
+
+  addBookToCollection(
+    collectionId: CollectionId,
+    bookId: BookId,
+  ): Promise<void>
+
+  removeBookFromCollection(
+    collectionId: CollectionId,
+    bookId: BookId,
+  ): Promise<void>
+
+  loadBookCollections(
+    bookId: BookId,
+  ): Promise<readonly Collection[]>
+
+  loadCollectionBookIds(
+    collectionId: CollectionId,
+  ): Promise<readonly BookId[]>
+
+  clearCollectionError(): void
 }
 
 export interface LibraryBackupSlice {
@@ -391,6 +451,7 @@ export interface ReaderSettingsSlice {
 
 export type AppStore =
   LibrarySlice &
+  CollectionSlice &
   LibraryBackupSlice &
   ReaderSlice &
   AnnotationSlice &

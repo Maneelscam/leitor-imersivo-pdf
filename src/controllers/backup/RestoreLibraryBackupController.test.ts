@@ -37,6 +37,8 @@ function createSnapshot():
     readingProgress: [],
     bookmarks: [],
     annotations: [],
+    collections: [],
+    collectionMemberships: [],
     readerSettings: null,
   }
 }
@@ -75,6 +77,8 @@ function createManifest():
       readingProgress: [],
       bookmarks: [],
       annotations: [],
+      collections: [],
+      collectionMemberships: [],
       readerSettings: null,
     },
   }

@@ -186,6 +186,8 @@ function createManifest(
 
       annotations: [],
 
+      collections: [],
+      collectionMemberships: [],
       readerSettings: null,
 
       ...overrides,

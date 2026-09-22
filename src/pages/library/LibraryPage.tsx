@@ -37,6 +37,18 @@ import {
   filterPdfFiles,
 } from '@/features/import-pdf/utils/filterPdfFiles'
 import {
+  BookCollectionsDialog,
+} from '@/features/library/components/BookCollectionsDialog'
+import {
+  CollectionBooksDialog,
+} from '@/features/library/components/CollectionBooksDialog'
+import {
+  CollectionEditorDialog,
+} from '@/features/library/components/CollectionEditorDialog'
+import {
+  CollectionShelf,
+} from '@/features/library/components/CollectionShelf'
+import {
   EditBookMetadataDialog,
 } from '@/features/library/components/EditBookMetadataDialog'
 import {
@@ -58,12 +70,18 @@ import {
   getLibraryReadingSummary,
 } from '@/features/library/utils/getLibraryReadingSummary'
 import type {
+  CollectionSummary,
+} from '@/models/dtos/CollectionSummary'
+import type {
   LibraryBookItem,
 } from '@/models/dtos/LibraryBookItem'
 import {
   PdfImportWarningCode,
   type PdfImportWarningCode as PdfImportWarningCodeValue,
 } from '@/models/dtos/PdfImportResult'
+import type {
+  Collection,
+} from '@/models/entities/Collection'
 import {
   AsyncStatus,
 } from '@/models/enums/AsyncStatus'
@@ -77,9 +95,26 @@ import type {
 import type {
   BookId,
 } from '@/models/value-objects/BookId'
+import type {
+  CollectionId,
+} from '@/models/value-objects/CollectionId'
 import {
   libraryViewPreferenceService,
 } from '@/services/settings/LibraryViewPreferenceService'
+import {
+  selectAddBookToCollection,
+  selectClearCollectionError,
+  selectCollectionErrorMessage,
+  selectCollectionMutationStatus,
+  selectCollectionSummaries,
+  selectCollectionsLoadStatus,
+  selectCreateCollection,
+  selectDeleteCollection,
+  selectLoadBookCollections,
+  selectLoadCollectionBookIds,
+  selectRemoveBookFromCollection,
+  selectUpdateCollection,
+} from '@/stores/selectors/collectionSelectors'
 import {
   selectClearLibraryBackupError,
   selectExportLibraryBackup,
@@ -115,6 +150,7 @@ import {
 
 import '@/styles/components/library-page.css'
 import '@/styles/components/library-premium-v11.css'
+import '@/styles/components/collections-premium-v11.css'
 
 function LibraryIcon() {
   return (
@@ -250,6 +286,22 @@ export function LibraryPage() {
     selectLastImportWarnings,
   )
 
+  const collectionSummaries = useAppStore(
+    selectCollectionSummaries,
+  )
+
+  const collectionsLoadStatus = useAppStore(
+    selectCollectionsLoadStatus,
+  )
+
+  const collectionMutationStatus = useAppStore(
+    selectCollectionMutationStatus,
+  )
+
+  const collectionErrorMessage = useAppStore(
+    selectCollectionErrorMessage,
+  )
+
   const libraryBackupExportStatus = useAppStore(
     selectLibraryBackupExportStatus,
   )
@@ -284,6 +336,38 @@ export function LibraryPage() {
 
   const updateBookMetadata = useAppStore(
     selectUpdateBookMetadata,
+  )
+
+  const createCollection = useAppStore(
+    selectCreateCollection,
+  )
+
+  const updateCollection = useAppStore(
+    selectUpdateCollection,
+  )
+
+  const deleteCollection = useAppStore(
+    selectDeleteCollection,
+  )
+
+  const addBookToCollection = useAppStore(
+    selectAddBookToCollection,
+  )
+
+  const removeBookFromCollection = useAppStore(
+    selectRemoveBookFromCollection,
+  )
+
+  const loadBookCollections = useAppStore(
+    selectLoadBookCollections,
+  )
+
+  const loadCollectionBookIds = useAppStore(
+    selectLoadCollectionBookIds,
+  )
+
+  const clearCollectionError = useAppStore(
+    selectClearCollectionError,
   )
 
   const exportLibraryBackup = useAppStore(
@@ -361,6 +445,82 @@ export function LibraryPage() {
   )
 
   const [
+    selectedCollectionId,
+    setSelectedCollectionId,
+  ] = useState<CollectionId | null>(
+    null,
+  )
+
+  const [
+    selectedCollectionBookIds,
+    setSelectedCollectionBookIds,
+  ] = useState<readonly BookId[]>(
+    [],
+  )
+
+  const [
+    isCollectionFilterLoading,
+    setIsCollectionFilterLoading,
+  ] = useState(false)
+
+  const [
+    isCreatingCollection,
+    setIsCreatingCollection,
+  ] = useState(false)
+
+  const [
+    collectionPendingEdit,
+    setCollectionPendingEdit,
+  ] = useState<Collection | null>(
+    null,
+  )
+
+  const [
+    collectionPendingDeletion,
+    setCollectionPendingDeletion,
+  ] = useState<CollectionSummary | null>(
+    null,
+  )
+
+  const [
+    collectionPendingBookManagement,
+    setCollectionPendingBookManagement,
+  ] = useState<CollectionSummary | null>(
+    null,
+  )
+
+  const [
+    collectionManagedBookIds,
+    setCollectionManagedBookIds,
+  ] = useState<readonly BookId[]>(
+    [],
+  )
+
+  const [
+    isCollectionBooksLoading,
+    setIsCollectionBooksLoading,
+  ] = useState(false)
+
+  const [
+    bookPendingCollectionManagement,
+    setBookPendingCollectionManagement,
+  ] = useState<LibraryBookItem | null>(
+    null,
+  )
+
+  const [
+    bookCollectionIds,
+    setBookCollectionIds,
+  ] = useState<readonly CollectionId[]>(
+    [],
+  )
+
+  const [
+    isBookCollectionsLoading,
+    setIsBookCollectionsLoading,
+  ] = useState(false)
+
+  const [
     libraryViewMode,
     setLibraryViewMode,
   ] = useState<LibraryViewMode>(
@@ -377,7 +537,7 @@ export function LibraryPage() {
     )
   }
 
-  const filteredLibraryItems =
+  const searchAndReadingFilteredItems =
     useMemo(
       () =>
         filterLibraryItemsByReadingStatus(
@@ -391,6 +551,53 @@ export function LibraryPage() {
         libraryItems,
         searchQuery,
         readingFilter,
+      ],
+    )
+
+  const filteredLibraryItems =
+    useMemo(
+      () => {
+        if (
+          selectedCollectionId === null
+        ) {
+          return searchAndReadingFilteredItems
+        }
+
+        const selectedBookIds =
+          new Set(
+            selectedCollectionBookIds,
+          )
+
+        return searchAndReadingFilteredItems
+          .filter(
+            (item) =>
+              selectedBookIds.has(
+                item.book.id,
+              ),
+          )
+      },
+      [
+        searchAndReadingFilteredItems,
+        selectedCollectionId,
+        selectedCollectionBookIds,
+      ],
+    )
+
+  const selectedCollectionSummary =
+    useMemo(
+      () =>
+        selectedCollectionId === null
+          ? null
+          : (
+              collectionSummaries.find(
+                (summary) =>
+                  summary.collection.id ===
+                  selectedCollectionId,
+              ) ?? null
+            ),
+      [
+        collectionSummaries,
+        selectedCollectionId,
       ],
     )
 
@@ -422,14 +629,24 @@ export function LibraryPage() {
     readingFilter !==
     LibraryReadingFilter.ALL
 
+  const hasActiveCollectionFilter =
+    selectedCollectionId !== null
+
   const hasActiveLibraryFilter =
     hasActiveSearch ||
-    hasActiveReadingFilter
+    hasActiveReadingFilter ||
+    hasActiveCollectionFilter
 
   const clearLibraryFilters = () => {
     setSearchQuery('')
     setReadingFilter(
       LibraryReadingFilter.ALL,
+    )
+    setSelectedCollectionId(
+      null,
+    )
+    setSelectedCollectionBookIds(
+      [],
     )
   }
 
@@ -459,6 +676,14 @@ export function LibraryPage() {
       AsyncStatus.ERROR &&
     bookPendingMetadataEdit !== null
 
+  const isCollectionMutating =
+    collectionMutationStatus ===
+    AsyncStatus.LOADING
+
+  const isCollectionsLoading =
+    collectionsLoadStatus ===
+    AsyncStatus.LOADING
+
   const isBackupExporting =
     libraryBackupExportStatus ===
     AsyncStatus.LOADING
@@ -474,6 +699,468 @@ export function LibraryPage() {
   const hasBackupRestoreError =
     libraryBackupRestoreStatus ===
     AsyncStatus.ERROR
+
+  const handleCollectionSelection =
+    async (
+      collectionId: CollectionId,
+    ) => {
+      if (
+        isCollectionFilterLoading ||
+        isCollectionMutating
+      ) {
+        return
+      }
+
+      if (
+        selectedCollectionId ===
+        collectionId
+      ) {
+        setSelectedCollectionId(
+          null,
+        )
+        setSelectedCollectionBookIds(
+          [],
+        )
+        return
+      }
+
+      setSelectedCollectionId(
+        collectionId,
+      )
+      setSelectedCollectionBookIds(
+        [],
+      )
+      setIsCollectionFilterLoading(
+        true,
+      )
+      clearCollectionError()
+
+      try {
+        const bookIds =
+          await loadCollectionBookIds(
+            collectionId,
+          )
+
+        setSelectedCollectionBookIds(
+          bookIds,
+        )
+      } finally {
+        setIsCollectionFilterLoading(
+          false,
+        )
+      }
+    }
+
+  const requestCollectionCreation =
+    () => {
+      if (isCollectionMutating) {
+        return
+      }
+
+      clearCollectionError()
+      setCollectionPendingEdit(
+        null,
+      )
+      setIsCreatingCollection(
+        true,
+      )
+    }
+
+  const requestCollectionEdit = (
+    collection: Collection,
+  ) => {
+    if (isCollectionMutating) {
+      return
+    }
+
+    clearCollectionError()
+    setIsCreatingCollection(
+      false,
+    )
+    setCollectionPendingEdit(
+      collection,
+    )
+  }
+
+  const cancelCollectionEditor =
+    () => {
+      if (isCollectionMutating) {
+        return
+      }
+
+      setIsCreatingCollection(
+        false,
+      )
+      setCollectionPendingEdit(
+        null,
+      )
+      clearCollectionError()
+    }
+
+  const saveCollection =
+    async (
+      name: string,
+      description: string | null,
+    ) => {
+      if (isCollectionMutating) {
+        return
+      }
+
+      if (
+        collectionPendingEdit !== null
+      ) {
+        await updateCollection(
+          collectionPendingEdit.id,
+          name,
+          description,
+        )
+      } else {
+        await createCollection(
+          name,
+          description,
+        )
+      }
+
+      const currentState =
+        useAppStore.getState()
+
+      if (
+        currentState
+          .collectionMutationStatus ===
+        AsyncStatus.SUCCESS
+      ) {
+        setIsCreatingCollection(
+          false,
+        )
+        setCollectionPendingEdit(
+          null,
+        )
+      }
+    }
+
+  const requestCollectionDeletion = (
+    summary: CollectionSummary,
+  ) => {
+    if (isCollectionMutating) {
+      return
+    }
+
+    clearCollectionError()
+    setCollectionPendingDeletion(
+      summary,
+    )
+  }
+
+  const cancelCollectionDeletion =
+    () => {
+      if (isCollectionMutating) {
+        return
+      }
+
+      setCollectionPendingDeletion(
+        null,
+      )
+      clearCollectionError()
+    }
+
+  const confirmCollectionDeletion =
+    async () => {
+      if (
+        collectionPendingDeletion ===
+          null ||
+        isCollectionMutating
+      ) {
+        return
+      }
+
+      const collectionId =
+        collectionPendingDeletion
+          .collection.id
+
+      await deleteCollection(
+        collectionId,
+      )
+
+      const currentState =
+        useAppStore.getState()
+
+      if (
+        currentState
+          .collectionMutationStatus ===
+        AsyncStatus.SUCCESS
+      ) {
+        if (
+          selectedCollectionId ===
+          collectionId
+        ) {
+          setSelectedCollectionId(
+            null,
+          )
+          setSelectedCollectionBookIds(
+            [],
+          )
+        }
+
+        setCollectionPendingDeletion(
+          null,
+        )
+      }
+    }
+
+  const requestCollectionBookManagement =
+    async (
+      summary: CollectionSummary,
+    ) => {
+      if (isCollectionMutating) {
+        return
+      }
+
+      clearCollectionError()
+
+      setCollectionPendingBookManagement(
+        summary,
+      )
+      setCollectionManagedBookIds(
+        [],
+      )
+      setIsCollectionBooksLoading(
+        true,
+      )
+
+      try {
+        const bookIds =
+          await loadCollectionBookIds(
+            summary.collection.id,
+          )
+
+        setCollectionManagedBookIds(
+          bookIds,
+        )
+      } finally {
+        setIsCollectionBooksLoading(
+          false,
+        )
+      }
+    }
+
+  const closeCollectionBookManagement =
+    () => {
+      if (isCollectionMutating) {
+        return
+      }
+
+      setCollectionPendingBookManagement(
+        null,
+      )
+      setCollectionManagedBookIds(
+        [],
+      )
+      clearCollectionError()
+    }
+
+  const toggleCollectionBook =
+    async (
+      bookId: BookId,
+      shouldBeAssigned: boolean,
+    ) => {
+      if (
+        collectionPendingBookManagement ===
+          null ||
+        isCollectionMutating
+      ) {
+        return
+      }
+
+      const collectionId =
+        collectionPendingBookManagement
+          .collection.id
+
+      if (shouldBeAssigned) {
+        await addBookToCollection(
+          collectionId,
+          bookId,
+        )
+      } else {
+        await removeBookFromCollection(
+          collectionId,
+          bookId,
+        )
+      }
+
+      const currentState =
+        useAppStore.getState()
+
+      if (
+        currentState
+          .collectionMutationStatus !==
+        AsyncStatus.SUCCESS
+      ) {
+        return
+      }
+
+      const updateBookIds = (
+        currentIds: readonly BookId[],
+      ): readonly BookId[] =>
+        shouldBeAssigned
+          ? Array.from(
+              new Set([
+                ...currentIds,
+                bookId,
+              ]),
+            )
+          : currentIds.filter(
+              (id) =>
+                id !== bookId,
+            )
+
+      setCollectionManagedBookIds(
+        updateBookIds,
+      )
+
+      if (
+        selectedCollectionId ===
+        collectionId
+      ) {
+        setSelectedCollectionBookIds(
+          updateBookIds,
+        )
+      }
+    }
+
+  const requestBookCollectionManagement =
+    async (
+      bookId: BookId,
+    ) => {
+      if (isCollectionMutating) {
+        return
+      }
+
+      const item =
+        libraryItems.find(
+          (candidate) =>
+            candidate.book.id ===
+            bookId,
+        )
+
+      if (item === undefined) {
+        return
+      }
+
+      clearCollectionError()
+
+      setBookPendingCollectionManagement(
+        item,
+      )
+      setBookCollectionIds(
+        [],
+      )
+      setIsBookCollectionsLoading(
+        true,
+      )
+
+      try {
+        const collections =
+          await loadBookCollections(
+            bookId,
+          )
+
+        setBookCollectionIds(
+          collections.map(
+            (collection) =>
+              collection.id,
+          ),
+        )
+      } finally {
+        setIsBookCollectionsLoading(
+          false,
+        )
+      }
+    }
+
+  const closeBookCollectionManagement =
+    () => {
+      if (isCollectionMutating) {
+        return
+      }
+
+      setBookPendingCollectionManagement(
+        null,
+      )
+      setBookCollectionIds(
+        [],
+      )
+      clearCollectionError()
+    }
+
+  const toggleBookCollection =
+    async (
+      collectionId: CollectionId,
+      shouldBeAssigned: boolean,
+    ) => {
+      if (
+        bookPendingCollectionManagement ===
+          null ||
+        isCollectionMutating
+      ) {
+        return
+      }
+
+      const bookId =
+        bookPendingCollectionManagement
+          .book.id
+
+      if (shouldBeAssigned) {
+        await addBookToCollection(
+          collectionId,
+          bookId,
+        )
+      } else {
+        await removeBookFromCollection(
+          collectionId,
+          bookId,
+        )
+      }
+
+      const currentState =
+        useAppStore.getState()
+
+      if (
+        currentState
+          .collectionMutationStatus !==
+        AsyncStatus.SUCCESS
+      ) {
+        return
+      }
+
+      setBookCollectionIds(
+        (currentIds) =>
+          shouldBeAssigned
+            ? Array.from(
+                new Set([
+                  ...currentIds,
+                  collectionId,
+                ]),
+              )
+            : currentIds.filter(
+                (id) =>
+                  id !== collectionId,
+              ),
+      )
+
+      if (
+        selectedCollectionId ===
+        collectionId
+      ) {
+        const bookIds =
+          await loadCollectionBookIds(
+            collectionId,
+          )
+
+        setSelectedCollectionBookIds(
+          bookIds,
+        )
+      }
+    }
 
   const handleOpenBook = async (
     bookId: BookId,
@@ -725,6 +1412,7 @@ export function LibraryPage() {
     !isImportingPdfs &&
     !isDeleting &&
     !isUpdatingBookMetadata &&
+    !isCollectionMutating &&
     !isBackupRestoring
 
   const hasDraggedFiles = (
@@ -846,6 +1534,16 @@ export function LibraryPage() {
       : {}),
   }
 
+  const showCollectionErrorOutsideDialog =
+    collectionErrorMessage !== null &&
+    !isCreatingCollection &&
+    collectionPendingEdit === null &&
+    collectionPendingDeletion === null &&
+    collectionPendingBookManagement ===
+      null &&
+    bookPendingCollectionManagement ===
+      null
+
   const showBackupErrorOutsideDialog =
     libraryBackupErrorMessage !== null &&
     (
@@ -889,7 +1587,7 @@ export function LibraryPage() {
               FeedbackMessageVariant.SUCCESS
             }
             title="Backup restaurado com sucesso"
-            description="A biblioteca, os PDFs, as capas, o progresso, os favoritos, as anotações e as configurações foram restaurados."
+            description="A biblioteca, os PDFs, as coleções, o progresso, os favoritos, as anotações e as configurações foram restaurados."
             icon={<SuccessIcon />}
             action={
               <Button
@@ -899,6 +1597,32 @@ export function LibraryPage() {
                 size={ButtonSize.SMALL}
                 onClick={
                   dismissBackupRestoreSuccess
+                }
+              >
+                Fechar
+              </Button>
+            }
+          />
+        )}
+
+        {showCollectionErrorOutsideDialog && (
+          <FeedbackMessage
+            variant={
+              FeedbackMessageVariant.ERROR
+            }
+            title="Não foi possível atualizar as coleções"
+            description={
+              collectionErrorMessage
+            }
+            icon={<ErrorIcon />}
+            action={
+              <Button
+                variant={
+                  ButtonVariant.GHOST
+                }
+                size={ButtonSize.SMALL}
+                onClick={
+                  clearCollectionError
                 }
               >
                 Fechar
@@ -1104,7 +1828,8 @@ export function LibraryPage() {
                   libraryLoadStatus ===
                     AsyncStatus.LOADING ||
                   isDeleting ||
-                  isUpdatingBookMetadata
+                  isUpdatingBookMetadata ||
+                  isCollectionMutating
                 }
                 backupExporting={
                   isBackupExporting
@@ -1243,6 +1968,39 @@ export function LibraryPage() {
                 </section>
               )}
 
+              {libraryItems.length > 0 && (
+                <CollectionShelf
+                  summaries={
+                    collectionSummaries
+                  }
+                  selectedCollectionId={
+                    selectedCollectionId
+                  }
+                  loading={
+                    isCollectionsLoading
+                  }
+                  disabled={
+                    isCollectionMutating ||
+                    isCollectionFilterLoading
+                  }
+                  onSelect={
+                    handleCollectionSelection
+                  }
+                  onCreate={
+                    requestCollectionCreation
+                  }
+                  onEdit={
+                    requestCollectionEdit
+                  }
+                  onDelete={
+                    requestCollectionDeletion
+                  }
+                  onManageBooks={
+                    requestCollectionBookManagement
+                  }
+                />
+              )}
+
               {!hasActiveLibraryFilter &&
                 continueReadingItems.length >
                   0 && (
@@ -1280,8 +2038,23 @@ export function LibraryPage() {
                     onEditBook={
                       requestBookMetadataEdit
                     }
+                    onManageCollections={
+                      requestBookCollectionManagement
+                    }
                   />
                 </section>
+              )}
+
+              {isCollectionFilterLoading && (
+                <div className="library-page__collection-filter-loading">
+                  <LoadingIndicator
+                    size={
+                      LoadingIndicatorSize.MEDIUM
+                    }
+                    label="Carregando coleção..."
+                    vertical
+                  />
+                </div>
               )}
 
               {libraryItems.length ===
@@ -1304,17 +2077,22 @@ export function LibraryPage() {
                 0 &&
                 filteredLibraryItems
                   .length === 0 &&
-                hasActiveLibraryFilter && (
+                hasActiveLibraryFilter &&
+                !isCollectionFilterLoading && (
                 <div className="library-page__empty">
                   <EmptyState
                     title="Nenhum documento encontrado"
                     description={
-                      hasActiveSearch &&
-                      hasActiveReadingFilter
-                        ? `Nenhum PDF corresponde à busca “${normalizedSearchQuery}” dentro do filtro de leitura selecionado.`
-                        : hasActiveSearch
-                          ? `Nenhum PDF corresponde à busca “${normalizedSearchQuery}”. Tente outro título, autor ou nome de arquivo.`
-                          : 'Nenhum PDF corresponde ao status de leitura selecionado.'
+                      selectedCollectionSummary !== null &&
+                      !hasActiveSearch &&
+                      !hasActiveReadingFilter
+                        ? 'Esta coleção ainda não possui livros. Use o ícone de pasta em um livro para adicioná-lo.'
+                        : hasActiveSearch &&
+                            hasActiveReadingFilter
+                          ? `Nenhum PDF corresponde à busca “${normalizedSearchQuery}” dentro dos filtros selecionados.`
+                          : hasActiveSearch
+                            ? `Nenhum PDF corresponde à busca “${normalizedSearchQuery}”. Tente outro título, autor ou nome de arquivo.`
+                            : 'Nenhum PDF corresponde aos filtros selecionados.'
                     }
                     icon={
                       <LibraryIcon />
@@ -1344,16 +2122,20 @@ export function LibraryPage() {
                   <div className="library-page__collection-heading">
                     <div className="library-page__collection-heading-main">
                       <span className="library-page__collection-kicker">
-                        Acervo
+                        {selectedCollectionSummary !== null
+                          ? 'Coleção'
+                          : 'Acervo'}
                       </span>
 
                       <h2
                         id="library-collection-title"
                         className="library-page__collection-title"
                       >
-                        {hasActiveLibraryFilter
-                          ? 'Resultados'
-                          : 'Todos os livros'}
+                        {selectedCollectionSummary !== null
+                          ? selectedCollectionSummary.collection.name
+                          : hasActiveLibraryFilter
+                            ? 'Resultados'
+                            : 'Todos os livros'}
                       </h2>
                     </div>
 
@@ -1384,12 +2166,161 @@ export function LibraryPage() {
                     onEditBook={
                       requestBookMetadataEdit
                     }
+                    onManageCollections={
+                      requestBookCollectionManagement
+                    }
                   />
                 </section>
               )}
             </>
           )}
       </div>
+
+      {(isCreatingCollection ||
+        collectionPendingEdit !== null) && (
+        <CollectionEditorDialog
+          collection={
+            collectionPendingEdit
+          }
+          isSaving={
+            isCollectionMutating
+          }
+          errorMessage={
+            collectionErrorMessage
+          }
+          onSave={
+            saveCollection
+          }
+          onCancel={
+            cancelCollectionEditor
+          }
+        />
+      )}
+
+      {collectionPendingBookManagement !==
+        null && (
+        <CollectionBooksDialog
+          summary={
+            collectionPendingBookManagement
+          }
+          items={
+            libraryItems
+          }
+          assignedBookIds={
+            collectionManagedBookIds
+          }
+          loading={
+            isCollectionBooksLoading
+          }
+          mutating={
+            isCollectionMutating
+          }
+          errorMessage={
+            collectionErrorMessage
+          }
+          onToggle={
+            toggleCollectionBook
+          }
+          onClose={
+            closeCollectionBookManagement
+          }
+        />
+      )}
+
+      {bookPendingCollectionManagement !==
+        null && (
+        <BookCollectionsDialog
+          item={
+            bookPendingCollectionManagement
+          }
+          summaries={
+            collectionSummaries
+          }
+          assignedCollectionIds={
+            bookCollectionIds
+          }
+          loading={
+            isBookCollectionsLoading
+          }
+          mutating={
+            isCollectionMutating
+          }
+          errorMessage={
+            collectionErrorMessage
+          }
+          onToggle={
+            toggleBookCollection
+          }
+          onClose={
+            closeBookCollectionManagement
+          }
+        />
+      )}
+
+      <ConfirmDialog
+        open={
+          collectionPendingDeletion !==
+          null
+        }
+        title="Excluir esta coleção?"
+        description="A coleção será removida, mas nenhum PDF será apagado."
+        confirmLabel="Excluir coleção"
+        cancelLabel="Cancelar"
+        destructive
+        isConfirming={
+          isCollectionMutating
+        }
+        onConfirm={
+          confirmCollectionDeletion
+        }
+        onCancel={
+          cancelCollectionDeletion
+        }
+      >
+        {collectionPendingDeletion !==
+          null && (
+          <div className="library-page__delete-details">
+            <div className="library-page__delete-book">
+              <span className="library-page__delete-book-title">
+                {
+                  collectionPendingDeletion
+                    .collection.name
+                }
+              </span>
+
+              <span className="library-page__delete-book-file">
+                {
+                  collectionPendingDeletion
+                    .bookCount === 1
+                    ? '1 livro organizado nesta coleção'
+                    : `${collectionPendingDeletion.bookCount} livros organizados nesta coleção`
+                }
+              </span>
+            </div>
+
+            <p className="library-page__delete-explanation">
+              Apenas a organização será removida. Os livros permanecem na biblioteca e todos os PDFs originais continuam intactos.
+            </p>
+
+            {collectionMutationStatus ===
+              AsyncStatus.ERROR &&
+              collectionErrorMessage !==
+                null && (
+                <FeedbackMessage
+                  variant={
+                    FeedbackMessageVariant.ERROR
+                  }
+                  title="A coleção não foi excluída"
+                  description={
+                    collectionErrorMessage
+                  }
+                  icon={<ErrorIcon />}
+                  compact
+                />
+              )}
+          </div>
+        )}
+      </ConfirmDialog>
 
       {bookPendingMetadataEdit !==
         null && (
@@ -1519,9 +2450,9 @@ export function LibraryPage() {
 
             <p className="library-page__delete-explanation">
               Todos os livros, PDFs,
-              capas, progressos, favoritos
-              e configurações atualmente
-              armazenados no aplicativo
+              capas, coleções, progressos,
+              favoritos e configurações
+              atualmente armazenados no aplicativo
               serão substituídos. O
               processo somente será
               concluído se todo o backup

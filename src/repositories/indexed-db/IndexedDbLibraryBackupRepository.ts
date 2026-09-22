@@ -30,6 +30,12 @@ import type {
   Bookmark,
 } from '@/models/entities/Bookmark'
 import type {
+  Collection,
+} from '@/models/entities/Collection'
+import type {
+  CollectionMembership,
+} from '@/models/entities/CollectionMembership'
+import type {
   ReaderSettings,
 } from '@/models/entities/ReaderSettings'
 import type {
@@ -47,6 +53,8 @@ const BACKUP_STORE_NAMES = [
   DATABASE_STORE_NAMES.BOOKMARKS,
   DATABASE_STORE_NAMES.ANNOTATIONS,
   DATABASE_STORE_NAMES.READER_SETTINGS,
+  DATABASE_STORE_NAMES.COLLECTIONS,
+  DATABASE_STORE_NAMES.COLLECTION_MEMBERSHIPS,
 ] as const
 
 function abortTransactionSafely(
@@ -73,7 +81,7 @@ export class IndexedDbLibraryBackupRepository
         'readonly',
       )
 
-    const transactionCompleted =
+    const completed =
       transactionToPromise(
         transaction,
       )
@@ -133,6 +141,25 @@ export class IndexedDbLibraryBackupRepository
             .getAll(),
         ) as Promise<Annotation[]>
 
+      const collectionsPromise =
+        requestToPromise(
+          transaction
+            .objectStore(
+              DATABASE_STORE_NAMES.COLLECTIONS,
+            )
+            .getAll(),
+        ) as Promise<Collection[]>
+
+      const membershipsPromise =
+        requestToPromise(
+          transaction
+            .objectStore(
+              DATABASE_STORE_NAMES
+                .COLLECTION_MEMBERSHIPS,
+            )
+            .getAll(),
+        ) as Promise<CollectionMembership[]>
+
       const readerSettingsPromise =
         requestToPromise(
           transaction
@@ -153,6 +180,8 @@ export class IndexedDbLibraryBackupRepository
         readingProgress,
         bookmarks,
         annotations,
+        collections,
+        collectionMemberships,
         readerSettings,
       ] = await Promise.all([
         booksPromise,
@@ -161,10 +190,12 @@ export class IndexedDbLibraryBackupRepository
         readingProgressPromise,
         bookmarksPromise,
         annotationsPromise,
+        collectionsPromise,
+        membershipsPromise,
         readerSettingsPromise,
       ])
 
-      await transactionCompleted
+      await completed
 
       return {
         books,
@@ -173,6 +204,8 @@ export class IndexedDbLibraryBackupRepository
         readingProgress,
         bookmarks,
         annotations,
+        collections,
+        collectionMemberships,
         readerSettings:
           readerSettings ?? null,
       }
@@ -197,7 +230,7 @@ export class IndexedDbLibraryBackupRepository
         'readwrite',
       )
 
-    const transactionCompleted =
+    const completed =
       transactionToPromise(
         transaction,
       )
@@ -233,6 +266,17 @@ export class IndexedDbLibraryBackupRepository
           DATABASE_STORE_NAMES.ANNOTATIONS,
         )
 
+      const collectionsStore =
+        transaction.objectStore(
+          DATABASE_STORE_NAMES.COLLECTIONS,
+        )
+
+      const membershipsStore =
+        transaction.objectStore(
+          DATABASE_STORE_NAMES
+            .COLLECTION_MEMBERSHIPS,
+        )
+
       const readerSettingsStore =
         transaction.objectStore(
           DATABASE_STORE_NAMES.READER_SETTINGS,
@@ -244,6 +288,8 @@ export class IndexedDbLibraryBackupRepository
       readingProgressStore.clear()
       bookmarksStore.clear()
       annotationsStore.clear()
+      collectionsStore.clear()
+      membershipsStore.clear()
       readerSettingsStore.clear()
 
       for (
@@ -297,6 +343,24 @@ export class IndexedDbLibraryBackupRepository
         )
       }
 
+      for (
+        const collection of
+        snapshot.collections
+      ) {
+        collectionsStore.put(
+          collection,
+        )
+      }
+
+      for (
+        const membership of
+        snapshot.collectionMemberships
+      ) {
+        membershipsStore.put(
+          membership,
+        )
+      }
+
       if (
         snapshot.readerSettings !==
         null
@@ -307,7 +371,7 @@ export class IndexedDbLibraryBackupRepository
         )
       }
 
-      await transactionCompleted
+      await completed
     } catch (error) {
       abortTransactionSafely(
         transaction,

@@ -118,6 +118,7 @@ export const createLibraryBackupSlice:
 
         await Promise.all([
           get().loadLibrary(),
+          get().loadCollections(),
           get().loadReaderSettings(),
         ])
 

@@ -430,6 +430,8 @@ function createLibrarySnapshot():
       },
     ],
 
+    collections: [],
+    collectionMemberships: [],
     readerSettings: {
       theme:
         AppTheme.DARK,

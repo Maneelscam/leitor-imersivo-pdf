@@ -265,6 +265,8 @@ export const createLibrarySlice: LibrarySliceCreator = (
         bookDeleteStatus:
           AsyncStatus.SUCCESS,
       })
+
+      void get().loadCollections()
     } catch (error) {
       set({
         bookDeleteStatus:

@@ -7,7 +7,7 @@
 
   database: {
     name: 'leitor-imersivo-pdf',
-    version: 3,
+    version: 4,
   },
 
   pdf: {

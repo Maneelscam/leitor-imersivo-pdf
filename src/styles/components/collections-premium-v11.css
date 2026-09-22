@@ -1,0 +1,673 @@
+/*
+ * Hwei — Coleções Premium v1.1
+ * Usa somente tokens semânticos dos temas.
+ */
+
+.collection-shelf {
+  display: grid;
+  gap: var(--space-4);
+  padding: clamp(var(--space-5), 2vw, var(--space-7));
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--color-surface) 97%, var(--color-accent)),
+      var(--color-background-elevated)
+    );
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    inset 0 1px 0
+      color-mix(in srgb, var(--color-text-primary) 3%, transparent);
+}
+
+.collection-shelf__heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.collection-shelf__kicker {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--color-accent);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.collection-shelf__title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-family:
+    "Iowan Old Style",
+    "Palatino Linotype",
+    "Book Antiqua",
+    Palatino,
+    Georgia,
+    serif;
+  font-size: clamp(1.55rem, 2.4vw, 2.1rem);
+  font-weight: var(--font-weight-regular);
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.collection-shelf__description {
+  max-width: 36rem;
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.collection-shelf__rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(15rem, 18rem);
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding: 0 0 var(--space-2);
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.collection-card {
+  position: relative;
+  min-height: 10rem;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      150deg,
+      color-mix(in srgb, var(--color-background-soft) 88%, transparent),
+      color-mix(in srgb, var(--color-surface-elevated) 96%, transparent)
+    );
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  scroll-snap-align: start;
+  transition:
+    transform var(--transition-fast),
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.collection-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-default);
+}
+
+.collection-card--selected {
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--color-accent) 11%, var(--color-surface)),
+      var(--color-background-elevated)
+    );
+  border-color: var(--color-accent-border);
+  box-shadow:
+    inset 0 -2px 0 var(--color-accent);
+}
+
+.collection-card__main {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 10rem;
+  padding: var(--space-4);
+  gap: var(--space-3);
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.collection-card__main:disabled {
+  cursor: default;
+}
+
+.collection-card__icon,
+.collection-shelf__empty-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2.4rem;
+  height: 2.4rem;
+  color: var(--color-accent);
+  background:
+    color-mix(in srgb, var(--color-accent) 10%, var(--color-background-soft));
+  border: var(--border-width-thin) solid var(--color-accent-border);
+  border-radius: var(--radius-md);
+}
+
+.collection-card__icon svg,
+.collection-shelf__empty-icon svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.collection-card__content {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+  padding-right: var(--space-6);
+}
+
+.collection-card__name {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-family:
+    "Iowan Old Style",
+    "Palatino Linotype",
+    "Book Antiqua",
+    Palatino,
+    Georgia,
+    serif;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-regular);
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collection-card__count {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.collection-card__description {
+  display: -webkit-box;
+  margin-top: var(--space-2);
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-relaxed);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.collection-card__actions {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: flex;
+  gap: 0.15rem;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.collection-card:hover .collection-card__actions,
+.collection-card:focus-within .collection-card__actions {
+  opacity: 1;
+}
+
+.collection-card__actions .button {
+  width: 2rem;
+  height: 2rem;
+  min-height: 2rem;
+}
+
+.collection-shelf__empty {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 6.5rem;
+  padding: var(--space-4);
+  gap: var(--space-4);
+  color: inherit;
+  text-align: left;
+  background:
+    color-mix(in srgb, var(--color-background-soft) 70%, transparent);
+  border: var(--border-width-thin) dashed var(--color-border-default);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.collection-shelf__empty:hover:not(:disabled) {
+  background: var(--color-background-hover);
+  border-color: var(--color-accent-border);
+}
+
+.collection-shelf__empty-copy {
+  display: grid;
+  flex: 1;
+  gap: var(--space-1);
+}
+
+.collection-shelf__empty-copy strong {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.collection-shelf__empty-copy span,
+.collection-shelf__empty-action {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.collection-shelf__empty-action {
+  color: var(--color-accent);
+  font-weight: var(--font-weight-semibold);
+}
+
+.library-book-card__collection-button {
+  color: var(--color-text-muted);
+}
+
+.library-book-card__collection-button:hover:not(:disabled) {
+  color: var(--color-accent);
+}
+
+.library-page__collection-filter-loading {
+  display: grid;
+  min-height: 10rem;
+  place-items: center;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+}
+
+/* Editor de coleção */
+
+.collection-editor-dialog__content,
+.book-collections-dialog__content {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.collection-editor-dialog__field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.collection-editor-dialog__label {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.collection-editor-dialog__input,
+.collection-editor-dialog__textarea {
+  width: 100%;
+  color: var(--color-text-primary);
+  background: var(--color-background-soft);
+  border: var(--border-width-thin) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.collection-editor-dialog__input {
+  min-height: 2.75rem;
+  padding: 0 var(--space-3);
+}
+
+.collection-editor-dialog__textarea {
+  min-height: 6.5rem;
+  padding: var(--space-3);
+  resize: vertical;
+  font: inherit;
+}
+
+.collection-editor-dialog__input:focus,
+.collection-editor-dialog__textarea:focus {
+  border-color: var(--color-accent-border);
+  box-shadow: var(--shadow-focus);
+}
+
+.collection-editor-dialog__field-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-2xs);
+}
+
+.collection-editor-dialog__field-error {
+  color: var(--color-danger);
+}
+
+.collection-editor-dialog__notice,
+.book-collections-dialog__notice {
+  margin: 0;
+  padding: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-relaxed);
+  background:
+    color-mix(in srgb, var(--color-accent) 5%, var(--color-background-soft));
+  border-left: 2px solid var(--color-accent);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+/* Organização de um livro */
+
+.book-collections-dialog__loading {
+  min-height: 8rem;
+  display: grid;
+  place-items: center;
+}
+
+.book-collections-dialog__empty {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  background: var(--color-background-soft);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.book-collections-dialog__empty strong {
+  color: var(--color-text-primary);
+}
+
+.book-collections-dialog__empty span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.book-collections-dialog__list {
+  display: grid;
+  max-height: min(21rem, 48vh);
+  gap: var(--space-2);
+  overflow-y: auto;
+  padding-right: var(--space-1);
+}
+
+.book-collections-dialog__option {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  padding: var(--space-3);
+  gap: var(--space-3);
+  background: var(--color-background-soft);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.book-collections-dialog__option:hover {
+  background: var(--color-background-hover);
+  border-color: var(--color-border-default);
+}
+
+.book-collections-dialog__option--checked {
+  background:
+    color-mix(in srgb, var(--color-accent) 8%, var(--color-background-soft));
+  border-color: var(--color-accent-border);
+}
+
+.book-collections-dialog__checkbox {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--color-accent);
+}
+
+.book-collections-dialog__option-icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-accent);
+}
+
+.book-collections-dialog__option-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.book-collections-dialog__option-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+}
+
+.book-collections-dialog__option-copy strong {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-collections-dialog__option-copy span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-2xs);
+}
+
+@media (max-width: 48rem) {
+  .collection-shelf {
+    padding: var(--space-4);
+  }
+
+  .collection-shelf__heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .collection-shelf__rail {
+    grid-auto-columns: minmax(14rem, 82vw);
+  }
+
+  .collection-card__actions {
+    opacity: 1;
+  }
+
+  .collection-shelf__empty {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .collection-shelf__empty-action {
+    width: 100%;
+    padding-left: calc(2.4rem + var(--space-4));
+  }
+}
+
+
+/* Gestão explícita dos livros da coleção */
+
+.collection-card {
+  padding-bottom: 3.1rem;
+}
+
+.collection-card__books-action {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  left: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.25rem;
+  padding: 0 var(--space-3);
+  gap: var(--space-2);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  background:
+    color-mix(
+      in srgb,
+      var(--color-accent) 8%,
+      var(--color-background-soft)
+    );
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-accent-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.collection-card__books-action:hover:not(:disabled) {
+  background:
+    color-mix(
+      in srgb,
+      var(--color-accent) 14%,
+      var(--color-background-soft)
+    );
+  transform: translateY(-1px);
+}
+
+.collection-card__books-action:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.collection-card__books-action svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-accent);
+}
+
+.collection-books-dialog__content {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.collection-books-dialog__loading {
+  display: grid;
+  min-height: 8rem;
+  place-items: center;
+}
+
+.collection-books-dialog__empty {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  background: var(--color-background-soft);
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.collection-books-dialog__empty strong {
+  color: var(--color-text-primary);
+}
+
+.collection-books-dialog__empty span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+.collection-books-dialog__list {
+  display: grid;
+  max-height: min(24rem, 52vh);
+  gap: var(--space-2);
+  overflow-y: auto;
+  padding-right: var(--space-1);
+}
+
+.collection-books-dialog__option {
+  display: grid;
+  grid-template-columns:
+    auto
+    auto
+    minmax(0, 1fr);
+  align-items: center;
+  padding: var(--space-3);
+  gap: var(--space-3);
+  background: var(--color-background-soft);
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.collection-books-dialog__option:hover {
+  background: var(--color-background-hover);
+  border-color: var(--color-border-default);
+}
+
+.collection-books-dialog__option--checked {
+  background:
+    color-mix(
+      in srgb,
+      var(--color-accent) 8%,
+      var(--color-background-soft)
+    );
+  border-color: var(--color-accent-border);
+}
+
+.collection-books-dialog__checkbox {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--color-accent);
+}
+
+.collection-books-dialog__option-icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-accent);
+}
+
+.collection-books-dialog__option-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.collection-books-dialog__option-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+}
+
+.collection-books-dialog__option-copy strong {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collection-books-dialog__option-copy span {
+  overflow: hidden;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-2xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collection-books-dialog__notice {
+  margin: 0;
+  padding: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-relaxed);
+  background:
+    color-mix(
+      in srgb,
+      var(--color-accent) 5%,
+      var(--color-background-soft)
+    );
+  border-left: 2px solid var(--color-accent);
+  border-radius:
+    0
+    var(--radius-md)
+    var(--radius-md)
+    0;
+}

@@ -175,6 +175,8 @@ function createSnapshot(
 
     annotations: [],
 
+    collections: [],
+    collectionMemberships: [],
     readerSettings: null,
 
     ...overrides,
@@ -450,6 +452,8 @@ describe(
             readingProgress: [],
             bookmarks: [],
             annotations: [],
+            collections: [],
+            collectionMemberships: [],
             readerSettings: null,
           }
 
@@ -470,6 +474,8 @@ describe(
           readingProgress: [],
           bookmarks: [],
           annotations: [],
+          collections: [],
+          collectionMemberships: [],
           readerSettings: null,
         })
 

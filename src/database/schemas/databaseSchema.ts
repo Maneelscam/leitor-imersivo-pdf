@@ -18,6 +18,12 @@ import type {
   Bookmark,
 } from '@/models/entities/Bookmark'
 import type {
+  Collection,
+} from '@/models/entities/Collection'
+import type {
+  CollectionMembership,
+} from '@/models/entities/CollectionMembership'
+import type {
   ReaderSettings,
 } from '@/models/entities/ReaderSettings'
 import type {
@@ -32,6 +38,9 @@ import type {
 import type {
   BookId,
 } from '@/models/value-objects/BookId'
+import type {
+  CollectionId,
+} from '@/models/value-objects/CollectionId'
 
 export const READER_SETTINGS_RECORD_KEY =
   'reader-settings' as const
@@ -56,6 +65,12 @@ export interface DatabaseStoreRecordMap {
 
   [DATABASE_STORE_NAMES.READER_SETTINGS]:
     ReaderSettings
+
+  [DATABASE_STORE_NAMES.COLLECTIONS]:
+    Collection
+
+  [DATABASE_STORE_NAMES.COLLECTION_MEMBERSHIPS]:
+    CollectionMembership
 }
 
 export interface DatabaseStoreKeyMap {
@@ -79,6 +94,12 @@ export interface DatabaseStoreKeyMap {
 
   [DATABASE_STORE_NAMES.READER_SETTINGS]:
     typeof READER_SETTINGS_RECORD_KEY
+
+  [DATABASE_STORE_NAMES.COLLECTIONS]:
+    CollectionId
+
+  [DATABASE_STORE_NAMES.COLLECTION_MEMBERSHIPS]:
+    [CollectionId, BookId]
 }
 
 export type DatabaseRecordFor<

@@ -18,6 +18,18 @@ export const DATABASE_INDEX_NAMES = {
     BY_CREATED_AT: 'byCreatedAt',
     BY_UPDATED_AT: 'byUpdatedAt',
   },
+
+  COLLECTIONS: {
+    BY_NORMALIZED_NAME: 'byNormalizedName',
+    BY_CREATED_AT: 'byCreatedAt',
+    BY_UPDATED_AT: 'byUpdatedAt',
+  },
+
+  COLLECTION_MEMBERSHIPS: {
+    BY_COLLECTION_ID: 'byCollectionId',
+    BY_BOOK_ID: 'byBookId',
+    BY_ADDED_AT: 'byAddedAt',
+  },
 } as const
 
 export type BooksDatabaseIndexName =
@@ -28,3 +40,9 @@ export type BookmarksDatabaseIndexName =
 
 export type AnnotationsDatabaseIndexName =
   (typeof DATABASE_INDEX_NAMES.ANNOTATIONS)[keyof typeof DATABASE_INDEX_NAMES.ANNOTATIONS]
+
+export type CollectionsDatabaseIndexName =
+  (typeof DATABASE_INDEX_NAMES.COLLECTIONS)[keyof typeof DATABASE_INDEX_NAMES.COLLECTIONS]
+
+export type CollectionMembershipsDatabaseIndexName =
+  (typeof DATABASE_INDEX_NAMES.COLLECTION_MEMBERSHIPS)[keyof typeof DATABASE_INDEX_NAMES.COLLECTION_MEMBERSHIPS]

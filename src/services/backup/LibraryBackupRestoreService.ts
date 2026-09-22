@@ -419,6 +419,12 @@ function createRestoredSnapshot(
     annotations:
       manifest.data.annotations,
 
+    collections:
+      manifest.data.collections,
+
+    collectionMemberships:
+      manifest.data.collectionMemberships,
+
     readerSettings:
       manifest.data.readerSettings,
   }

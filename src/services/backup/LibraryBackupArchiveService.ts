@@ -183,6 +183,12 @@ function createManifest(
       annotations:
         snapshot.annotations,
 
+      collections:
+        snapshot.collections,
+
+      collectionMemberships:
+        snapshot.collectionMemberships,
+
       readerSettings:
         snapshot.readerSettings,
     },

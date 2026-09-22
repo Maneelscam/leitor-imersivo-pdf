@@ -6,6 +6,9 @@ export const DATABASE_STORE_NAMES = {
   BOOKMARKS: 'bookmarks',
   ANNOTATIONS: 'annotations',
   READER_SETTINGS: 'readerSettings',
+  COLLECTIONS: 'collections',
+  COLLECTION_MEMBERSHIPS:
+    'collectionMemberships',
 } as const
 
 export type DatabaseStoreName =

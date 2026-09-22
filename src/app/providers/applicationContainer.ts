@@ -20,6 +20,30 @@ import {
   CreateBookmarkController,
 } from '@/controllers/bookmarks/CreateBookmarkController'
 import {
+  AddBookToCollectionController,
+} from '@/controllers/collections/AddBookToCollectionController'
+import {
+  CreateCollectionController,
+} from '@/controllers/collections/CreateCollectionController'
+import {
+  DeleteCollectionController,
+} from '@/controllers/collections/DeleteCollectionController'
+import {
+  LoadBookCollectionsController,
+} from '@/controllers/collections/LoadBookCollectionsController'
+import {
+  LoadCollectionBookIdsController,
+} from '@/controllers/collections/LoadCollectionBookIdsController'
+import {
+  LoadCollectionsController,
+} from '@/controllers/collections/LoadCollectionsController'
+import {
+  RemoveBookFromCollectionController,
+} from '@/controllers/collections/RemoveBookFromCollectionController'
+import {
+  UpdateCollectionController,
+} from '@/controllers/collections/UpdateCollectionController'
+import {
   DeleteBookmarkController,
 } from '@/controllers/bookmarks/DeleteBookmarkController'
 import {
@@ -83,6 +107,15 @@ import {
   IndexedDbBookRepository,
 } from '@/repositories/indexed-db/IndexedDbBookRepository'
 import {
+  IndexedDbCollectionMembershipRepository,
+} from '@/repositories/indexed-db/IndexedDbCollectionMembershipRepository'
+import {
+  IndexedDbCollectionRepository,
+} from '@/repositories/indexed-db/IndexedDbCollectionRepository'
+import {
+  IndexedDbCollectionTransactionRepository,
+} from '@/repositories/indexed-db/IndexedDbCollectionTransactionRepository'
+import {
   IndexedDbLibraryBackupRepository,
 } from '@/repositories/indexed-db/IndexedDbLibraryBackupRepository'
 import {
@@ -106,6 +139,9 @@ import {
 import {
   LibraryBackupRestoreService,
 } from '@/services/backup/LibraryBackupRestoreService'
+import {
+  CollectionNormalizationService,
+} from '@/services/collections/CollectionNormalizationService'
 import {
   PdfCoverGenerationService,
 } from '@/services/cover/PdfCoverGenerationService'
@@ -154,6 +190,15 @@ const bookmarkRepository =
 
 const annotationRepository =
   new IndexedDbAnnotationRepository()
+
+const collectionRepository =
+  new IndexedDbCollectionRepository()
+
+const collectionMembershipRepository =
+  new IndexedDbCollectionMembershipRepository()
+
+const collectionTransactionRepository =
+  new IndexedDbCollectionTransactionRepository()
 
 const readingProgressRepository =
   new IndexedDbReadingProgressRepository()
@@ -205,6 +250,9 @@ const pdfCoverGenerationService =
 const defaultReaderSettingsService =
   new DefaultReaderSettingsService()
 
+const collectionNormalizationService =
+  new CollectionNormalizationService()
+
 const libraryBackupArchiveService =
   new LibraryBackupArchiveService()
 
@@ -245,6 +293,60 @@ const deleteBookController =
 const updateBookMetadataController =
   new UpdateBookMetadataController(
     bookRepository,
+  )
+
+const createCollectionController =
+  new CreateCollectionController({
+    collectionRepository,
+    normalizationService:
+      collectionNormalizationService,
+  })
+
+const updateCollectionController =
+  new UpdateCollectionController({
+    collectionRepository,
+    normalizationService:
+      collectionNormalizationService,
+  })
+
+const deleteCollectionController =
+  new DeleteCollectionController({
+    collectionRepository,
+    collectionTransactionRepository,
+  })
+
+const addBookToCollectionController =
+  new AddBookToCollectionController({
+    collectionRepository,
+    membershipRepository:
+      collectionMembershipRepository,
+    bookRepository,
+  })
+
+const removeBookFromCollectionController =
+  new RemoveBookFromCollectionController({
+    collectionRepository,
+    membershipRepository:
+      collectionMembershipRepository,
+  })
+
+const loadCollectionsController =
+  new LoadCollectionsController({
+    collectionRepository,
+    membershipRepository:
+      collectionMembershipRepository,
+  })
+
+const loadBookCollectionsController =
+  new LoadBookCollectionsController(
+    collectionRepository,
+    collectionMembershipRepository,
+  )
+
+const loadCollectionBookIdsController =
+  new LoadCollectionBookIdsController(
+    collectionRepository,
+    collectionMembershipRepository,
   )
 
 const exportLibraryBackupController =
@@ -358,6 +460,30 @@ export const applicationContainer = {
     updateBookMetadata:
       updateBookMetadataController,
 
+    createCollection:
+      createCollectionController,
+
+    updateCollection:
+      updateCollectionController,
+
+    deleteCollection:
+      deleteCollectionController,
+
+    addBookToCollection:
+      addBookToCollectionController,
+
+    removeBookFromCollection:
+      removeBookFromCollectionController,
+
+    loadCollections:
+      loadCollectionsController,
+
+    loadBookCollections:
+      loadBookCollectionsController,
+
+    loadCollectionBookIds:
+      loadCollectionBookIdsController,
+
     exportLibraryBackup:
       exportLibraryBackupController,
 
@@ -420,6 +546,15 @@ export const applicationContainer = {
     bookmark: bookmarkRepository,
     annotation: annotationRepository,
 
+    collection:
+      collectionRepository,
+
+    collectionMembership:
+      collectionMembershipRepository,
+
+    collectionTransaction:
+      collectionTransactionRepository,
+
     readingProgress:
       readingProgressRepository,
 
@@ -461,6 +596,9 @@ export const applicationContainer = {
 
     defaultReaderSettings:
       defaultReaderSettingsService,
+
+    collectionNormalization:
+      collectionNormalizationService,
 
     libraryBackupArchive:
       libraryBackupArchiveService,

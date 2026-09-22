@@ -39,6 +39,10 @@ export interface LibraryBookCardProps
   readonly onEdit: (
     bookId: BookId,
   ) => void
+
+  readonly onManageCollections?: (
+    bookId: BookId,
+  ) => void
 }
 
 interface ReadingProgressStyle
@@ -78,6 +82,23 @@ function EditIcon() {
     >
       <path d="M4 20h4l11-11-4-4L4 16z" />
       <path d="m13.5 6.5 4 4" />
+    </svg>
+  )
+}
+
+function CollectionIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3.5 6.5h6l2 2h9v10.5a1.5 1.5 0 0 1-1.5 1.5h-14A1.5 1.5 0 0 1 3.5 19z" />
+      <path d="M3.5 9h17" />
     </svg>
   )
 }
@@ -137,6 +158,7 @@ export function LibraryBookCard({
   onOpen,
   onDelete,
   onEdit,
+  onManageCollections,
   className,
   ...articleProps
 }: LibraryBookCardProps) {
@@ -209,6 +231,19 @@ export function LibraryBookCard({
     }
 
     onEdit(
+      book.id,
+    )
+  }
+
+  const handleManageCollections = () => {
+    if (
+      isBusy ||
+      onManageCollections === undefined
+    ) {
+      return
+    }
+
+    onManageCollections(
       book.id,
     )
   }
@@ -339,6 +374,27 @@ export function LibraryBookCard({
           </span>
 
           <div className="library-book-card__actions">
+            {onManageCollections !== undefined && (
+              <Button
+                className="library-book-card__collection-button"
+                variant={
+                  ButtonVariant.GHOST
+                }
+                size={
+                  ButtonSize.SMALL
+                }
+                iconOnly
+                disabled={isBusy}
+                aria-label={`Organizar ${book.title} em coleções`}
+                title={`Organizar ${book.title} em coleções`}
+                onClick={
+                  handleManageCollections
+                }
+              >
+                <CollectionIcon />
+              </Button>
+            )}
+
             <Button
               className="library-book-card__edit-button"
               variant={

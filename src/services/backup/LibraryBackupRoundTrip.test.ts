@@ -162,6 +162,8 @@ function createTestSnapshot(): LibraryBackupSnapshot {
       createTestAnnotation(),
     ],
 
+    collections: [],
+    collectionMemberships: [],
     readerSettings: null,
   }
 }

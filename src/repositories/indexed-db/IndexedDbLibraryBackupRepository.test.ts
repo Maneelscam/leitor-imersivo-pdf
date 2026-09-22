@@ -258,6 +258,8 @@ function createCompleteSnapshot():
       },
     ],
 
+    collections: [],
+    collectionMemberships: [],
     readerSettings: {
       theme:
         AppTheme.DARK,
@@ -294,6 +296,8 @@ function createEmptySnapshot():
     readingProgress: [],
     bookmarks: [],
     annotations: [],
+    collections: [],
+    collectionMemberships: [],
     readerSettings: null,
   }
 }

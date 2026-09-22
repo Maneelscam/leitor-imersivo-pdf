@@ -14,6 +14,12 @@ import type {
   Bookmark,
 } from '@/models/entities/Bookmark'
 import type {
+  Collection,
+} from '@/models/entities/Collection'
+import type {
+  CollectionMembership,
+} from '@/models/entities/CollectionMembership'
+import type {
   ReaderSettings,
 } from '@/models/entities/ReaderSettings'
 import type {
@@ -35,12 +41,16 @@ export const LIBRARY_BACKUP_FORMAT_VERSION_V1 =
 export const LIBRARY_BACKUP_FORMAT_VERSION_V2 =
   2 as const
 
+export const LIBRARY_BACKUP_FORMAT_VERSION_V3 =
+  3 as const
+
 export const LIBRARY_BACKUP_FORMAT_VERSION =
-  LIBRARY_BACKUP_FORMAT_VERSION_V2
+  LIBRARY_BACKUP_FORMAT_VERSION_V3
 
 export type LibraryBackupFormatVersion =
   | typeof LIBRARY_BACKUP_FORMAT_VERSION_V1
   | typeof LIBRARY_BACKUP_FORMAT_VERSION_V2
+  | typeof LIBRARY_BACKUP_FORMAT_VERSION_V3
 
 export const LIBRARY_BACKUP_MANIFEST_FILE_NAME =
   'backup.json' as const
@@ -58,6 +68,12 @@ export interface LibraryBackupSnapshot {
 
   readonly annotations:
     readonly Annotation[]
+
+  readonly collections:
+    readonly Collection[]
+
+  readonly collectionMemberships:
+    readonly CollectionMembership[]
 
   readonly readerSettings:
     ReaderSettings | null
@@ -113,6 +129,12 @@ export interface LibraryBackupManifestData {
 
   readonly annotations:
     readonly Annotation[]
+
+  readonly collections:
+    readonly Collection[]
+
+  readonly collectionMemberships:
+    readonly CollectionMembership[]
 
   readonly readerSettings:
     ReaderSettings | null

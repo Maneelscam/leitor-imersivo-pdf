@@ -34,6 +34,10 @@ export interface LibraryGridProps
   readonly onEditBook: (
     bookId: BookId,
   ) => void
+
+  readonly onManageCollections?: (
+    bookId: BookId,
+  ) => void
 }
 
 function createLibraryGridClassName(
@@ -64,6 +68,7 @@ export function LibraryGrid({
   onOpenBook,
   onDeleteBook,
   onEditBook,
+  onManageCollections,
   className,
   ...listProps
 }: LibraryGridProps) {
@@ -107,6 +112,13 @@ export function LibraryGrid({
               onOpen={onOpenBook}
               onDelete={onDeleteBook}
               onEdit={onEditBook}
+              {...(
+                onManageCollections !== undefined
+                  ? {
+                      onManageCollections,
+                    }
+                  : {}
+              )}
             />
           </li>
         )

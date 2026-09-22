@@ -1,26 +1,11 @@
 import {
   APP_CONFIG,
 } from '@/app/config/app.config'
-
-const LEGACY_APPLICATION_NAMES = new Set<string>([
-  'Leitor Imersivo de PDF',
-])
-
-function isCompatibleApplicationName(
-  applicationName: string,
-): boolean {
-  return (
-    applicationName === APP_CONFIG.name ||
-    LEGACY_APPLICATION_NAMES.has(
-      applicationName,
-    )
-  )
-}
-
 import {
   LIBRARY_BACKUP_FORMAT,
   LIBRARY_BACKUP_FORMAT_VERSION_V1,
   LIBRARY_BACKUP_FORMAT_VERSION_V2,
+  LIBRARY_BACKUP_FORMAT_VERSION_V3,
   type LibraryBackupApplicationInfo,
   type LibraryBackupBookCoverEntry,
   type LibraryBackupBookFileEntry,
@@ -38,6 +23,12 @@ import type {
 import type {
   Bookmark,
 } from '@/models/entities/Bookmark'
+import type {
+  Collection,
+} from '@/models/entities/Collection'
+import type {
+  CollectionMembership,
+} from '@/models/entities/CollectionMembership'
 import type {
   ReaderSettings,
 } from '@/models/entities/ReaderSettings'
@@ -65,6 +56,23 @@ import {
 import {
   isIsoDateTime,
 } from '@/models/value-objects/IsoDateTime'
+
+const LEGACY_APPLICATION_NAMES =
+  new Set<string>([
+    'Leitor Imersivo de PDF',
+  ])
+
+function isCompatibleApplicationName(
+  applicationName: string,
+): boolean {
+  return (
+    applicationName ===
+      APP_CONFIG.name ||
+    LEGACY_APPLICATION_NAMES.has(
+      applicationName,
+    )
+  )
+}
 
 function isRecord(
   value: unknown,
@@ -344,6 +352,51 @@ function isAnnotation(
   return false
 }
 
+function isCollection(
+  value: unknown,
+): value is Collection {
+  if (!isRecord(value)) {
+    return false
+  }
+
+  return (
+    isNonEmptyString(value.id) &&
+    isNonEmptyString(value.name) &&
+    isNonEmptyString(
+      value.normalizedName,
+    ) &&
+    isNullableString(
+      value.description,
+    ) &&
+    isIsoDateTime(
+      value.createdAt,
+    ) &&
+    isIsoDateTime(
+      value.updatedAt,
+    )
+  )
+}
+
+function isCollectionMembership(
+  value: unknown,
+): value is CollectionMembership {
+  if (!isRecord(value)) {
+    return false
+  }
+
+  return (
+    isNonEmptyString(
+      value.collectionId,
+    ) &&
+    isNonEmptyString(
+      value.bookId,
+    ) &&
+    isIsoDateTime(
+      value.addedAt,
+    )
+  )
+}
+
 function isReaderSettings(
   value: unknown,
 ): value is ReaderSettings {
@@ -416,7 +469,9 @@ function isSupportedFormatVersion(
     value ===
       LIBRARY_BACKUP_FORMAT_VERSION_V1 ||
     value ===
-      LIBRARY_BACKUP_FORMAT_VERSION_V2
+      LIBRARY_BACKUP_FORMAT_VERSION_V2 ||
+    value ===
+      LIBRARY_BACKUP_FORMAT_VERSION_V3
   )
 }
 
@@ -445,6 +500,60 @@ function normalizeAnnotations(
   }
 
   return annotations
+}
+
+function normalizeCollections(
+  value: Record<string, unknown>,
+  formatVersion: LibraryBackupFormatVersion,
+): readonly Collection[] | null {
+  const collections =
+    value.collections
+
+  if (
+    formatVersion !==
+      LIBRARY_BACKUP_FORMAT_VERSION_V3 &&
+    collections === undefined
+  ) {
+    return []
+  }
+
+  if (
+    !Array.isArray(collections) ||
+    !collections.every(
+      isCollection,
+    )
+  ) {
+    return null
+  }
+
+  return collections
+}
+
+function normalizeCollectionMemberships(
+  value: Record<string, unknown>,
+  formatVersion: LibraryBackupFormatVersion,
+): readonly CollectionMembership[] | null {
+  const memberships =
+    value.collectionMemberships
+
+  if (
+    formatVersion !==
+      LIBRARY_BACKUP_FORMAT_VERSION_V3 &&
+    memberships === undefined
+  ) {
+    return []
+  }
+
+  if (
+    !Array.isArray(memberships) ||
+    !memberships.every(
+      isCollectionMembership,
+    )
+  ) {
+    return null
+  }
+
+  return memberships
 }
 
 function normalizeManifestData(
@@ -492,7 +601,23 @@ function normalizeManifestData(
       formatVersion,
     )
 
-  if (annotations === null) {
+  const collections =
+    normalizeCollections(
+      value,
+      formatVersion,
+    )
+
+  const collectionMemberships =
+    normalizeCollectionMemberships(
+      value,
+      formatVersion,
+    )
+
+  if (
+    annotations === null ||
+    collections === null ||
+    collectionMemberships === null
+  ) {
     return null
   }
 
@@ -508,6 +633,10 @@ function normalizeManifestData(
       value.bookmarks,
 
     annotations,
+
+    collections,
+
+    collectionMemberships,
 
     readerSettings:
       value.readerSettings,
@@ -898,6 +1027,81 @@ function validateBookRelationships(
   )
 }
 
+function validateCollectionRelationships(
+  manifest: LibraryBackupManifest,
+): void {
+  const collections =
+    manifest.data.collections
+
+  const memberships =
+    manifest.data.collectionMemberships
+
+  assertUniqueValues(
+    collections.map(
+      (collection) =>
+        collection.id,
+    ),
+    'identificadores de coleções',
+  )
+
+  assertUniqueValues(
+    collections.map(
+      (collection) =>
+        collection.normalizedName,
+    ),
+    'nomes normalizados de coleções',
+  )
+
+  assertUniqueValues(
+    memberships.map(
+      (membership) =>
+        `${membership.collectionId}:${membership.bookId}`,
+    ),
+    'vínculos entre livros e coleções',
+  )
+
+  const collectionIds =
+    new Set(
+      collections.map(
+        (collection) =>
+          collection.id,
+      ),
+    )
+
+  const bookIds =
+    new Set(
+      manifest.data.books.map(
+        (book) =>
+          book.id,
+      ),
+    )
+
+  for (
+    const membership of
+    memberships
+  ) {
+    if (
+      !collectionIds.has(
+        membership.collectionId,
+      )
+    ) {
+      throw new Error(
+        'O backup contém um vínculo para uma coleção inexistente.',
+      )
+    }
+
+    if (
+      !bookIds.has(
+        membership.bookId,
+      )
+    ) {
+      throw new Error(
+        'O backup contém um vínculo de coleção para um livro inexistente.',
+      )
+    }
+  }
+}
+
 export class LibraryBackupManifestValidationService {
   validate(
     value: unknown,
@@ -918,6 +1122,10 @@ export class LibraryBackupManifestValidationService {
     )
 
     validateBookRelationships(
+      manifest,
+    )
+
+    validateCollectionRelationships(
       manifest,
     )
 

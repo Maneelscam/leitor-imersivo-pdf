@@ -7,6 +7,9 @@ import {
 import {
   createDatabaseSchemaV3,
 } from '@/database/migrations/createDatabaseSchemaV3'
+import {
+  createDatabaseSchemaV4,
+} from '@/database/migrations/createDatabaseSchemaV4'
 
 export function runDatabaseMigrations(
   database: IDBDatabase,
@@ -48,6 +51,15 @@ export function runDatabaseMigrations(
     newVersion >= 3
   ) {
     createDatabaseSchemaV3(
+      database,
+    )
+  }
+
+  if (
+    oldVersion < 4 &&
+    newVersion >= 4
+  ) {
+    createDatabaseSchemaV4(
       database,
     )
   }

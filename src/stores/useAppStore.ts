@@ -9,6 +9,9 @@ import {
   createAnnotationSlice,
 } from '@/stores/slices/createAnnotationSlice'
 import {
+  createCollectionSlice,
+} from '@/stores/slices/createCollectionSlice'
+import {
   createLibraryBackupSlice,
 } from '@/stores/slices/createLibraryBackupSlice'
 import {
@@ -31,6 +34,10 @@ export const useAppStore =
   create<AppStore>()(
     (...storeArguments) => ({
       ...createLibrarySlice(
+        ...storeArguments,
+      ),
+
+      ...createCollectionSlice(
         ...storeArguments,
       ),
 

@@ -61,6 +61,38 @@ function deleteBookmarksByBookId(
   )
 }
 
+function deleteCollectionMembershipsByBookId(
+  membershipsStore: IDBObjectStore,
+  bookId: BookId,
+): void {
+  const bookIdIndex =
+    membershipsStore.index(
+      DATABASE_INDEX_NAMES
+        .COLLECTION_MEMBERSHIPS
+        .BY_BOOK_ID,
+    )
+
+  const cursorRequest =
+    bookIdIndex.openCursor(
+      IDBKeyRange.only(bookId),
+    )
+
+  cursorRequest.addEventListener(
+    'success',
+    () => {
+      const cursor =
+        cursorRequest.result
+
+      if (cursor === null) {
+        return
+      }
+
+      cursor.delete()
+      cursor.continue()
+    },
+  )
+}
+
 function deleteAnnotationsByBookId(
   annotationsStore: IDBObjectStore,
   bookId: BookId,
@@ -170,6 +202,8 @@ export class IndexedDbLibraryTransactionRepository
           DATABASE_STORE_NAMES.READING_PROGRESS,
           DATABASE_STORE_NAMES.BOOKMARKS,
           DATABASE_STORE_NAMES.ANNOTATIONS,
+          DATABASE_STORE_NAMES
+            .COLLECTION_MEMBERSHIPS,
         ],
         'readwrite',
       )
@@ -221,6 +255,17 @@ export class IndexedDbLibraryTransactionRepository
 
       deleteAnnotationsByBookId(
         annotationsStore,
+        bookId,
+      )
+
+      const membershipsStore =
+        transaction.objectStore(
+          DATABASE_STORE_NAMES
+            .COLLECTION_MEMBERSHIPS,
+        )
+
+      deleteCollectionMembershipsByBookId(
+        membershipsStore,
         bookId,
       )
 

@@ -18,11 +18,13 @@ function bootstrapApplication(): Promise<void> {
 
   const {
     loadLibrary,
+    loadCollections,
     loadReaderSettings,
   } = useAppStore.getState()
 
   bootstrapPromise = Promise.allSettled([
     loadLibrary(),
+    loadCollections(),
     loadReaderSettings(),
   ]).then(() => undefined)
 
