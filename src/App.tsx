@@ -37,7 +37,9 @@ function AppContent() {
       readerMode={routeMetadata.readerMode}
       sidebar={<AppSidebar />}
       topbar={
-        <AppTopbar title="Leitor Imersivo" />
+        <AppTopbar
+          title={routeMetadata.title}
+        />
       }
     >
       <AppRouter />

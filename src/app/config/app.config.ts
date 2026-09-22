@@ -1,9 +1,9 @@
-export const APP_CONFIG = {
-  name: 'Leitor Imersivo de PDF',
-  shortName: 'Leitor Imersivo',
+﻿export const APP_CONFIG = {
+  name: 'Hwei',
+  shortName: 'Hwei',
   description:
-    'Leitor de PDF moderno, rápido e totalmente local.',
-  version: '0.1.0',
+    'Biblioteca e leitor de PDF para leitura focada.',
+  version: '1.0.0',
 
   database: {
     name: 'leitor-imersivo-pdf',

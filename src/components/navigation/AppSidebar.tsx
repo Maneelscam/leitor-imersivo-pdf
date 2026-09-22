@@ -17,20 +17,14 @@ interface NavigationItem {
   readonly icon: ComponentType
 }
 
-function BookOpenIcon() {
+function HweiMark() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+    <span
+      className="app-sidebar__brand-monogram"
       aria-hidden="true"
     >
-      <path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h4a2 2 0 0 1 2 2v15a2.5 2.5 0 0 0-2.5-2.5H3.5z" />
-      <path d="M20.5 5.5A2.5 2.5 0 0 0 18 3h-4a2 2 0 0 0-2 2v15a2.5 2.5 0 0 1 2.5-2.5h6z" />
-    </svg>
+      H
+    </span>
   )
 }
 
@@ -103,7 +97,7 @@ const NAVIGATION_ITEMS: readonly NavigationItem[] = [
   },
   {
     route: AppRoute.READER,
-    label: 'Leitor',
+    label: 'Leitura',
     description: 'Continuar a leitura',
     icon: ReaderIcon,
   },
@@ -122,7 +116,7 @@ export function AppSidebar() {
     <div className="app-sidebar">
       <div className="app-sidebar__brand">
         <div className="app-sidebar__brand-mark">
-          <BookOpenIcon />
+          <HweiMark />
         </div>
 
         <div className="app-sidebar__brand-text">
@@ -131,7 +125,7 @@ export function AppSidebar() {
           </span>
 
           <span className="app-sidebar__brand-description">
-            Leitura local e imersiva
+            Leitura com clareza
           </span>
         </div>
       </div>
@@ -182,24 +176,6 @@ export function AppSidebar() {
         </ul>
       </nav>
 
-      <div className="app-sidebar__footer">
-        <div className="app-sidebar__status">
-          <span
-            className="app-sidebar__status-indicator"
-            aria-hidden="true"
-          />
-
-          <div className="app-sidebar__status-content">
-            <span className="app-sidebar__status-title">
-              Funcionamento local
-            </span>
-
-            <span className="app-sidebar__status-description">
-              Seus PDFs permanecem neste dispositivo
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

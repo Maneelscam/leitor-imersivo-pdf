@@ -1337,24 +1337,55 @@ export function LibraryPage() {
 
               {filteredLibraryItems
                 .length > 0 && (
-                <LibraryGrid
-                  {...gridOptionalProps}
-                  viewMode={
-                    libraryViewMode
-                  }
-                  items={
-                    filteredLibraryItems
-                  }
-                  onOpenBook={
-                    handleOpenBook
-                  }
-                  onDeleteBook={
-                    requestBookDeletion
-                  }
-                  onEditBook={
-                    requestBookMetadataEdit
-                  }
-                />
+                <section
+                  className="library-page__collection"
+                  aria-labelledby="library-collection-title"
+                >
+                  <div className="library-page__collection-heading">
+                    <div className="library-page__collection-heading-main">
+                      <span className="library-page__collection-kicker">
+                        Acervo
+                      </span>
+
+                      <h2
+                        id="library-collection-title"
+                        className="library-page__collection-title"
+                      >
+                        {hasActiveLibraryFilter
+                          ? 'Resultados'
+                          : 'Todos os livros'}
+                      </h2>
+                    </div>
+
+                    <span
+                      className="library-page__collection-count"
+                      aria-live="polite"
+                    >
+                      {filteredLibraryItems.length === 1
+                        ? '1 livro'
+                        : `${filteredLibraryItems.length} livros`}
+                    </span>
+                  </div>
+
+                  <LibraryGrid
+                    {...gridOptionalProps}
+                    viewMode={
+                      libraryViewMode
+                    }
+                    items={
+                      filteredLibraryItems
+                    }
+                    onOpenBook={
+                      handleOpenBook
+                    }
+                    onDeleteBook={
+                      requestBookDeletion
+                    }
+                    onEditBook={
+                      requestBookMetadataEdit
+                    }
+                  />
+                </section>
               )}
             </>
           )}

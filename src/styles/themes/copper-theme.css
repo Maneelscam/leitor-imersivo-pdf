@@ -1,0 +1,77 @@
+:root[data-theme='copper'] {
+  color-scheme: dark;
+
+  --font-family-sans:
+    "Aptos",
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+
+  --color-background: #120a07;
+  --color-background-elevated: #1a0f0a;
+  --color-background-soft: #25150f;
+  --color-background-hover: #311c14;
+  --color-background-active: #40251a;
+
+  --color-surface: #1a100c;
+  --color-surface-elevated: #241610;
+  --color-surface-muted: #301e16;
+  --color-surface-overlay: rgb(18 10 7 / 90%);
+
+  --color-border-subtle: #45291d;
+  --color-border-default: #6a3d28;
+  --color-border-strong: #955a3b;
+
+  --color-text-primary: #faeee5;
+  --color-text-secondary: #d5bca9;
+  --color-text-muted: #9f7f6a;
+  --color-text-disabled: #705645;
+  --color-text-inverse: #1a0904;
+
+  --color-accent: #d27c48;
+  --color-accent-hover: #e08f59;
+  --color-accent-active: #b96535;
+  --color-accent-soft: rgb(210 124 72 / 15%);
+  --color-accent-border: rgb(210 124 72 / 38%);
+
+  --color-info: #74a0b8;
+  --color-info-soft: rgb(116 160 184 / 14%);
+
+  --color-success: #7fa67c;
+  --color-success-soft: rgb(127 166 124 / 14%);
+
+  --color-warning: #d9a24d;
+  --color-warning-soft: rgb(217 162 77 / 15%);
+
+  --color-danger: #e47769;
+  --color-danger-hover: #ee8d82;
+  --color-danger-soft: rgb(228 119 105 / 14%);
+
+  --color-focus-ring: rgb(210 124 72 / 46%);
+
+  --color-reader-background: #090503;
+  --color-reader-page-background: #fff9f3;
+  --color-reader-page-shadow: rgb(0 0 0 / 62%);
+
+  --radius-md: 0.4rem;
+  --radius-lg: 0.55rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+
+  --letter-spacing-wide: 0.055em;
+
+  --shadow-sm:
+    0 1px 2px rgb(0 0 0 / 34%);
+
+  --shadow-md:
+    0 10px 30px rgb(0 0 0 / 40%);
+
+  --shadow-lg:
+    0 22px 62px rgb(0 0 0 / 50%);
+
+  --shadow-reader-page:
+    0 20px 58px var(--color-reader-page-shadow);
+
+  --shadow-focus:
+    0 0 0 3px var(--color-focus-ring);
+}

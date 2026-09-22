@@ -5,6 +5,7 @@ import {
   type ChangeEvent,
 } from 'react'
 
+import { APP_CONFIG } from '@/app/config/app.config'
 import {
   READER_SETTINGS_CONFIG,
 } from '@/app/config/readerSettings.config'
@@ -71,6 +72,7 @@ import {
 } from '@/utils/formatters/formatDate'
 
 import '@/styles/components/settings-page.css'
+import '@/styles/components/settings-premium-v11.css'
 
 interface ReaderSettingsFormProps {
   readonly settings: ReaderSettings
@@ -124,6 +126,21 @@ function formatAppTheme(
 
     case AppTheme.SEPIA:
       return 'Sépia'
+
+    case AppTheme.EMERALD:
+      return 'Esmeralda'
+
+    case AppTheme.DEEP_NIGHT:
+      return 'Noite Profunda'
+
+    case AppTheme.COPPER:
+      return 'Cobre'
+
+    case AppTheme.SILVER:
+      return 'Prata'
+
+    case AppTheme.IVORY:
+      return 'Marfim'
   }
 }
 
@@ -503,10 +520,10 @@ function AppInstallationSection() {
 
   const description =
     installationState.isInstalled
-      ? 'O Leitor Imersivo está instalado neste dispositivo e pode ser aberto em uma janela própria.'
+      ? `${APP_CONFIG.shortName} está instalada neste dispositivo e pode ser aberta em uma janela própria.`
       : installationState.canInstall
-        ? 'Instale o leitor neste dispositivo para abri-lo como um aplicativo, mantendo sua biblioteca e o funcionamento offline.'
-        : 'O leitor já funciona offline após o primeiro carregamento. A instalação como aplicativo depende do suporte e das regras do navegador.'
+        ? `${APP_CONFIG.shortName} pode ser instalada neste dispositivo e aberta em uma janela própria, mantendo sua biblioteca e o funcionamento offline.`
+        : `${APP_CONFIG.shortName} já funciona offline após o primeiro carregamento. A instalação como aplicativo depende do suporte e das regras do navegador.`
 
   return (
     <section className="settings-page__section">
@@ -823,6 +840,29 @@ function ReaderSettingsForm({
   return (
     <div className="settings-page__content">
       <div className="settings-page__sections">
+        <header className="settings-page__hero">
+          <div className="settings-page__hero-copy">
+            <span className="settings-page__hero-eyebrow">
+              Configurações
+            </span>
+
+            <h1 className="settings-page__hero-title">
+              Configure a leitura do seu jeito.
+            </h1>
+
+            <p className="settings-page__hero-description">
+              Aparência, navegação, zoom e comportamento
+              reunidos em um só lugar.
+            </p>
+          </div>
+
+          <p
+            className="settings-page__hero-message"
+            aria-hidden="true"
+          >
+            “Mais foco para o que importa.”
+          </p>
+        </header>
         <section className="settings-page__section">
           <header className="settings-page__section-header">
             <h2 className="settings-page__section-title">
@@ -880,6 +920,26 @@ function ReaderSettingsForm({
 
                   <option value={AppTheme.SEPIA}>
                     Sépia
+                  </option>
+
+                  <option value={AppTheme.EMERALD}>
+                    Esmeralda
+                  </option>
+
+                  <option value={AppTheme.DEEP_NIGHT}>
+                    Noite Profunda
+                  </option>
+
+                  <option value={AppTheme.COPPER}>
+                    Cobre
+                  </option>
+
+                  <option value={AppTheme.SILVER}>
+                    Prata
+                  </option>
+
+                  <option value={AppTheme.IVORY}>
+                    Marfim
                   </option>
                 </select>
               </div>
@@ -1211,9 +1271,19 @@ function ReaderSettingsForm({
 
       <aside className="settings-page__aside">
         <div className="settings-page__summary">
-          <h2 className="settings-page__summary-title">
-            Resumo das preferências
-          </h2>
+          <header className="settings-page__summary-header">
+            <span className="settings-page__summary-eyebrow">
+              Visão geral
+            </span>
+
+            <h2 className="settings-page__summary-title">
+              Resumo das preferências
+            </h2>
+
+            <p className="settings-page__summary-description">
+              Suas escolhas atuais para a experiência de leitura.
+            </p>
+          </header>
 
           <div className="settings-page__summary-list">
             <div className="settings-page__summary-item">
@@ -1242,7 +1312,7 @@ function ReaderSettingsForm({
 
             <div className="settings-page__summary-item">
               <span className="settings-page__summary-label">
-                Fluxo
+                Fluxo de leitura
               </span>
 
               <strong className="settings-page__summary-value">
@@ -1267,7 +1337,7 @@ function ReaderSettingsForm({
 
             <div className="settings-page__summary-item">
               <span className="settings-page__summary-label">
-                Atalhos
+                Atalhos de teclado
               </span>
 
               <strong className="settings-page__summary-value">
@@ -1301,6 +1371,17 @@ function ReaderSettingsForm({
               </strong>
             </div>
           </div>
+
+          <footer className="settings-page__summary-footer">
+            <p className="settings-page__summary-quote">
+              “Uma boa configuração desaparece
+              enquanto você lê.”
+            </p>
+
+            <span className="settings-page__summary-signature">
+              HWEI
+            </span>
+          </footer>
         </div>
       </aside>
     </div>

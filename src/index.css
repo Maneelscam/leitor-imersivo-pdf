@@ -5,6 +5,13 @@
 @import "@/styles/themes/graphite-theme.css";
 @import "@/styles/themes/light-theme.css";
 @import "@/styles/themes/sepia-theme.css";
+@import "@/styles/themes/emerald-theme.css";
+@import "@/styles/themes/deep-night-theme.css";
+@import "@/styles/themes/copper-theme.css";
+@import "@/styles/themes/silver-theme.css";
+@import "@/styles/themes/ivory-theme.css";
+
+@import "@/styles/themes/theme-personalities-v1.css";
 
 @import "@/styles/base/reset.css";
 @import "@/styles/base/global.css";

@@ -175,6 +175,7 @@ import {
 } from '@/stores/useAppStore'
 
 import '@/styles/components/reader-page.css'
+import '@/styles/components/reader-premium-v11.css'
 
 const DEFAULT_PAGE_SCALE =
   READER_SETTINGS_CONFIG.defaults.customZoomScale

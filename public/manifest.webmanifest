@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "Leitor Imersivo PDF",
-  "short_name": "Leitor PDF",
-  "description": "Leitor de PDF moderno, imersivo, rápido e totalmente local.",
+  "name": "Hwei",
+  "short_name": "Hwei",
+  "description": "Biblioteca e leitor de PDF para leitura focada.",
   "lang": "pt-BR",
   "start_url": "./",
   "scope": "./",

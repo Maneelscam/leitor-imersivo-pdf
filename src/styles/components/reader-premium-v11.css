@@ -1,0 +1,833 @@
+/* HWEI READER PREMIUM V11
+   Refinamento puramente visual.
+   Nao altera renderizacao, navegacao, PDF, zoom,
+   progresso, anotacoes, busca ou persistencia.
+*/
+
+.reader-page {
+  gap: 0.75rem;
+}
+
+/* -------------------------------------------------------
+   Barra superior de leitura
+------------------------------------------------------- */
+
+.reader-page__toolbar {
+  min-height: 4.25rem;
+  padding:
+    0.625rem
+    0.75rem;
+
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(
+        in srgb,
+        var(--color-surface-overlay) 94%,
+        transparent
+      ),
+      color-mix(
+        in srgb,
+        var(--color-surface) 82%,
+        transparent
+      )
+    );
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-border-subtle) 78%,
+      var(--color-accent) 22%
+    );
+
+  border-radius: 1.125rem;
+
+  box-shadow:
+    0 1px 0
+    color-mix(
+      in srgb,
+      var(--color-text-primary) 4%,
+      transparent
+    ),
+    0 1rem 2.75rem
+    color-mix(
+      in srgb,
+      var(--color-background) 28%,
+      transparent
+    );
+
+  backdrop-filter:
+    blur(22px)
+    saturate(115%);
+}
+
+.reader-page__toolbar-primary {
+  gap: 0.875rem;
+}
+
+.reader-page__toolbar-group {
+  gap: 0.375rem;
+}
+
+.reader-page__book-info {
+  max-width: 24rem;
+  padding-left: 0.125rem;
+  gap: 0.2rem;
+}
+
+.reader-page__book-title {
+  font-family:
+    "Iowan Old Style",
+    "Palatino Linotype",
+    "Book Antiqua",
+    Palatino,
+    Georgia,
+    serif;
+
+  font-size: 0.96rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.reader-page__book-file {
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.reader-page__navigation {
+  min-height: 2.55rem;
+  padding: 0.2rem;
+  gap: 0.15rem;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-background-soft) 86%,
+      transparent
+    );
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-border-subtle) 86%,
+      var(--color-accent) 14%
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    color-mix(
+      in srgb,
+      var(--color-text-primary) 4%,
+      transparent
+    );
+}
+
+.reader-page__page-indicator {
+  min-width: 5.8rem;
+  padding:
+    0
+    0.7rem;
+  gap: 0.4rem;
+}
+
+.reader-page__page-indicator-current {
+  min-width: 2.2rem;
+  padding:
+    0.18rem
+    0.5rem;
+
+  color: var(--color-text-primary);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-surface) 88%,
+      transparent
+    );
+
+  border:
+    var(--border-width-thin)
+    solid
+    var(--color-border-subtle);
+
+  border-radius: 0.6rem;
+}
+
+.reader-page__page-indicator-separator,
+.reader-page__page-indicator-total {
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------
+   Grupos de zoom e rotacao
+------------------------------------------------------- */
+
+.reader-zoom-controls,
+.reader-rotation-controls {
+  height: 2.55rem;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-background-soft) 84%,
+      transparent
+    );
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-border-subtle) 88%,
+      var(--color-accent) 12%
+    );
+
+  border-radius: 0.8rem;
+
+  box-shadow:
+    inset 0 1px 0
+    color-mix(
+      in srgb,
+      var(--color-text-primary) 3%,
+      transparent
+    );
+}
+
+.reader-zoom-controls__button,
+.reader-rotation-controls__button {
+  width: 2.55rem;
+}
+
+.reader-zoom-controls__value,
+.reader-rotation-controls__value {
+  color: var(--color-text-primary);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.reader-zoom-controls__fit-button {
+  padding:
+    0
+    0.85rem;
+
+  font-size: 0.68rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* -------------------------------------------------------
+   Area principal de leitura
+------------------------------------------------------- */
+
+.reader-page__workspace {
+  background:
+    color-mix(
+      in srgb,
+      var(--color-reader-background) 96%,
+      var(--color-surface) 4%
+    );
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-border-subtle) 88%,
+      var(--color-accent) 12%
+    );
+
+  border-radius: 1.25rem;
+
+  box-shadow:
+    0 1px 0
+    color-mix(
+      in srgb,
+      var(--color-text-primary) 3%,
+      transparent
+    ),
+    0 1.35rem 4rem
+    color-mix(
+      in srgb,
+      var(--color-background) 28%,
+      transparent
+    );
+}
+
+.reader-page__workspace--with-panel {
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(19.5rem, 21.5rem);
+}
+
+.reader-page__stage {
+  padding:
+    clamp(
+      1.5rem,
+      3vw,
+      3.25rem
+    );
+
+  background:
+    radial-gradient(
+      circle at 50% -10rem,
+      color-mix(
+        in srgb,
+        var(--color-accent) 7%,
+        transparent
+      ),
+      transparent 31rem
+    ),
+    radial-gradient(
+      circle at 20% 30%,
+      color-mix(
+        in srgb,
+        var(--color-text-primary) 2.2%,
+        transparent
+      ),
+      transparent 28rem
+    ),
+    var(--color-reader-background);
+}
+
+.reader-page__document {
+  gap: 1.75rem;
+}
+
+.reader-page__document--double {
+  gap: clamp(
+    1rem,
+    1.5vw,
+    1.5rem
+  );
+}
+
+.reader-page__document--continuous {
+  gap: 2.25rem;
+}
+
+.reader-page__page {
+  border:
+    var(--border-width-thin)
+    solid
+    color-mix(
+      in srgb,
+      var(--color-border-subtle) 70%,
+      var(--color-text-primary) 8%
+    );
+
+  border-radius: 0.42rem;
+
+  box-shadow:
+    0 0.35rem 1rem
+    color-mix(
+      in srgb,
+      var(--color-background) 24%,
+      transparent
+    ),
+    var(--shadow-reader-page);
+}
+
+/* -------------------------------------------------------
+   Painel lateral
+------------------------------------------------------- */
+
+.reader-page__panel {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(
+        in srgb,
+        var(--color-surface-overlay) 96%,
+        transparent
+      ),
+      color-mix(
+        in srgb,
+        var(--color-surface) 90%,
+        transparent
+      )
+    );
+
+  border-left-color:
+    color-mix(
+      in srgb,
+      var(--color-border-subtle) 82%,
+      var(--color-accent) 18%
+    );
+
+  backdrop-filter:
+    blur(24px)
+    saturate(110%);
+}
+
+.reader-page__panel-header {
+  min-height: 4.25rem;
+  padding:
+    0.75rem
+    1rem;
+
+  border-bottom-color:
+    color-mix(
+      in srgb,
+      var(--color-border-subtle) 88%,
+      transparent
+    );
+}
+
+.reader-page__panel-title {
+  font-family:
+    "Iowan Old Style",
+    "Palatino Linotype",
+    "Book Antiqua",
+    Palatino,
+    Georgia,
+    serif;
+
+  font-size: 0.96rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.reader-page__panel-content {
+  padding: 0.875rem;
+}
+
+.reader-side-panel__heading {
+  gap: 0.7rem;
+}
+
+.reader-side-panel__heading-icon {
+  width: 2.35rem;
+  height: 2.35rem;
+
+  background:
+    radial-gradient(
+      circle at 30% 20%,
+      color-mix(
+        in srgb,
+        var(--color-accent) 18%,
+        transparent
+      ),
+      transparent 65%
+    ),
+    color-mix(
+      in srgb,
+      var(--color-background-soft) 88%,
+      transparent
+    );
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-accent) 34%,
+      var(--color-border-subtle)
+    );
+
+  border-radius: 0.8rem;
+}
+
+.reader-side-panel__eyebrow,
+.reader-side-panel__section-eyebrow {
+  font-size: 0.58rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.1em;
+  opacity: 0.78;
+}
+
+.reader-side-panel__section {
+  gap: 0.75rem;
+}
+
+.reader-side-panel__section
+  + .reader-side-panel__section {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+}
+
+.reader-side-panel__section--progress {
+  position: relative;
+
+  padding: 0.95rem;
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(
+        in srgb,
+        var(--color-accent) 5%,
+        transparent
+      ),
+      transparent 58%
+    ),
+    color-mix(
+      in srgb,
+      var(--color-background-soft) 88%,
+      transparent
+    );
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-border-subtle) 80%,
+      var(--color-accent) 20%
+    );
+
+  border-radius: 0.9rem;
+
+  box-shadow:
+    inset 0 1px 0
+    color-mix(
+      in srgb,
+      var(--color-text-primary) 3%,
+      transparent
+    );
+}
+
+.reader-side-panel__section--progress::before {
+  position: absolute;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  left: 0;
+
+  width: 2px;
+
+  content: "";
+
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      var(--color-accent),
+      transparent
+    );
+
+  border-radius: var(--radius-full);
+}
+
+.reader-side-panel__section-title {
+  font-family:
+    "Iowan Old Style",
+    "Palatino Linotype",
+    "Book Antiqua",
+    Palatino,
+    Georgia,
+    serif;
+
+  font-size: 0.94rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.reader-side-panel__progress-value {
+  font-family:
+    "Iowan Old Style",
+    "Palatino Linotype",
+    "Book Antiqua",
+    Palatino,
+    Georgia,
+    serif;
+
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.reader-side-panel__progress-page {
+  font-size: 0.66rem;
+}
+
+.reader-side-panel__progress-track {
+  height: 0.28rem;
+}
+
+.reader-side-panel__progress-bar {
+  box-shadow:
+    0 0 1rem
+    color-mix(
+      in srgb,
+      var(--color-accent) 26%,
+      transparent
+    );
+}
+
+/* -------------------------------------------------------
+   Navegacao interna do painel
+------------------------------------------------------- */
+
+.reader-side-panel__navigation {
+  padding: 0.22rem;
+  gap: 0.18rem;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-background-soft) 72%,
+      transparent
+    );
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-border-subtle) 88%,
+      transparent
+    );
+
+  border-radius: 0.85rem;
+}
+
+.reader-side-panel__navigation-button {
+  min-height: 3.15rem;
+  padding:
+    0.4rem
+    0.15rem;
+
+  border-radius: 0.68rem;
+}
+
+.reader-side-panel__navigation-button--active {
+  color: var(--color-text-primary);
+
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(
+        in srgb,
+        var(--color-accent) 13%,
+        transparent
+      ),
+      color-mix(
+        in srgb,
+        var(--color-accent) 6%,
+        transparent
+      )
+    );
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-accent) 42%,
+      var(--color-border-subtle)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    color-mix(
+      in srgb,
+      var(--color-text-primary) 4%,
+      transparent
+    );
+}
+
+.reader-side-panel__navigation-button--active
+  .reader-side-panel__navigation-icon {
+  color: var(--color-accent);
+}
+
+.reader-side-panel__navigation-label {
+  font-size: 0.58rem;
+  letter-spacing: -0.01em;
+}
+
+/* -------------------------------------------------------
+   Sumario
+------------------------------------------------------- */
+
+.reader-outline {
+  gap: 0.7rem;
+}
+
+.reader-outline__header {
+  padding:
+    0
+    0.1rem
+    0.25rem;
+}
+
+.reader-outline__title-icon {
+  width: 1.85rem;
+  height: 1.85rem;
+
+  color: var(--color-accent);
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-accent) 7%,
+      var(--color-background-soft)
+    );
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-accent) 22%,
+      var(--color-border-subtle)
+    );
+
+  border-radius: 0.62rem;
+}
+
+.reader-outline__title {
+  font-family:
+    "Iowan Old Style",
+    "Palatino Linotype",
+    "Book Antiqua",
+    Palatino,
+    Georgia,
+    serif;
+
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.reader-outline__count {
+  min-width: 1.65rem;
+  height: 1.4rem;
+
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-background-soft) 76%,
+      transparent
+    );
+}
+
+.reader-outline__list {
+  gap: 0.18rem;
+}
+
+.reader-outline__open-button {
+  position: relative;
+
+  padding:
+    0.55rem
+    0.62rem;
+
+  border-radius: 0.65rem;
+}
+
+.reader-outline__open-button--current {
+  color: var(--color-text-primary);
+
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(
+        in srgb,
+        var(--color-accent) 9%,
+        transparent
+      ),
+      transparent 78%
+    );
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--color-accent) 20%,
+      transparent
+    );
+}
+
+.reader-outline__open-button--current::before {
+  position: absolute;
+  top: 0.52rem;
+  bottom: 0.52rem;
+  left: 0.18rem;
+
+  width: 2px;
+
+  content: "";
+  background: var(--color-accent);
+  border-radius: var(--radius-full);
+}
+
+.reader-outline__item-title {
+  font-size: 0.68rem;
+  line-height: 1.38;
+}
+
+.reader-outline__page {
+  min-width: 1.65rem;
+  min-height: 1.3rem;
+
+  font-size: 0.6rem;
+
+  background:
+    color-mix(
+      in srgb,
+      var(--color-background-soft) 78%,
+      transparent
+    );
+
+  border-radius: 0.4rem;
+}
+
+/* -------------------------------------------------------
+   Responsividade
+------------------------------------------------------- */
+
+@media (max-width: 90rem) {
+  .reader-page__workspace--with-panel {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(18rem, 20rem);
+  }
+
+  .reader-page__book-info {
+    max-width: 18rem;
+  }
+}
+
+@media (max-width: 64rem) {
+  .reader-page__workspace--with-panel {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(16rem, 18rem);
+  }
+
+  .reader-page__toolbar {
+    border-radius: 1rem;
+  }
+
+  .reader-page__workspace {
+    border-radius: 1rem;
+  }
+}
+
+@media (max-width: 48rem) {
+  .reader-page {
+    gap: 0.5rem;
+  }
+
+  .reader-page__toolbar {
+    padding: 0.5rem;
+  }
+
+  .reader-page__stage {
+    padding:
+      clamp(
+        0.75rem,
+        3vw,
+        1.25rem
+      );
+  }
+
+  .reader-page__panel-content {
+    padding: 0.75rem;
+  }
+
+  .reader-side-panel__section--progress {
+    padding: 0.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reader-page__toolbar,
+  .reader-side-panel__progress-bar {
+    transition: none;
+  }
+}

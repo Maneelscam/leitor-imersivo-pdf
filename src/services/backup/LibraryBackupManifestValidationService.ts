@@ -1,6 +1,22 @@
 import {
   APP_CONFIG,
 } from '@/app/config/app.config'
+
+const LEGACY_APPLICATION_NAMES = new Set<string>([
+  'Leitor Imersivo de PDF',
+])
+
+function isCompatibleApplicationName(
+  applicationName: string,
+): boolean {
+  return (
+    applicationName === APP_CONFIG.name ||
+    LEGACY_APPLICATION_NAMES.has(
+      applicationName,
+    )
+  )
+}
+
 import {
   LIBRARY_BACKUP_FORMAT,
   LIBRARY_BACKUP_FORMAT_VERSION_V1,
@@ -596,11 +612,12 @@ function validateApplicationCompatibility(
   manifest: LibraryBackupManifest,
 ): void {
   if (
-    manifest.application.name !==
-    APP_CONFIG.name
+    !isCompatibleApplicationName(
+      manifest.application.name,
+    )
   ) {
     throw new Error(
-      'O arquivo selecionado não pertence ao Leitor Imersivo de PDF.',
+      'Este arquivo não é um backup compatível com Hwei.',
     )
   }
 

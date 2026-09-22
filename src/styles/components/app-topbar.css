@@ -125,3 +125,47 @@
     font-size: var(--font-size-md);
   }
 }
+
+/* HWEI BRAND SHELL V1 — topbar */
+
+.app-topbar__title {
+  font-family:
+    "Iowan Old Style",
+    "Palatino Linotype",
+    "Book Antiqua",
+    Palatino,
+    Georgia,
+    serif;
+  font-size: 1.2rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.035em;
+}
+
+.app-topbar__heading {
+  gap: 0.1rem;
+}
+
+@media (max-width: 30rem) {
+  .app-topbar__title {
+    font-size: 1.08rem;
+  }
+}
+
+/* HWEI ROUTE TOPBAR V1 */
+
+.app-topbar__title {
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.01em;
+}
+
+.app-topbar__heading {
+  justify-content: center;
+}
+
+@media (max-width: 30rem) {
+  .app-topbar__title {
+    font-size: var(--font-size-sm);
+  }
+}

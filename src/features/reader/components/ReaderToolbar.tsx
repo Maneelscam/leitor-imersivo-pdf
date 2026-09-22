@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState,
   type HTMLAttributes,
   type ReactNode,
@@ -262,27 +263,35 @@ export function ReaderToolbar({
       ? originalFileName.trim()
       : 'Arquivo PDF'
 
-  const [
-    pageInputValue,
-    setPageInputValue,
-  ] = useState(() =>
-    normalizedCurrentPage > 0
-      ? String(normalizedCurrentPage)
-      : '',
-  )
+  const pageInputRef =
+    useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    setPageInputValue(
+  const synchronizePageInput = () => {
+    if (pageInputRef.current === null) {
+      return
+    }
+
+    pageInputRef.current.value =
       normalizedCurrentPage > 0
         ? String(normalizedCurrentPage)
-        : '',
-    )
+        : ''
+  }
+
+  useEffect(() => {
+    if (pageInputRef.current === null) {
+      return
+    }
+
+    pageInputRef.current.value =
+      normalizedCurrentPage > 0
+        ? String(normalizedCurrentPage)
+        : ''
   }, [normalizedCurrentPage])
 
   const submitPageNumber = () => {
     const parsedPageNumber =
       Number.parseInt(
-        pageInputValue,
+        pageInputRef.current?.value ?? '',
         10,
       )
 
@@ -290,11 +299,7 @@ export function ReaderToolbar({
       !Number.isFinite(parsedPageNumber) ||
       normalizedTotalPages <= 0
     ) {
-      setPageInputValue(
-        normalizedCurrentPage > 0
-          ? String(normalizedCurrentPage)
-          : '',
-      )
+      synchronizePageInput()
       return
     }
 
@@ -304,9 +309,10 @@ export function ReaderToolbar({
         normalizedTotalPages,
       )
 
-    setPageInputValue(
-      String(targetPage),
-    )
+    if (pageInputRef.current !== null) {
+      pageInputRef.current.value =
+        String(targetPage)
+    }
 
     if (
       targetPage !==
@@ -494,7 +500,12 @@ export function ReaderToolbar({
                 ? normalizedTotalPages
                 : 1
             }
-            value={pageInputValue}
+            ref={pageInputRef}
+            defaultValue={
+              normalizedCurrentPage > 0
+                ? String(normalizedCurrentPage)
+                : ''
+            }
             disabled={
               navigationDisabled ||
               normalizedTotalPages <= 0
@@ -504,20 +515,7 @@ export function ReaderToolbar({
                 ? `Página atual. Digite um número de 1 a ${normalizedTotalPages} e pressione Enter.`
                 : 'Página indisponível'
             }
-            onChange={(event) => {
-              setPageInputValue(
-                event.target.value,
-              )
-            }}
-            onBlur={() => {
-              setPageInputValue(
-                normalizedCurrentPage > 0
-                  ? String(
-                      normalizedCurrentPage,
-                    )
-                  : '',
-              )
-            }}
+            onBlur={synchronizePageInput}
           />
 
           <span

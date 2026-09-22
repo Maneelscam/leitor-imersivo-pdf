@@ -13,8 +13,6 @@ export interface AppTopbarProps
 
   readonly actions?: ReactNode
 
-  readonly showLocalStatus?: boolean
-  readonly localStatusLabel?: string
 }
 
 export function AppTopbar({
@@ -22,30 +20,20 @@ export function AppTopbar({
   title,
   description,
   actions,
-  showLocalStatus = true,
-  localStatusLabel = 'Funcionamento local',
   className,
   ...containerProps
 }: AppTopbarProps) {
   const normalizedEyebrow = eyebrow?.trim()
   const normalizedTitle = title.trim()
   const normalizedDescription = description?.trim()
-  const normalizedStatusLabel =
-    localStatusLabel.trim()
-
-  const hasEyebrow =
+const hasEyebrow =
     normalizedEyebrow !== undefined &&
     normalizedEyebrow.length > 0
 
   const hasDescription =
     normalizedDescription !== undefined &&
     normalizedDescription.length > 0
-
-  const hasLocalStatus =
-    showLocalStatus &&
-    normalizedStatusLabel.length > 0
-
-  const classNames = ['app-topbar']
+const classNames = ['app-topbar']
 
   if (
     className !== undefined &&
@@ -77,24 +65,8 @@ export function AppTopbar({
         )}
       </div>
 
-      {(hasLocalStatus || actions !== undefined) && (
+      {actions !== undefined && (
         <div className="app-topbar__actions">
-          {hasLocalStatus && (
-            <div
-              className="app-topbar__status"
-              role="status"
-              aria-label={normalizedStatusLabel}
-            >
-              <span
-                className="app-topbar__status-indicator"
-                aria-hidden="true"
-              />
-
-              <span className="app-topbar__status-label">
-                {normalizedStatusLabel}
-              </span>
-            </div>
-          )}
 
           {actions}
         </div>

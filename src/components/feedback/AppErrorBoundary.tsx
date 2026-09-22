@@ -4,6 +4,8 @@ import {
   type ReactNode,
 } from 'react'
 
+
+import { APP_CONFIG } from '@/app/config/app.config'
 import '@/styles/components/app-error-boundary.css'
 
 export interface AppErrorBoundaryProps {
@@ -78,7 +80,7 @@ export class AppErrorBoundary extends Component<
 
           <div className="app-error-boundary__content">
             <p className="app-error-boundary__eyebrow">
-              Leitor Imersivo
+              {APP_CONFIG.shortName}
             </p>
 
             <h1 className="app-error-boundary__title">

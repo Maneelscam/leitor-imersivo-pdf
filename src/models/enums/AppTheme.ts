@@ -4,6 +4,11 @@ export const AppTheme = {
   GRAPHITE: 'graphite',
   LIGHT: 'light',
   SEPIA: 'sepia',
+  EMERALD: 'emerald',
+  DEEP_NIGHT: 'deep-night',
+  COPPER: 'copper',
+  SILVER: 'silver',
+  IVORY: 'ivory',
 } as const
 
 export type AppTheme =
